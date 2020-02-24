@@ -14,6 +14,7 @@
     <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.3.5" />
     <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="10.3.5" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="3.1.2" />
+    <PackageReference Include="Microsoft.Azure.SignalR" Version="1.4.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FlightEvents.Common\FlightEvents.Common.csproj" />
     <ProjectReference Include="..\FlightEvents.Data.JsonFile\FlightEvents.Data.JsonFile.csproj" />
     <ProjectReference Include="..\FlightEvents.Data\FlightEvents.Data.csproj" />
     <ProjectReference Include="..\FlightEvents.Web.GraphQL\FlightEvents.Web.GraphQL.csproj" />

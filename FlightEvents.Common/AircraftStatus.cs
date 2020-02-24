@@ -1,4 +1,4 @@
-﻿namespace FlightEvents.Client.Logics
+﻿namespace FlightEvents
 {
     public class AircraftStatus
     {

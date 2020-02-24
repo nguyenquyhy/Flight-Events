@@ -4,9 +4,30 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FlightEvents.Client"
-        mc:Ignorable="d"
-        Title="Flight Events" Height="450" Width="800">
-    <Grid>
+        mc:Ignorable="d" Loaded="Window_Loaded"
+        Title="Flight Events" Height="200" Width="300">
+    
+    <Grid Margin="10">
+        <Grid.Resources>
+            <Style TargetType="TextBlock">
+                <Setter Property="Margin" Value="5" />
+            </Style>
+        </Grid.Resources>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="SimConnect" Grid.Row="0" Grid.Column="0" />
+        <TextBlock Text="{Binding SimConnectionState}" Grid.Row="0" Grid.Column="1" />
+
         
     </Grid>
 </Window>

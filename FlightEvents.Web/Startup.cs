@@ -1,5 +1,6 @@
 using FlightEvents.Data;
 using FlightEvents.Web.GraphQL;
+using FlightEvents.Web.Hubs;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
@@ -41,6 +42,8 @@ namespace FlightEvents.Web
             {
                 configuration.RootPath = "ClientApp/build";
             });
+
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -73,6 +76,8 @@ namespace FlightEvents.Web
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
+
+                endpoints.MapHub<FlightEventHub>("/FlightEventHub");
             });
 
             app.UseSpa(spa =>

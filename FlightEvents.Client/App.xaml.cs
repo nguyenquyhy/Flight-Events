@@ -50,10 +50,7 @@ namespace FlightEvents.Client
                 .CreateLogger();
 
             services.AddOptions();
-            //services.Configure<AppSettings>((appSettings) =>
-            //{
-            //    Configuration.GetSection("AppSettings").Bind(appSettings);
-            //});
+            services.Configure<AppSettings>(Configuration);
             services.AddLogging(configure =>
             {
                 configure.AddSerilog();
@@ -89,14 +86,14 @@ namespace FlightEvents.Client
             {
                 try
                 {
-                    //viewModel.SimConnectionState = ConnectionState.Connecting;
+                    viewModel.SimConnectionState = ConnectionState.Connecting;
                     simConnect.Initialize(Handle);
-                    //viewModel.SimConnectionState = ConnectionState.Connected;
+                    viewModel.SimConnectionState = ConnectionState.Connected;
                     break;
                 }
                 catch (COMException)
                 {
-                    //viewModel.SimConnectionState = ConnectionState.Failed;
+                    viewModel.SimConnectionState = ConnectionState.Failed;
                     await Task.Delay(5000).ConfigureAwait(true);
                 }
             }
@@ -106,7 +103,7 @@ namespace FlightEvents.Client
         {
             var simConnect = sender as SimConnectFlightConnector;
             var viewModel = ServiceProvider.GetService<MainViewModel>();
-            //viewModel.SimConnectionState = ConnectionState.Idle;
+            viewModel.SimConnectionState = ConnectionState.Idle;
 
             await InitializeSimConnectAsync(simConnect, viewModel).ConfigureAwait(true);
         }

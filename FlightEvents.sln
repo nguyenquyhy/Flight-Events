@@ -17,9 +17,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{87EA62
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{E85E75DB-4CF7-460F-8D5E-F68626121278}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightEvents.Client.Logics", "FlightEvents.Client.Logics\FlightEvents.Client.Logics.csproj", "{3AE627CF-9E7C-4D28-936E-6C078AB48870}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightEvents.Client.Logics", "FlightEvents.Client.Logics\FlightEvents.Client.Logics.csproj", "{3AE627CF-9E7C-4D28-936E-6C078AB48870}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightEvents.Client.SimConnectFSX", "FlightEvents.Client.SimConnectFSX\FlightEvents.Client.SimConnectFSX.csproj", "{35D9FCAC-72B4-4356-BE5E-EC9DBAAB6E78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightEvents.Common", "FlightEvents.Common\FlightEvents.Common.csproj", "{821A8906-8571-4A28-926D-07B78BE21E26}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +57,10 @@ Global
 		{35D9FCAC-72B4-4356-BE5E-EC9DBAAB6E78}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35D9FCAC-72B4-4356-BE5E-EC9DBAAB6E78}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35D9FCAC-72B4-4356-BE5E-EC9DBAAB6E78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{821A8906-8571-4A28-926D-07B78BE21E26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{821A8906-8571-4A28-926D-07B78BE21E26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{821A8906-8571-4A28-926D-07B78BE21E26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{821A8906-8571-4A28-926D-07B78BE21E26}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

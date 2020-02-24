@@ -1,4 +1,7 @@
 ﻿using FlightEvents.Client.Logics;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Options;
+using System;
 using System.Windows;
 using System.Windows.Input;
 
@@ -9,36 +12,49 @@ namespace FlightEvents.Client
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow(IFlightConnector flightConnector)
+        private readonly MainViewModel viewModel;
+
+        private readonly HubConnection hub;
+
+        public MainWindow(IFlightConnector flightConnector, MainViewModel viewModel, IOptions<AppSettings> appSettings)
         {
             InitializeComponent();
             flightConnector.AircraftStatusUpdated += FlightConnector_AircraftStatusUpdated;
+
+            DataContext = viewModel;
+            this.viewModel = viewModel;
+
+            hub = new HubConnectionBuilder()
+                .WithUrl(appSettings.Value.WebServerUrl + "/FlightEventHub")
+                .WithAutomaticReconnect()
+                .Build();
         }
+
+        DateTime last = DateTime.Now;
 
         private async void FlightConnector_AircraftStatusUpdated(object sender, AircraftStatusUpdatedEventArgs e)
         {
-            //viewModel.FlightStatus = e.FlightStatus;
+            if (hub?.ConnectionId != null && DateTime.Now - last > TimeSpan.FromSeconds(2))
+            {
+                last = DateTime.Now;
+                await hub.SendAsync("UpdateAircraft", hub.ConnectionId, e.AircraftStatus);
+                last = DateTime.Now;
+            }
 
-            //if (isReady)
-            //{
-            //    try
-            //    {
-            //        var gpsData = Encoding.UTF8.GetBytes($"XGPSFS2020,{e.FlightStatus.Longitude},{e.FlightStatus.Latitude},{e.FlightStatus.Altitude},{e.FlightStatus.Heading},{e.FlightStatus.IndicatedAirSpeed}");
-            //        var statusData = Encoding.UTF8.GetBytes($"XATTFS2020,{e.FlightStatus.TrueHeading},{e.FlightStatus.Pitch},{e.FlightStatus.Bank}");
-            //        await client?.SendAsync(gpsData, gpsData.Length);
-            //        await client?.SendAsync(statusData, statusData.Length);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        logger.LogError(ex, "Cannot send flight status!");
-            //    }
-            //}
+            viewModel.AircraftStatus = null;
+            viewModel.AircraftStatus = e.AircraftStatus;
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
                 this.DragMove();
+        }
+
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+
+            await hub.StartAsync();
         }
     }
 }
