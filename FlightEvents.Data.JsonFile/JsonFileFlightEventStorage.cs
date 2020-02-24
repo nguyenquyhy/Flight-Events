@@ -11,10 +11,12 @@ namespace FlightEvents.Data
     public class JsonFileFlightEventStorage : IFlightEventStorage
     {
         private readonly string filePath;
+        private readonly RandomStringGenerator randomStringGenerator;
 
-        public JsonFileFlightEventStorage(string filePath)
+        public JsonFileFlightEventStorage(string filePath, RandomStringGenerator randomStringGenerator)
         {
             this.filePath = filePath;
+            this.randomStringGenerator = randomStringGenerator;
         }
 
         public async Task<IEnumerable<FlightEvent>> GetAllAsync() => await LoadAsync();
@@ -23,6 +25,10 @@ namespace FlightEvents.Data
 
         public async Task<FlightEvent> AddAsync(FlightEvent flightEvent)
         {
+            flightEvent.Id = Guid.NewGuid();
+            flightEvent.CreatedDateTime = DateTimeOffset.UtcNow;
+            flightEvent.Code = randomStringGenerator.Generate(8);
+
             var events = await LoadAsync();
             events.Add(flightEvent);
             await SaveAsync(events);
@@ -38,11 +44,12 @@ namespace FlightEvents.Data
             return flightEvent;
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task<bool> DeleteAsync(Guid id)
         {
             var events = await LoadAsync();
-            events.RemoveAll(o => o.Id == id);
+            var result = events.RemoveAll(o => o.Id == id);
             await SaveAsync(events);
+            return result > 0;
         }
 
         private readonly SemaphoreSlim sm = new SemaphoreSlim(1);

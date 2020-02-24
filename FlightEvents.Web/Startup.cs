@@ -2,6 +2,7 @@ using FlightEvents.Data;
 using FlightEvents.Web.GraphQL;
 using HotChocolate;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Voyager;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
@@ -23,11 +24,13 @@ namespace FlightEvents.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IFlightEventStorage>(new JsonFileFlightEventStorage("flights.json"));
+            services.AddSingleton<RandomStringGenerator>();
+            services.AddSingleton<IFlightEventStorage>(sp => new JsonFileFlightEventStorage("events.json", sp.GetService<RandomStringGenerator>()));
 
             services.AddGraphQL(
                 SchemaBuilder.New()
                     .AddQueryType<QueryType>()
+                    .AddMutationType<MutationType>()
                     );
 
 
@@ -60,7 +63,10 @@ namespace FlightEvents.Web
 
             app.UseRouting();
 
-            app.UseGraphQL();
+            app
+                .UseGraphQL("/graphql")
+                .UsePlayground("/graphql")
+                .UseVoyager("/graphql");
 
             app.UseEndpoints(endpoints =>
             {

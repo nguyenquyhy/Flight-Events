@@ -10,6 +10,6 @@ namespace FlightEvents.Data
         Task<FlightEvent> GetByCodeAsync(string code);
         Task<FlightEvent> AddAsync(FlightEvent flightEvent);
         Task<FlightEvent> UpdateAsync(FlightEvent flightEvent);
-        Task DeleteAsync(Guid id);
+        Task<bool> DeleteAsync(Guid id);
     }
 }
