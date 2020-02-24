@@ -1,0 +1,104 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace FlightEvents.Data
+{
+    public class JsonFileFlightEventStorage : IFlightEventStorage
+    {
+        private readonly string filePath;
+
+        public JsonFileFlightEventStorage(string filePath)
+        {
+            this.filePath = filePath;
+        }
+
+        public async Task<IEnumerable<FlightEvent>> GetAllAsync() => await LoadAsync();
+
+        public async Task<FlightEvent> GetByCodeAsync(string code) => (await LoadAsync()).FirstOrDefault(o => o.Code == code);
+
+        public async Task<FlightEvent> AddAsync(FlightEvent flightEvent)
+        {
+            var events = await LoadAsync();
+            events.Add(flightEvent);
+            await SaveAsync(events);
+            return flightEvent;
+        }
+
+        public async Task<FlightEvent> UpdateAsync(FlightEvent flightEvent)
+        {
+            var events = await LoadAsync();
+            events.RemoveAll(o => o.Id == flightEvent.Id);
+            events.Add(flightEvent);
+            await SaveAsync(events);
+            return flightEvent;
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            var events = await LoadAsync();
+            events.RemoveAll(o => o.Id == id);
+            await SaveAsync(events);
+        }
+
+        private readonly SemaphoreSlim sm = new SemaphoreSlim(1);
+
+        private List<FlightEvent> flightEvents = null;
+
+        private async Task<List<FlightEvent>> LoadAsync()
+        {
+            try
+            {
+                await sm.WaitAsync();
+
+                if (flightEvents == null)
+                {
+                    if (File.Exists(filePath))
+                    {
+                        using var file = File.OpenRead(filePath);
+                        flightEvents = await JsonSerializer.DeserializeAsync<List<FlightEvent>>(file);
+                    }
+                    else
+                    {
+                        flightEvents = new List<FlightEvent>();
+                    }
+                }
+
+                return flightEvents.ToList();
+            }
+            finally
+            {
+                sm.Release();
+            }
+        }
+
+        private async Task SaveAsync(List<FlightEvent> events)
+        {
+            if (events == null) throw new ArgumentNullException(nameof(events));
+
+
+            try
+            {
+                await sm.WaitAsync();
+
+                flightEvents = events;
+
+                if (File.Exists(filePath))
+                {
+                    File.Move(filePath, filePath + ".bak", true);
+                }
+
+                using var file = File.OpenWrite(filePath);
+                await JsonSerializer.SerializeAsync(file, flightEvents);
+            }
+            finally
+            {
+                sm.Release();
+            }
+        }
+    }
+}
