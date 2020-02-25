@@ -6,7 +6,6 @@ import * as signalr from '@microsoft/signalr';
 import { AircraftStatus } from '../Models';
 import AircraftList from './AircraftList';
 
-
 enum MapTileType {
     OpenStreetMap,
     OpenTopoMap,
@@ -15,6 +14,7 @@ enum MapTileType {
 
 interface State {
     aircrafts: { [connectionId: string]: AircraftStatus };
+    followingConnectionId: string | null;
 }
 
 export class Home extends React.Component<any, State> {
@@ -28,13 +28,15 @@ export class Home extends React.Component<any, State> {
         super(props);
 
         this.state = {
-            aircrafts: {}
+            aircrafts: {},
+            followingConnectionId: null
         }
 
         this.handleAircraftClick = this.handleAircraftClick.bind(this);
         this.handleOpenStreetMap = this.handleOpenStreetMap.bind(this);
         this.handleOpenTopoMap = this.handleOpenTopoMap.bind(this);
         this.handleEsriWorld = this.handleEsriWorld.bind(this);
+        this.handleFollowingChanged = this.handleFollowingChanged.bind(this);
     }
 
     componentDidMount() {
@@ -58,10 +60,17 @@ export class Home extends React.Component<any, State> {
                     ...this.state.aircrafts,
                     [connectionId]: aircraftStatus
                 }
-            })
+            });
+
+            let latlng: L.LatLngExpression = [aircraftStatus.latitude, aircraftStatus.longitude];
+
+            if (Object.keys(this.markers).length === 0) {
+                this.mymap.setView(latlng, 11);
+            } else if (connectionId === this.state.followingConnectionId) {
+                this.mymap.setView(latlng, this.mymap.getZoom());
+            }
 
             let marker = this.markers[connectionId];
-            let latlng: L.LatLngExpression = [aircraftStatus.latitude, aircraftStatus.longitude];
             if (marker) {
                 marker.setLatLng(latlng);
             } else {
@@ -119,7 +128,7 @@ export class Home extends React.Component<any, State> {
     private handleAircraftClick(connectionId: string, aircraftStatus: AircraftStatus) {
         if (this.mymap) {
             let latlng: L.LatLngExpression = [aircraftStatus.latitude, aircraftStatus.longitude];
-            this.mymap.setView(latlng, 12);
+            this.mymap.setView(latlng, this.mymap.getZoom());
         }
     }
 
@@ -135,6 +144,10 @@ export class Home extends React.Component<any, State> {
         this.setTileLayer(MapTileType.EsriWorld);
     }
 
+    private handleFollowingChanged(connectionId: string | null) {
+        this.setState({ followingConnectionId: connectionId });
+    }
+
     render() {
         return <>
             <div id="mapid" style={{ height: '100%' }}></div>
@@ -143,7 +156,8 @@ export class Home extends React.Component<any, State> {
                 <button onClick={this.handleOpenTopoMap}>OpenTopoMap</button>
                 <button onClick={this.handleEsriWorld}>Esri</button>
             </LayerWrapper>
-            <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick} />
+            <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
+                onFollowingChanged={this.handleFollowingChanged} followingConnectionId={this.state.followingConnectionId} />
         </>;
     }
 }

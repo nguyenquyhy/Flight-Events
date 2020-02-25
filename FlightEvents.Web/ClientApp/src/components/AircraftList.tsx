@@ -5,20 +5,32 @@ import { AircraftStatus } from '../Models';
 interface Props {
     aircrafts: { [connectionId: string]: AircraftStatus };
     onAircraftClick: (connectionId: string, aircraft: AircraftStatus) => void;
+
+    followingConnectionId: string | null;
+    onFollowingChanged: (connectionId: string | null) => void;
 }
 
 export default class AircraftList extends React.Component<Props> {
     static displayName = AircraftList.name;
 
+    handleFollowChanged(connectionId: string) {
+        if (this.props.followingConnectionId === connectionId) {
+            this.props.onFollowingChanged(null);
+        } else {
+            this.props.onFollowingChanged(connectionId);
+        }
+    }
+
     public render() {
         const list = Object.keys(this.props.aircrafts).map(connectionId => (
-            <ListItem key={connectionId} onClick={() => this.props.onAircraftClick(connectionId, this.props.aircrafts[connectionId])}>
-                {this.props.aircrafts[connectionId].callsign || connectionId.substring(5)}
+            <ListItem key={connectionId}>
+                <a href="#" onClick={() => this.props.onAircraftClick(connectionId, this.props.aircrafts[connectionId])}>{this.props.aircrafts[connectionId].callsign || connectionId.substring(5)}</a>
+                <label><input type="checkbox" checked={this.props.followingConnectionId == connectionId} onChange={() => this.handleFollowChanged(connectionId)} /> Follow</label>
             </ListItem>
         ));
 
         return <Wrapper>
-            <strong>Aircrafts</strong>
+            <strong><em>Aircrafts</em></strong>
             <List>{list}</List>
         </Wrapper>
     }
@@ -39,5 +51,8 @@ padding: 0;
 `
 
 const ListItem = styled.li`
-cursor: hand;
+a {
+display: block;
+font-weight: bold;
+}
 `
