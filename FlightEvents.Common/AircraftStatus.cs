@@ -2,6 +2,8 @@
 {
     public class AircraftStatus
     {
+        public string Callsign { get; set; }
+
         public double SimTime { get; set; }
         public int? LocalTime { get; set; }
         public int? ZuluTime { get; set; }

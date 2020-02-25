@@ -22,12 +22,17 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
 
         <TextBlock Text="SimConnect" Grid.Row="0" Grid.Column="0" />
         <TextBlock Text="{Binding SimConnectionState}" Grid.Row="0" Grid.Column="1" />
 
-        
+        <TextBlock Text="Server" Grid.Row="1" Grid.Column="0" />
+        <TextBlock Text="{Binding HubConnectionState}" Grid.Row="1" Grid.Column="1" />
+
+        <TextBlock Text="Callsign" Grid.Row="2" Grid.Column="0" />
+        <TextBox Text="{Binding Callsign, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="2" Grid.Column="1" MaxLength="10" />
     </Grid>
 </Window>
