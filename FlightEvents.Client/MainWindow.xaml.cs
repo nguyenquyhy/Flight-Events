@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Options;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -33,6 +34,8 @@ namespace FlightEvents.Client
             hub.Closed += Hub_Closed;
             hub.Reconnecting += Hub_Reconnecting;
             hub.Reconnected += Hub_Reconnected;
+
+            TextURL.Text = appSettings.Value.WebServerUrl;
         }
 
         private Task Hub_Reconnected(string arg)
@@ -81,6 +84,21 @@ namespace FlightEvents.Client
             viewModel.HubConnectionState = ConnectionState.Connecting;
             await hub.StartAsync();
             viewModel.HubConnectionState = ConnectionState.Connected;
+        }
+
+        private void TextURL_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = TextURL.Text,
+                    UseShellExecute = true
+                });
+            }
+            catch {
+            
+            }
         }
     }
 }

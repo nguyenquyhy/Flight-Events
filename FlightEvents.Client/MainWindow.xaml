@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FlightEvents.Client"
         mc:Ignorable="d" Loaded="Window_Loaded"
-        Title="Flight Events" Height="200" Width="300">
+        Title="Flight Events" Height="200" Width="300" ResizeMode="NoResize">
     
     <Grid Margin="10">
         <Grid.Resources>
@@ -34,5 +34,9 @@
 
         <TextBlock Text="Callsign" Grid.Row="2" Grid.Column="0" />
         <TextBox Text="{Binding Callsign, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="2" Grid.Column="1" MaxLength="10" />
+
+        <TextBlock x:Name="TextURL" Text="https://localhost" 
+                   TextDecorations="Underline" Foreground="Blue" Grid.ColumnSpan="2" Grid.Row="10" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                   MouseDown="TextURL_MouseDown"/>
     </Grid>
 </Window>
