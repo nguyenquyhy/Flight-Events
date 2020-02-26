@@ -2,6 +2,7 @@
 import styled from 'styled-components';
 import Panel from './Controls/Panel';
 import { FlightEvent } from '../Models';
+import EventItem from './EventItem';
 
 interface State {
     flightEvents: FlightEvent[]
@@ -51,13 +52,11 @@ export default class EventList extends React.Component<any, State> {
 
     public render() {
         const list = this.state.flightEvents.length === 0 ?
-            <div><em>None</em></div> :
-            this.state.flightEvents.map(event => (
-            <ListItem key={event.id}>{event.name}</ListItem>
-        ))
+            <NoneText>None</NoneText> :
+            this.state.flightEvents.map(flightEvent => <EventItem key={flightEvent.id} flightEvent={flightEvent} />)
 
         return <Wrapper>
-            <strong><em>Events</em></strong>
+            <Title>Events</Title>
             <List>{list}</List>
         </Wrapper>
     }
@@ -70,11 +69,17 @@ right: 10px;
 z-index: 10000;
 `
 
+const Title = styled.div`
+margin: 10px 10px 0px 10px;
+font-weight: bold;
+font-style: italic;
+`
+
+const NoneText = styled.div`
+margin: 0 10px;
+`
+
 const List = styled.ul`
 list-style: none;
 padding: 0;
-`
-
-const ListItem = styled.li`
-
 `

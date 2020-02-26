@@ -16,7 +16,13 @@ enum MapTileType {
 
 interface State {
     aircrafts: { [connectionId: string]: AircraftStatus };
+    myConnectionId: string | null;
     followingConnectionId: string | null;
+}
+
+interface Markers {
+    aircraft: L.Marker<any>
+    info: L.Marker<any>
 }
 
 export class Home extends React.Component<any, State> {
@@ -24,13 +30,14 @@ export class Home extends React.Component<any, State> {
 
     mymap: L.Map;
     baseLayerGroup: L.LayerGroup;
-    markers: { [connectionId: string]: L.Marker<any> } = {}
+    markers: { [connectionId: string]: Markers } = {}
 
     constructor(props: any) {
         super(props);
 
         this.state = {
             aircrafts: {},
+            myConnectionId: null,
             followingConnectionId: null
         }
 
@@ -38,6 +45,7 @@ export class Home extends React.Component<any, State> {
         this.handleOpenStreetMap = this.handleOpenStreetMap.bind(this);
         this.handleOpenTopoMap = this.handleOpenTopoMap.bind(this);
         this.handleEsriWorld = this.handleEsriWorld.bind(this);
+        this.handleMeChanged = this.handleMeChanged.bind(this);
         this.handleFollowingChanged = this.handleFollowingChanged.bind(this);
     }
 
@@ -72,19 +80,30 @@ export class Home extends React.Component<any, State> {
                 this.mymap.setView(latlng, this.mymap.getZoom());
             }
 
-            let marker = this.markers[connectionId];
-            if (marker) {
-                marker.setLatLng(latlng);
+            let markers = this.markers[connectionId];
+            if (markers) {
+                markers.aircraft.setLatLng(latlng);
+                markers.info.setLatLng(latlng);
             } else {
-                marker = L.marker(latlng, {
+                const aircraft = L.marker(latlng, {
                     icon: L.icon({
                         iconUrl: 'marker-aircraft.png',
                         iconSize: [10, 30],
                         iconAnchor: [5, 25],
                     })
-                });
-                marker.addTo(this.mymap);
-                this.markers[connectionId] = marker;
+                }).addTo(this.mymap);
+                const info = L.marker(latlng, {
+                    icon: L.divIcon({
+                        className: 'divicon-aircraft-info',
+                        html: `<div>${aircraftStatus.callsign}</div>`,
+                        iconAnchor: [-12, -4],
+                    })
+                }).addTo(this.mymap)
+                markers = {
+                    aircraft: aircraft,
+                    info: info
+                }
+                this.markers[connectionId] = markers;
             }
 
             let popup = `Altitude: ${Math.floor(aircraftStatus.altitude)}<br />Airspeed: ${Math.floor(aircraftStatus.indicatedAirSpeed)}`;
@@ -92,7 +111,10 @@ export class Home extends React.Component<any, State> {
                 popup = `<b>${aircraftStatus.callsign}</b><br />${popup}`;
             }
 
-            marker
+            markers.info.bindPopup(popup);
+            (markers.info.getIcon() as L.DivIcon).options.className = connectionId == this.state.myConnectionId ? "divicon-aircraft-info me" : "divicon-aircraft-info";
+            markers.info.setIcon(markers.info.getIcon());
+            markers.aircraft
                 .bindPopup(popup)
                 .setRotationAngle(aircraftStatus.trueHeading);
         });
@@ -146,6 +168,10 @@ export class Home extends React.Component<any, State> {
         this.setTileLayer(MapTileType.EsriWorld);
     }
 
+    private handleMeChanged(connectionId: string | null) {
+        this.setState({ myConnectionId: connectionId });
+    }
+
     private handleFollowingChanged(connectionId: string | null) {
         this.setState({ followingConnectionId: connectionId });
     }
@@ -159,6 +185,7 @@ export class Home extends React.Component<any, State> {
                 <TileButton className="btn btn-light" onClick={this.handleEsriWorld}>Esri</TileButton>
             </LayerWrapper>
             <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
+                onMeChanged={this.handleMeChanged} myConnectionId={this.state.myConnectionId}
                 onFollowingChanged={this.handleFollowingChanged} followingConnectionId={this.state.followingConnectionId} />
             <EventList />
         </>;
@@ -168,7 +195,7 @@ export class Home extends React.Component<any, State> {
 const LayerWrapper = styled.div`
 position: absolute;
 top: 80px;
-left: 5px;
+left: 10px;
 z-index: 10000;
 width: 140px;
 box-shadow: 0 1px 5px rgba(0,0,0,0.65);

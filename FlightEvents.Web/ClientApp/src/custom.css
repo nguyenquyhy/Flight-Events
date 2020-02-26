@@ -4,15 +4,25 @@ html, body, #root {
 
 /* Provide sufficient contrast against white background */
 a {
-  color: #0366d6;
+    color: #0366d6;
 }
 
 code {
-  color: #E01A76;
+    color: #E01A76;
 }
 
 .btn-primary {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.divicon-aircraft-info div {
+    /*background-color: rgba(255, 255, 255, 0.2);*/
+    border: none;
+    font-weight: bold;
+}
+
+.divicon-aircraft-info.me div {
+    text-decoration: underline;
 }

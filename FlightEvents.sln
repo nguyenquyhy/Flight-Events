@@ -19,9 +19,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{E85E75
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightEvents.Client.Logics", "FlightEvents.Client.Logics\FlightEvents.Client.Logics.csproj", "{3AE627CF-9E7C-4D28-936E-6C078AB48870}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightEvents.Client.SimConnectFSX", "FlightEvents.Client.SimConnectFSX\FlightEvents.Client.SimConnectFSX.csproj", "{35D9FCAC-72B4-4356-BE5E-EC9DBAAB6E78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightEvents.Client.SimConnectFSX", "FlightEvents.Client.SimConnectFSX\FlightEvents.Client.SimConnectFSX.csproj", "{35D9FCAC-72B4-4356-BE5E-EC9DBAAB6E78}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightEvents.Common", "FlightEvents.Common\FlightEvents.Common.csproj", "{821A8906-8571-4A28-926D-07B78BE21E26}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightEvents.Common", "FlightEvents.Common\FlightEvents.Common.csproj", "{821A8906-8571-4A28-926D-07B78BE21E26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightEvents.MockClient", "FlightEvents.MockClient\FlightEvents.MockClient.csproj", "{D0673ED8-366D-414B-877C-7D5E49C64F5A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,6 +63,10 @@ Global
 		{821A8906-8571-4A28-926D-07B78BE21E26}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{821A8906-8571-4A28-926D-07B78BE21E26}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{821A8906-8571-4A28-926D-07B78BE21E26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0673ED8-366D-414B-877C-7D5E49C64F5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0673ED8-366D-414B-877C-7D5E49C64F5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0673ED8-366D-414B-877C-7D5E49C64F5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0673ED8-366D-414B-877C-7D5E49C64F5A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,6 +79,7 @@ Global
 		{13E5A432-B670-4F65-B865-5873AD3DC240} = {87EA62A0-E7E1-44A8-A766-13F48F2849E1}
 		{3AE627CF-9E7C-4D28-936E-6C078AB48870} = {E85E75DB-4CF7-460F-8D5E-F68626121278}
 		{35D9FCAC-72B4-4356-BE5E-EC9DBAAB6E78} = {E85E75DB-4CF7-460F-8D5E-F68626121278}
+		{D0673ED8-366D-414B-877C-7D5E49C64F5A} = {E85E75DB-4CF7-460F-8D5E-F68626121278}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {370892BA-A315-4F47-8CF4-28361764067C}

@@ -1,0 +1,32 @@
+﻿<Window x:Class="FlightEvents.MockClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FlightEvents.MockClient"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="250" Width="300">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Callsign" Grid.Row="0" Grid.Column="0" />
+        <TextBox x:Name="TextCallsign" Grid.Row="0" Grid.Column="1" />
+
+        <TextBlock Text="Connection ID" Grid.Row="1" Grid.Column="0" />
+        <TextBox x:Name="TextConnectionId" Grid.Row="1" Grid.Column="1" IsReadOnly="True" />
+
+        <Button x:Name="ButtonStart" Content="Start" Grid.Row="2" Grid.Column="1" Click="ButtonStart_Click" />
+        <Button x:Name="ButtonStop" Content="Stop" Grid.Row="3" Grid.Column="1" Click="ButtonStop_Click" />
+    </Grid>
+</Window>
