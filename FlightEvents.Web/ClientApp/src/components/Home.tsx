@@ -21,6 +21,7 @@ interface State {
 }
 
 interface Markers {
+    lastUpdated: Date;
     aircraft: L.Marker<any>
     info: L.Marker<any>
 }
@@ -47,6 +48,7 @@ export class Home extends React.Component<any, State> {
         this.handleEsriWorld = this.handleEsriWorld.bind(this);
         this.handleMeChanged = this.handleMeChanged.bind(this);
         this.handleFollowingChanged = this.handleFollowingChanged.bind(this);
+        this.cleanUp = this.cleanUp.bind(this);
     }
 
     componentDidMount() {
@@ -82,6 +84,7 @@ export class Home extends React.Component<any, State> {
 
             let markers = this.markers[connectionId];
             if (markers) {
+                markers.lastUpdated = new Date();
                 markers.aircraft.setLatLng(latlng);
                 markers.info.setLatLng(latlng);
             } else {
@@ -95,11 +98,13 @@ export class Home extends React.Component<any, State> {
                 const info = L.marker(latlng, {
                     icon: L.divIcon({
                         className: 'divicon-aircraft-info',
-                        html: `<div>${aircraftStatus.callsign}</div>`,
+                        html: `<div style='width: 50px'>${aircraftStatus.callsign}</div>`,
+                        iconSize: [12, 50],
                         iconAnchor: [-12, -4],
                     })
                 }).addTo(this.mymap)
                 markers = {
+                    lastUpdated: new Date(),
                     aircraft: aircraft,
                     info: info
                 }
@@ -112,7 +117,7 @@ export class Home extends React.Component<any, State> {
             }
 
             markers.info.bindPopup(popup);
-            (markers.info.getIcon() as L.DivIcon).options.className = connectionId == this.state.myConnectionId ? "divicon-aircraft-info me" : "divicon-aircraft-info";
+            (markers.info.getIcon() as L.DivIcon).options.className = connectionId === this.state.myConnectionId ? "divicon-aircraft-info me" : "divicon-aircraft-info";
             markers.info.setIcon(markers.info.getIcon());
             markers.aircraft
                 .bindPopup(popup)
@@ -120,6 +125,40 @@ export class Home extends React.Component<any, State> {
         });
 
         hub.start();
+
+        setInterval(this.cleanUp, 2000);
+    }
+
+    private cleanUp() {
+        if (this.mymap !== undefined && this.markers !== undefined) {
+            const connectionIds = Object.keys(this.markers);
+            for (let connectionId of connectionIds) {
+                const marker = this.markers[connectionId];
+                if (new Date().getTime() - marker.lastUpdated.getTime() > 5 * 1000) {
+                    marker.aircraft.removeFrom(this.mymap);
+                    marker.info.removeFrom(this.mymap);
+                    if (connectionId === this.state.myConnectionId) {
+                        this.setState({
+                            myConnectionId: null
+                        });
+                    }
+                    if (connectionId === this.state.followingConnectionId) {
+                        this.setState({
+                            followingConnectionId: null
+                        });
+                    }
+                    let newAircrafts = {
+                        ...this.state.aircrafts
+                    };
+                    delete newAircrafts[connectionId];
+                    this.setState({
+                        aircrafts: newAircrafts
+                    })
+                    delete this.markers[connectionId];
+                }
+
+            }
+        }
     }
 
     private setTileLayer(type: MapTileType) {
