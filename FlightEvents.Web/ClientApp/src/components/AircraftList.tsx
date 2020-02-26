@@ -1,6 +1,7 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
 import { AircraftStatus } from '../Models';
+import Panel from './Controls/Panel';
 
 interface Props {
     aircrafts: { [connectionId: string]: AircraftStatus };
@@ -22,12 +23,15 @@ export default class AircraftList extends React.Component<Props> {
     }
 
     public render() {
-        const list = Object.keys(this.props.aircrafts).map(connectionId => (
-            <ListItem key={connectionId}>
-                <a href="#" onClick={() => this.props.onAircraftClick(connectionId, this.props.aircrafts[connectionId])}>{this.props.aircrafts[connectionId].callsign || connectionId.substring(5)}</a>
-                <label><input type="checkbox" checked={this.props.followingConnectionId == connectionId} onChange={() => this.handleFollowChanged(connectionId)} /> Follow</label>
-            </ListItem>
-        ));
+        const connectionIds = Object.keys(this.props.aircrafts);
+        const list = connectionIds.length === 0 ?
+            <div><em>None</em></div> :
+            connectionIds.map(connectionId => (
+                <ListItem key={connectionId}>
+                    <button className="btn btn-link" onClick={() => this.props.onAircraftClick(connectionId, this.props.aircrafts[connectionId])}>{this.props.aircrafts[connectionId].callsign || connectionId.substring(5)}</button>
+                    <label><input type="checkbox" checked={this.props.followingConnectionId === connectionId} onChange={() => this.handleFollowChanged(connectionId)} /> Follow</label>
+                </ListItem>
+            ));
 
         return <Wrapper>
             <strong><em>Aircrafts</em></strong>
@@ -36,13 +40,11 @@ export default class AircraftList extends React.Component<Props> {
     }
 }
 
-const Wrapper = styled.div`
+const Wrapper = styled(Panel)`
 position: absolute;
-top: 0;
-right: 0;
-background-color: rgba(255, 255, 255, 0.9);
-z-index: 10000;
-padding: 10px 20px;
+top: 10px;
+right: 10px;
+z-index: 10000;;
 `
 
 const List = styled.ul`

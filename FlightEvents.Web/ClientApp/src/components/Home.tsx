@@ -5,6 +5,8 @@ import 'leaflet-rotatedmarker';
 import * as signalr from '@microsoft/signalr';
 import { AircraftStatus } from '../Models';
 import AircraftList from './AircraftList';
+import EventList from './EventList';
+import { MAPBOX_API_KEY } from '../Constants';
 
 enum MapTileType {
     OpenStreetMap,
@@ -108,7 +110,7 @@ export class Home extends React.Component<any, State> {
                     id: 'mapbox/streets-v11',
                     tileSize: 512,
                     zoomOffset: -1,
-                    accessToken: 'your.mapbox.access.token'
+                    accessToken: `${MAPBOX_API_KEY}`
                 }));
                 break;
             case MapTileType.OpenTopoMap:
@@ -158,6 +160,7 @@ export class Home extends React.Component<any, State> {
             </LayerWrapper>
             <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
                 onFollowingChanged={this.handleFollowingChanged} followingConnectionId={this.state.followingConnectionId} />
+            <EventList />
         </>;
     }
 }

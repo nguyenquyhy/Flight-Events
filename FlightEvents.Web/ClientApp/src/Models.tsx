@@ -10,3 +10,8 @@
     altitudeAboveGround: number;
     indicatedAirSpeed: number;
 }
+
+export interface FlightEvent {
+    id: string;
+    name: string;
+}
