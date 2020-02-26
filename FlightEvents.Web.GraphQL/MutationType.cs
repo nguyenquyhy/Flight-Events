@@ -9,7 +9,9 @@ namespace FlightEvents.Web.GraphQL
     {
         protected override void Configure(IObjectTypeDescriptor<Mutation> descriptor)
         {
-            descriptor.Field(o => o.AddFlightEventAsync(default)).Argument("flightEvent", argDescriptor => argDescriptor.Type<NonNullType<FlightEventInputType>>());
+            descriptor.Field(o => o.AddFlightEventAsync(default)).Argument("flightEvent", argDescriptor => argDescriptor.Type<NonNullType<FlightEventAddInputType>>());
+
+            descriptor.Field(o => o.UpdateFlightEventAsync(default)).Argument("flightEvent", argDescriptor => argDescriptor.Type<NonNullType<FlightEventUpdateInputType>>());
         }
     }
 
@@ -25,6 +27,16 @@ namespace FlightEvents.Web.GraphQL
         public async Task<FlightEvent> AddFlightEventAsync(FlightEvent flightEvent)
         {
             return await storage.AddAsync(flightEvent);
+        }
+
+        public async Task<FlightEvent> UpdateFlightEventAsync(FlightEvent flightEvent)
+        {
+            var current = await storage.GetAsync(flightEvent.Id);
+            if (current == null) return null;
+
+            flightEvent.UpdateTo(current);
+
+            return await storage.UpdateAsync(current);
         }
 
         public async Task<bool> DeleteFlightEventAsync(Guid id)

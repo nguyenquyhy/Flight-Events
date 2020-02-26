@@ -21,12 +21,14 @@ namespace FlightEvents.Data
 
         public async Task<IEnumerable<FlightEvent>> GetAllAsync() => await LoadAsync();
 
+        public async Task<FlightEvent> GetAsync(Guid id) => (await LoadAsync()).FirstOrDefault(o => o.Id == id);
+
         public async Task<FlightEvent> GetByCodeAsync(string code) => (await LoadAsync()).FirstOrDefault(o => o.Code == code);
 
         public async Task<FlightEvent> AddAsync(FlightEvent flightEvent)
         {
             flightEvent.Id = Guid.NewGuid();
-            flightEvent.CreatedDateTime = DateTimeOffset.UtcNow;
+            flightEvent.CreatedDateTime = flightEvent.UpdatedDateTime = DateTimeOffset.UtcNow;
             flightEvent.Code = randomStringGenerator.Generate(8);
 
             var events = await LoadAsync();
@@ -37,6 +39,8 @@ namespace FlightEvents.Data
 
         public async Task<FlightEvent> UpdateAsync(FlightEvent flightEvent)
         {
+            flightEvent.UpdatedDateTime = DateTimeOffset.UtcNow;
+
             var events = await LoadAsync();
             events.RemoveAll(o => o.Id == flightEvent.Id);
             events.Add(flightEvent);
