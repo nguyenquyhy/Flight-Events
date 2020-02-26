@@ -153,10 +153,10 @@ export class Home extends React.Component<any, State> {
     render() {
         return <>
             <div id="mapid" style={{ height: '100%' }}></div>
-            <LayerWrapper>
-                <button onClick={this.handleOpenStreetMap}>OpenStreetMap</button>
-                <button onClick={this.handleOpenTopoMap}>OpenTopoMap</button>
-                <button onClick={this.handleEsriWorld}>Esri</button>
+            <LayerWrapper className="btn-group-vertical">
+                <TileButton className="btn btn-light" onClick={this.handleOpenStreetMap}>OpenStreetMap</TileButton>
+                <TileButton className="btn btn-light" onClick={this.handleOpenTopoMap}>OpenTopoMap</TileButton>
+                <TileButton className="btn btn-light" onClick={this.handleEsriWorld}>Esri</TileButton>
             </LayerWrapper>
             <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
                 onFollowingChanged={this.handleFollowingChanged} followingConnectionId={this.state.followingConnectionId} />
@@ -170,8 +170,14 @@ position: absolute;
 top: 80px;
 left: 5px;
 z-index: 10000;
+width: 140px;
+box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+border-radius: 4px;
 
 button {
     display: block;
 }
 `;
+
+const TileButton = styled.button`
+`
