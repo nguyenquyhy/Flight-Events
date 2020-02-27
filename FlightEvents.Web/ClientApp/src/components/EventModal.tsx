@@ -4,6 +4,7 @@ import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { FlightEvent } from '../Models';
 import Api from '../Api';
 import parseISO from 'date-fns/parseISO';
+import ReactMarkdown from 'react-markdown';
 
 interface Props {
     flightEvent: FlightEvent;
@@ -41,13 +42,13 @@ export default class EventModal extends React.Component<Props, State> {
     public render() {
         const details = this.state.flightEvent ?
             <>
-                <div>{parseISO(this.state.flightEvent.startDateTime).toLocaleString()}</div>
-                <div>{this.state.flightEvent.description}</div>
+                <div><StyledTime>{parseISO(this.state.flightEvent.startDateTime).toLocaleString()}</StyledTime></div>
+                <div><ReactMarkdown>{this.state.flightEvent.description}</ReactMarkdown></div>
             </> :
             <div>Loading...</div>;
 
 
-        return <Modal isOpen={this.props.isOpen} toggle={this.props.toggle} onOpened={this.handleOpen}>
+        return <Modal isOpen={this.props.isOpen} toggle={this.props.toggle} onOpened={this.handleOpen} size='lg'>
             <ModalHeader>{this.props.flightEvent.name}</ModalHeader>
             <ModalBody>
                 {details}
@@ -59,3 +60,8 @@ export default class EventModal extends React.Component<Props, State> {
         </Modal>
     }
 }
+
+const StyledTime = styled.span`
+border-bottom: 1px dashed #909090;
+margin-bottom: 10px;
+`
