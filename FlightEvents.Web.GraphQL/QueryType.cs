@@ -13,14 +13,18 @@ namespace FlightEvents.Web.GraphQL
     public class Query
     {
         private readonly IFlightEventStorage storage;
+        private readonly IAirportStorage airportStorage;
 
-        public Query(IFlightEventStorage storage)
+        public Query(IFlightEventStorage eventStorage, IAirportStorage airportStorage)
         {
-            this.storage = storage;
+            this.storage = eventStorage;
+            this.airportStorage = airportStorage;
         }
 
         public Task<IEnumerable<FlightEvent>> FlightEvents() => storage.GetAllAsync();
 
         public Task<FlightEvent> FlightEvent(Guid id) => storage.GetAsync(id);
+
+        public Task<List<Airport>> GetAirports(List<string> idents) => airportStorage.GetAirportsAsync(idents);
     }
 }

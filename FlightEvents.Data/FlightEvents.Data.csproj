@@ -4,4 +4,8 @@
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FlightEvents.Common\FlightEvents.Common.csproj" />
+  </ItemGroup>
+
 </Project>

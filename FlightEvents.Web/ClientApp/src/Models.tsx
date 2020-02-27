@@ -16,4 +16,13 @@ export interface FlightEvent {
     name: string;
     description: string;
     startDateTime: string;
+    url: string | null;
+    waypoints: string | null;
+}
+
+export interface Airport {
+    ident: string;
+    name: string;
+    longitude: number;
+    latitude: number;
 }

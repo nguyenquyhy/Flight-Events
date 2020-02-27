@@ -1,16 +1,20 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
 import Panel from './Controls/Panel';
-import { FlightEvent } from '../Models';
+import { FlightEvent, Airport } from '../Models';
 import EventItem from './EventItem';
 import Api from '../Api';
+
+interface Props {
+    onAirportsLoaded: (airports: Airport[]) => void;
+}
 
 interface State {
     flightEvents: FlightEvent[]
 }
 
-export default class EventList extends React.Component<any, State> {
-    constructor(props: any) {
+export default class EventList extends React.Component<Props, State> {
+    constructor(props: Props) {
         super(props);
 
         this.state = {
@@ -33,7 +37,7 @@ export default class EventList extends React.Component<any, State> {
     public render() {
         const list = this.state.flightEvents.length === 0 ?
             <NoneText>None</NoneText> :
-            this.state.flightEvents.map(flightEvent => <EventItem key={flightEvent.id} flightEvent={flightEvent} />)
+            this.state.flightEvents.map(flightEvent => <EventItem key={flightEvent.id} flightEvent={flightEvent} onAirportsLoaded={this.props.onAirportsLoaded} />)
 
         return <Wrapper>
             <Title>Events</Title>

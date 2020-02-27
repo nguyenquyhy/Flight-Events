@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import * as L from 'leaflet';
 import 'leaflet-rotatedmarker';
 import * as signalr from '@microsoft/signalr';
-import { AircraftStatus } from '../Models';
+import { AircraftStatus, Airport } from '../Models';
 import AircraftList from './AircraftList';
 import EventList from './EventList';
 import { MAPBOX_API_KEY } from '../Constants';
@@ -32,7 +32,9 @@ export class Home extends React.Component<any, State> {
 
     mymap: L.Map;
     baseLayerGroup: L.LayerGroup;
-    markers: { [connectionId: string]: Markers } = {}
+    airportLayerGroup: L.LayerGroup;
+    markers: { [connectionId: string]: Markers } = {};
+    airportMarkers: { [indent: string]: L.Marker } = {};
 
     constructor(props: any) {
         super(props);
@@ -50,6 +52,7 @@ export class Home extends React.Component<any, State> {
         this.handleEsriTopo = this.handleEsriTopo.bind(this);
         this.handleMeChanged = this.handleMeChanged.bind(this);
         this.handleFollowingChanged = this.handleFollowingChanged.bind(this);
+        this.handleAirportsLoaded = this.handleAirportsLoaded.bind(this);
         this.cleanUp = this.cleanUp.bind(this);
     }
 
@@ -57,6 +60,7 @@ export class Home extends React.Component<any, State> {
         this.mymap = L.map('mapid').setView([51.505, -0.09], 13);
 
         this.baseLayerGroup = L.layerGroup().addTo(this.mymap);
+        this.airportLayerGroup = L.layerGroup().addTo(this.mymap);
         this.setTileLayer(MapTileType.OpenStreetMap);
 
         let hub = new signalr.HubConnectionBuilder()
@@ -95,7 +99,8 @@ export class Home extends React.Component<any, State> {
                         iconUrl: 'marker-aircraft.png',
                         iconSize: [10, 30],
                         iconAnchor: [5, 25],
-                    })
+                    }),
+                    zIndexOffset: 2000
                 }).addTo(this.mymap);
                 const info = L.marker(latlng, {
                     icon: L.divIcon({
@@ -103,7 +108,8 @@ export class Home extends React.Component<any, State> {
                         html: `<div style='width: 50px'>${aircraftStatus.callsign}</div>`,
                         iconSize: [12, 50],
                         iconAnchor: [-12, -4],
-                    })
+                    }),
+                    zIndexOffset: 1000
                 }).addTo(this.mymap)
                 markers = {
                     lastUpdated: new Date(),
@@ -118,7 +124,9 @@ export class Home extends React.Component<any, State> {
                 popup = `<b>${aircraftStatus.callsign}</b><br />${popup}`;
             }
 
-            markers.info.bindPopup(popup);
+            markers.info.bindPopup(popup, {
+                autoPan: false
+            });
             (markers.info.getIcon() as L.DivIcon).options.className = connectionId === this.state.myConnectionId ? "divicon-aircraft-info me" : "divicon-aircraft-info";
             markers.info.setIcon(markers.info.getIcon());
             markers.aircraft
@@ -226,6 +234,30 @@ export class Home extends React.Component<any, State> {
         this.setState({ followingConnectionId: connectionId });
     }
 
+    private handleAirportsLoaded(airports: Airport[]) {
+        if (this.mymap) {
+            const minLongitude = airports.reduce((prev, curr) => Math.min(prev, curr.longitude), 180);
+            const maxLongitude = airports.reduce((prev, curr) => Math.max(prev, curr.longitude), -180);
+            const minLatitude = airports.reduce((prev, curr) => Math.min(prev, curr.latitude), 90);
+            const maxLatitude = airports.reduce((prev, curr) => Math.max(prev, curr.latitude), -90);
+
+            this.mymap.fitBounds([[minLatitude, minLongitude], [maxLatitude, maxLongitude]]);
+
+            for (let ident in this.airportMarkers) {
+                this.airportMarkers[ident].removeFrom(this.mymap);
+            }
+
+            this.airportMarkers = {};
+
+            for (let airport of airports) {
+                const marker = L.marker([airport.latitude, airport.longitude], {
+                    title: airport.name
+                }).addTo(this.mymap);
+                this.airportMarkers[airport.ident] = marker;
+            }
+        }
+    }
+
     render() {
         return <>
             <div id="mapid" style={{ height: '100%' }}></div>
@@ -238,7 +270,7 @@ export class Home extends React.Component<any, State> {
             <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
                 onMeChanged={this.handleMeChanged} myConnectionId={this.state.myConnectionId}
                 onFollowingChanged={this.handleFollowingChanged} followingConnectionId={this.state.followingConnectionId} />
-            <EventList />
+            <EventList onAirportsLoaded={this.handleAirportsLoaded}/>
         </>;
     }
 }

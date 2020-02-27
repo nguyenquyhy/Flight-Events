@@ -1,7 +1,7 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import { FlightEvent } from '../Models';
+import { FlightEvent, Airport } from '../Models';
 import Api from '../Api';
 import parseISO from 'date-fns/parseISO';
 import ReactMarkdown from 'react-markdown';
@@ -10,6 +10,7 @@ interface Props {
     flightEvent: FlightEvent;
     isOpen: boolean;
     toggle: () => void;
+    onAirportLoaded: (airports: Airport[]) => void;
 }
 
 interface State {
@@ -29,6 +30,8 @@ export default class EventModal extends React.Component<Props, State> {
         this.handleOpen = this.handleOpen.bind(this);
     }
 
+    private airports: Airport[] | null = null;
+
     private async handleOpen() {
         if (!this.state.flightEvent) {
             const event = await Api.getFlightEvent(this.props.flightEvent.id);
@@ -36,7 +39,14 @@ export default class EventModal extends React.Component<Props, State> {
                 isLoading: false,
                 flightEvent: event
             });
+            if (event.waypoints) {
+                if (!this.airports) {
+                    this.airports = await Api.getAirports(event.waypoints.split(' '));
+                }
+                this.props.onAirportLoaded(this.airports);
+            }
         }
+
     }
 
     public render() {
@@ -44,6 +54,7 @@ export default class EventModal extends React.Component<Props, State> {
             <>
                 <div><StyledTime>{parseISO(this.state.flightEvent.startDateTime).toLocaleString()}</StyledTime></div>
                 <div><ReactMarkdown>{this.state.flightEvent.description}</ReactMarkdown></div>
+                {!!this.state.flightEvent.url && <div>URL: <a href={this.state.flightEvent.url}>{this.state.flightEvent.url}</a></div>}
             </> :
             <div>Loading...</div>;
 
@@ -55,7 +66,7 @@ export default class EventModal extends React.Component<Props, State> {
             </ModalBody>
             <ModalFooter>
                 <Button color="primary" disabled>Join</Button>{' '}
-                <Button color="secondary">Close</Button>
+                <Button color="secondary" onClick={this.props.toggle}>Close</Button>
             </ModalFooter>
         </Modal>
     }

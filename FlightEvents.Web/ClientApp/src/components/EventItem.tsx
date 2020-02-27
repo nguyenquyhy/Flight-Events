@@ -1,10 +1,11 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
-import { FlightEvent } from '../Models';
+import { FlightEvent, Airport } from '../Models';
 import EventModal from './EventModal';
 
 interface Props {
     flightEvent: FlightEvent;
+    onAirportsLoaded: (airports: Airport[]) => void;
 }
 
 interface State {
@@ -31,7 +32,7 @@ export default class EventItem extends React.Component<Props, State> {
     public render() {
         return <ListItem>
             <button className="btn btn-link" onClick={this.handleToggle}>{this.props.flightEvent.name}</button>
-            <EventModal isOpen={this.state.isOpen} toggle={this.handleToggle} flightEvent={this.props.flightEvent} />
+            <EventModal isOpen={this.state.isOpen} toggle={this.handleToggle} flightEvent={this.props.flightEvent} onAirportLoaded={this.props.onAirportsLoaded} />
         </ListItem>
     }
 }

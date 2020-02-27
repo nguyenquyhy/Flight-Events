@@ -1,4 +1,4 @@
-﻿import { FlightEvent } from './Models';
+﻿import { FlightEvent, Airport } from './Models';
 
 class Api {
     public async getFlightEvents() {
@@ -19,10 +19,25 @@ class Api {
         name
         description
         startDateTime
+        url
+        waypoints
     }
 }`;
         const data = await this.graphQLQueryAsync(query, { id: id });
         return data.flightEvent as FlightEvent;
+    }
+
+    public async getAirports(idents: string[]) {
+        const query = `query ($idents: [String]!) {
+    airports(idents: $idents) {
+        ident
+        name
+        longitude
+        latitude
+    }
+}`;
+        const data = await this.graphQLQueryAsync(query, { idents: idents });
+        return data.airports as Airport[];
     }
 
     private async graphQLQueryAsync(query: string, variables?: any) {
