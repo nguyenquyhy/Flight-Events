@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf.NetCore" Version="1.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.2" />
@@ -28,6 +29,10 @@
   <ItemGroup>
     <ProjectReference Include="..\FlightEvents.Client.Logics\FlightEvents.Client.Logics.csproj" />
     <ProjectReference Include="..\FlightEvents.Client.SimConnectFSX\FlightEvents.Client.SimConnectFSX.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="icon.ico" />
   </ItemGroup>
 
   <ItemGroup>

@@ -4,8 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FlightEvents.Client"
-        mc:Ignorable="d" Loaded="Window_Loaded"
-        Title="Flight Events" Height="200" Width="300" ResizeMode="NoResize">
+        mc:Ignorable="d" Loaded="Window_Loaded" StateChanged="Window_StateChanged"
+        Title="Flight Events" Height="200" Width="300" ResizeMode="CanMinimize">
     
     <Grid Margin="10">
         <Grid.Resources>
@@ -38,5 +38,14 @@
         <TextBlock x:Name="TextURL" Text="https://localhost" 
                    TextDecorations="Underline" Foreground="Blue" Grid.ColumnSpan="2" Grid.Row="10" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
                    MouseDown="TextURL_MouseDown"/>
+
+        <tb:TaskbarIcon 
+            x:Name="myNotifyIcon"
+            xmlns:tb="http://www.hardcodet.net/taskbar"
+            Visibility="Collapsed"
+            ToolTipText="Honeycomb Connect"
+            IconSource="/icon.ico"
+            TrayLeftMouseDown="myNotifyIcon_TrayLeftMouseDown"
+            />
     </Grid>
 </Window>

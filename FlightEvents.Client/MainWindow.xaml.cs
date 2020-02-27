@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Options;
 using System;
 using System.Diagnostics;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -84,6 +85,22 @@ namespace FlightEvents.Client
             viewModel.HubConnectionState = ConnectionState.Connecting;
             await hub.StartAsync();
             viewModel.HubConnectionState = ConnectionState.Connected;
+
+            if (string.IsNullOrWhiteSpace(viewModel.Callsign)) viewModel.Callsign = GenerateCallSign();
+        }
+
+        private readonly Random random = new Random();
+
+        private string GenerateCallSign()
+        {
+            var builder = new StringBuilder();
+            builder.Append(((char)('A' + random.Next(26))).ToString());
+            builder.Append(((char)('A' + random.Next(26))).ToString());
+            builder.Append("-");
+            builder.Append(((char)('A' + random.Next(26))).ToString());
+            builder.Append(((char)('A' + random.Next(26))).ToString());
+            builder.Append(((char)('A' + random.Next(26))).ToString());
+            return builder.ToString();
         }
 
         private void TextURL_MouseDown(object sender, MouseButtonEventArgs e)
@@ -99,6 +116,31 @@ namespace FlightEvents.Client
             catch {
             
             }
+        }
+
+        private bool notified = false;
+
+        private async void Window_StateChanged(object sender, EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized)
+            {
+                Visibility = Visibility.Collapsed;
+                myNotifyIcon.Visibility = Visibility.Visible;
+                WindowState = WindowState.Normal;
+                if (!notified)
+                {
+                    notified = true;
+                    myNotifyIcon.ShowBalloonTip("Minimized to system tray", "Double click to restore the window.", Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Info);
+                    await Task.Delay(3000);
+                    myNotifyIcon.HideBalloonTip();
+                }
+            }
+        }
+
+        private void myNotifyIcon_TrayLeftMouseDown(object sender, RoutedEventArgs e)
+        {
+            myNotifyIcon.Visibility = Visibility.Collapsed;
+            Visibility = Visibility.Visible;
         }
     }
 }
