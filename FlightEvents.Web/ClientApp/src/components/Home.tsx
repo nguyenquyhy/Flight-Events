@@ -93,6 +93,25 @@ export class Home extends React.Component<any, State> {
                 markers.lastUpdated = new Date();
                 markers.aircraft.setLatLng(latlng);
                 markers.info.setLatLng(latlng);
+
+                let className = 'divicon-aircraft-info';
+                if (connectionId === this.state.myConnectionId) className += " me";
+
+                if (aircraftStatus.trueHeading >= 180) {
+                    markers.info.setIcon(L.divIcon({
+                        className: className,
+                        html: `<div>${aircraftStatus.callsign}</div><div>${Math.floor(aircraftStatus.altitude)}FT</div><div>${Math.floor(aircraftStatus.heading)}\u00B0</div><div>${Math.floor(aircraftStatus.indicatedAirSpeed)}KTS</div>`,
+                        iconSize: [12, 60],
+                        iconAnchor: [-12, 10],
+                    }))
+                } else {
+                    markers.info.setIcon(L.divIcon({
+                        className: className + ' right',
+                        html: `<div>${aircraftStatus.callsign}</div><div>${Math.floor(aircraftStatus.altitude)}FT</div><div>${Math.floor(aircraftStatus.heading)}\u00B0</div><div>${Math.floor(aircraftStatus.indicatedAirSpeed)}KTS</div>`,
+                        iconSize: [12, 60],
+                        iconAnchor: [72, 10],
+                    }))
+                }
             } else {
                 const aircraft = L.marker(latlng, {
                     icon: L.icon({
@@ -127,7 +146,6 @@ export class Home extends React.Component<any, State> {
             markers.info.bindPopup(popup, {
                 autoPan: false
             });
-            (markers.info.getIcon() as L.DivIcon).options.className = connectionId === this.state.myConnectionId ? "divicon-aircraft-info me" : "divicon-aircraft-info";
             markers.info.setIcon(markers.info.getIcon());
             markers.aircraft
                 .bindPopup(popup)

@@ -18,9 +18,16 @@ code {
 }
 
 .divicon-aircraft-info div {
-    /*background-color: rgba(255, 255, 255, 0.2);*/
+    font-family: Arial;
+    background-color: rgba(255, 255, 255, 0.2);
     border: none;
     font-weight: bold;
+    width: 60px;
+    margin-bottom: -2px;
+}
+
+.divicon-aircraft-info.right div {
+    text-align: right;
 }
 
 .divicon-aircraft-info.me div {
