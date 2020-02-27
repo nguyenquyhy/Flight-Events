@@ -11,7 +11,8 @@ import { MAPBOX_API_KEY } from '../Constants';
 enum MapTileType {
     OpenStreetMap,
     OpenTopoMap,
-    EsriWorld
+    EsriWorldImagery,
+    EsriTopo
 }
 
 interface State {
@@ -45,7 +46,8 @@ export class Home extends React.Component<any, State> {
         this.handleAircraftClick = this.handleAircraftClick.bind(this);
         this.handleOpenStreetMap = this.handleOpenStreetMap.bind(this);
         this.handleOpenTopoMap = this.handleOpenTopoMap.bind(this);
-        this.handleEsriWorld = this.handleEsriWorld.bind(this);
+        this.handleEsriWorldImagery = this.handleEsriWorldImagery.bind(this);
+        this.handleEsriTopo = this.handleEsriTopo.bind(this);
         this.handleMeChanged = this.handleMeChanged.bind(this);
         this.handleFollowingChanged = this.handleFollowingChanged.bind(this);
         this.cleanUp = this.cleanUp.bind(this);
@@ -180,9 +182,14 @@ export class Home extends React.Component<any, State> {
                     attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
                 }));
                 break;
-            case MapTileType.EsriWorld:
+            case MapTileType.EsriWorldImagery:
                 this.baseLayerGroup.addLayer(L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                     attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                }));
+                break;
+            case MapTileType.EsriTopo:
+                this.baseLayerGroup.addLayer(L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
                 }));
                 break;
         }
@@ -203,8 +210,12 @@ export class Home extends React.Component<any, State> {
         this.setTileLayer(MapTileType.OpenTopoMap);
     }
 
-    private handleEsriWorld() {
-        this.setTileLayer(MapTileType.EsriWorld);
+    private handleEsriWorldImagery() {
+        this.setTileLayer(MapTileType.EsriWorldImagery);
+    }
+
+    private handleEsriTopo() {
+        this.setTileLayer(MapTileType.EsriTopo);
     }
 
     private handleMeChanged(connectionId: string | null) {
@@ -221,7 +232,8 @@ export class Home extends React.Component<any, State> {
             <LayerWrapper className="btn-group-vertical">
                 <TileButton className="btn btn-light" onClick={this.handleOpenStreetMap}>OpenStreetMap</TileButton>
                 <TileButton className="btn btn-light" onClick={this.handleOpenTopoMap}>OpenTopoMap</TileButton>
-                <TileButton className="btn btn-light" onClick={this.handleEsriWorld}>Esri</TileButton>
+                <TileButton className="btn btn-light" onClick={this.handleEsriWorldImagery}>Esri Imagery</TileButton>
+                <TileButton className="btn btn-light" onClick={this.handleEsriTopo}>Esri Topo</TileButton>
             </LayerWrapper>
             <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
                 onMeChanged={this.handleMeChanged} myConnectionId={this.state.myConnectionId}
@@ -235,7 +247,7 @@ const LayerWrapper = styled.div`
 position: absolute;
 top: 80px;
 left: 10px;
-z-index: 10000;
+z-index: 1000;
 width: 140px;
 box-shadow: 0 1px 5px rgba(0,0,0,0.65);
 border-radius: 4px;

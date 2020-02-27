@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Panel from './Controls/Panel';
 import { FlightEvent } from '../Models';
 import EventItem from './EventItem';
+import Api from '../Api';
 
 interface State {
     flightEvents: FlightEvent[]
@@ -22,32 +23,11 @@ export default class EventList extends React.Component<any, State> {
     }
 
     private async populateData() {
-        const response = await fetch('graphql', {
-            method: 'post',
-            body: JSON.stringify({
-                query: `{
-    flightEvents {
-        id
-        name
-    }
-}`
-            }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
+        const events = await Api.getFlightEvents();
+
+        this.setState({
+            flightEvents: events
         });
-
-
-        if (response.ok) {
-            const data = await response.json();
-            const events = data.data.flightEvents as FlightEvent[];
-
-            this.setState({
-                flightEvents: events
-            });
-        } else {
-            // TODO:
-        }
     }
 
     public render() {
@@ -66,7 +46,7 @@ const Wrapper = styled(Panel)`
 position: absolute;
 bottom: 24px;
 right: 10px;
-z-index: 10000;
+z-index: 1000;
 `
 
 const Title = styled.div`

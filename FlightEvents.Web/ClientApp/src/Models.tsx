@@ -14,4 +14,6 @@
 export interface FlightEvent {
     id: string;
     name: string;
+    description: string;
+    startDateTime: string;
 }

@@ -1,5 +1,6 @@
 ﻿using FlightEvents.Data;
 using HotChocolate.Types;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -7,10 +8,6 @@ namespace FlightEvents.Web.GraphQL
 {
     public class QueryType : ObjectType<Query>
     {
-        //protected override void Configure(IObjectTypeDescriptor descriptor)
-        //{
-        //    descriptor.Field("events").Resolver(context => new List<FlightEvent>());
-        //}
     }
 
     public class Query
@@ -22,9 +19,8 @@ namespace FlightEvents.Web.GraphQL
             this.storage = storage;
         }
 
-        public async Task<IEnumerable<FlightEvent>> FlightEvents()
-        {
-            return await storage.GetAllAsync();
-        }
+        public Task<IEnumerable<FlightEvent>> FlightEvents() => storage.GetAllAsync();
+
+        public Task<FlightEvent> FlightEvent(Guid id) => storage.GetAsync(id);
     }
 }
