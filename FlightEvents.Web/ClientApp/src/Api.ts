@@ -45,6 +45,7 @@ class Api {
     flightEvent(id: $id) {
         flightPlans {
             id
+            downloadUrl
             data {
                 title
                 description

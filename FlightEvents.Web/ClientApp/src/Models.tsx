@@ -30,6 +30,7 @@ export interface Airport {
 export interface FlightPlan {
     id: string
     data: FlightPlanData
+    downloadUrl: string;
 }
 
 export interface FlightPlanData {

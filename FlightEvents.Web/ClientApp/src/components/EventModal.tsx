@@ -11,12 +11,13 @@ interface Props {
     isOpen: boolean;
     toggle: () => void;
     onAirportLoaded: (airports: Airport[]) => void;
-    onFlightPlansLoaded: (flightPlan: FlightPlan[]) => void;
+    onFlightPlansLoaded: (flightPlans: FlightPlan[]) => void;
 }
 
 interface State {
     isLoading: boolean;
     flightEvent: FlightEvent | null;
+    flightPlans: FlightPlan[] | null;
 }
 
 export default class EventModal extends React.Component<Props, State> {
@@ -25,14 +26,14 @@ export default class EventModal extends React.Component<Props, State> {
 
         this.state = {
             isLoading: true,
-            flightEvent: null
+            flightEvent: null,
+            flightPlans: null
         }
 
         this.handleOpen = this.handleOpen.bind(this);
     }
 
     private airports: Airport[] | null = null;
-    private flightPlans: FlightPlan[] | null = null;
 
     private async handleOpen() {
         if (!this.state.flightEvent) {
@@ -48,10 +49,14 @@ export default class EventModal extends React.Component<Props, State> {
                 this.props.onAirportLoaded(this.airports);
             }
 
-            if (!this.flightPlans) {
-                this.flightPlans = await Api.getFlightPlans(event.id);
+            if (!this.state.flightPlans) {
+                const flightPlans = await Api.getFlightPlans(event.id);
+                this.setState({ flightPlans: flightPlans }, () => {
+                    this.props.onFlightPlansLoaded(flightPlans);
+                })
+            } else {
+                this.props.onFlightPlansLoaded(this.state.flightPlans);
             }
-            this.props.onFlightPlansLoaded(this.flightPlans);
         }
 
     }
@@ -61,7 +66,17 @@ export default class EventModal extends React.Component<Props, State> {
             <>
                 <div><StyledTime>{parseISO(this.state.flightEvent.startDateTime).toLocaleString()}</StyledTime></div>
                 <div><ReactMarkdown>{this.state.flightEvent.description}</ReactMarkdown></div>
-                {!!this.state.flightEvent.url && <div>URL: <a href={this.state.flightEvent.url}>{this.state.flightEvent.url}</a></div>}
+                {!!this.state.flightEvent.url && <div>URL: <a href={this.state.flightEvent.url} target="_blank">{this.state.flightEvent.url}</a></div>}
+
+                {this.state.flightPlans && <>
+                    <h4>Flight Plans</h4>
+
+                    <ul>
+                        {this.state.flightPlans.map(flightPlan => (
+                            <li><a href={flightPlan.downloadUrl} target="_blank" download={flightPlan.id}>{flightPlan.data.title}</a></li>
+                        ))}
+                    </ul>
+                </>}
             </> :
             <div>Loading...</div>;
 

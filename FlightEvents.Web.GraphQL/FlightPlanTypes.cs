@@ -11,7 +11,7 @@ namespace FlightEvents.Web.GraphQL
         protected override void Configure(IObjectTypeDescriptor descriptor)
         {
             descriptor.Field<FlightPlanResolver>(o => o.GetId(default)).Type<NonNullType<StringType>>();
-            descriptor.Field("downloadUrl").Type<NonNullType<StringType>>().Resolver("a");
+            descriptor.Field<FlightPlanResolver>(o => o.GetDownloadUrl(default, default)).Type<NonNullType<StringType>>();
             descriptor.Field<FlightPlanResolver>(o => o.GetFlightPlanData(default, default)).Name("data").Type<NonNullType<FlightPlanDataType>>();
         }
     }
@@ -19,6 +19,7 @@ namespace FlightEvents.Web.GraphQL
     public class FlightPlanResolver
     {
         public string GetId([Parent]string id) => id;
+        public Task<string> GetDownloadUrl([Parent]string id, [Service]IFlightPlanStorage flightPlanStorage) => flightPlanStorage.GetFlightPlanUrlAsync(id);
         public Task<FlightPlanData> GetFlightPlanData([Parent]string id, [Service]IFlightPlanStorage flightPlanStorage) => flightPlanStorage.GetFlightPlanAsync(id);
     }
 

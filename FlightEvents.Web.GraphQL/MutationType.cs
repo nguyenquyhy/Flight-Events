@@ -1,6 +1,7 @@
 ﻿using FlightEvents.Data;
 using HotChocolate.Types;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace FlightEvents.Web.GraphQL
@@ -42,6 +43,21 @@ namespace FlightEvents.Web.GraphQL
         public async Task<bool> DeleteFlightEventAsync(Guid id)
         {
             return await storage.DeleteAsync(id);
+        }
+
+        public async Task<FlightEvent> AddFlightPlanAsync(Guid eventId, string flightPlanId)
+        {
+            var flightEvent = await storage.GetAsync(eventId);
+            if (flightEvent.FlightPlanIds == null)
+            {
+                flightEvent.FlightPlanIds = new List<string>();
+            }
+            if (!flightEvent.FlightPlanIds.Contains(flightPlanId))
+            {
+                flightEvent.FlightPlanIds.Add(flightPlanId);
+                await storage.UpdateAsync(flightEvent);
+            }
+            return flightEvent;
         }
     }
 }

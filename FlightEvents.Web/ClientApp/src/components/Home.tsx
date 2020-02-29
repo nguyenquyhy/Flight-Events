@@ -313,12 +313,15 @@ export class Home extends React.Component<any, State> {
         if (this.mymap) {
             this.flightPlanLayerGroup.clearLayers();
 
+            let index = 0;
+            const colors = ['red', 'blue'];
+
             for (var flightPlan of flightPlans) {
                 const latlngs = flightPlan.data.waypoints.reduce((prev: L.LatLngTuple[], curr) =>
                     prev.concat([[curr.latitude, curr.longitude]]),
                     [])
                 console.log(latlngs);
-                const polyline = L.polyline(latlngs, { color: 'red' });
+                const polyline = L.polyline(latlngs, { color: colors[(index++ % colors.length)] });
                 this.flightPlanLayerGroup.addLayer(polyline);
 
                 for (let waypoint of flightPlan.data.waypoints) {
