@@ -27,12 +27,14 @@ namespace FlightEvents.Web
         {
             services.AddSingleton<RandomStringGenerator>();
             services.AddSingleton<IFlightEventStorage>(sp => new JsonFileFlightEventStorage("events.json", sp.GetService<RandomStringGenerator>()));
+            services.AddSingleton<IFlightPlanStorage, AzureBlobFlightPlanStorage>();
             services.AddSingleton<IAirportStorage, XmlFileAirportStorage>();
 
             services.AddGraphQL(
                 SchemaBuilder.New()
                     .AddQueryType<QueryType>()
                     .AddMutationType<MutationType>()
+                    .AddType<FlightEventType>()
                     );
 
 

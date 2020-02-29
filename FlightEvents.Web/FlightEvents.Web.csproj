@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -7,6 +7,7 @@
     <IsPackable>false</IsPackable>
     <SpaRoot>ClientApp\</SpaRoot>
     <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
+    <UserSecretsId>ad086deb-bada-4a1b-8a5c-566d76a752d2</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,9 +27,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FlightEvents.Common\FlightEvents.Common.csproj" />
+    <ProjectReference Include="..\FlightEvents.Data.AzureStorage\FlightEvents.Data.AzureStorage.csproj" />
     <ProjectReference Include="..\FlightEvents.Data.JsonFile\FlightEvents.Data.JsonFile.csproj" />
     <ProjectReference Include="..\FlightEvents.Data\FlightEvents.Data.csproj" />
     <ProjectReference Include="..\FlightEvents.Web.GraphQL\FlightEvents.Web.GraphQL.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Airports.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

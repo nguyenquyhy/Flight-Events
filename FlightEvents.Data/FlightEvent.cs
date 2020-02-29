@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace FlightEvents.Data
 {
@@ -17,6 +18,8 @@ namespace FlightEvents.Data
         public string Waypoints { get; set; }
         public string Route { get; set; }
 
+        public List<string> FlightPlanIds { get; set; }
+
         public void UpdateTo(FlightEvent current)
         {
             if (StartDateTime != default) current.StartDateTime = StartDateTime;
@@ -26,6 +29,8 @@ namespace FlightEvents.Data
 
             if (Waypoints != default) current.Waypoints = Waypoints;
             if (Route != default) current.Route = Route;
+
+            if (FlightPlanIds != default) current.FlightPlanIds = FlightPlanIds;
         }
     }
 }
