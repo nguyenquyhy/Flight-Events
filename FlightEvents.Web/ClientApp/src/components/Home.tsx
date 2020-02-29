@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import * as L from 'leaflet';
 import 'leaflet-rotatedmarker';
 import * as signalr from '@microsoft/signalr';
-import { AircraftStatus, Airport } from '../Models';
+import { AircraftStatus, Airport, FlightPlan } from '../Models';
 import AircraftList from './AircraftList';
 import EventList from './EventList';
 import { MAPBOX_API_KEY } from '../Constants';
@@ -37,6 +37,8 @@ export class Home extends React.Component<any, State> {
     markers: { [connectionId: string]: Markers } = {};
     airportMarkers: { [indent: string]: L.Marker } = {};
 
+    flightPlanLayerGroup: L.LayerGroup;
+
     constructor(props: any) {
         super(props);
 
@@ -56,6 +58,7 @@ export class Home extends React.Component<any, State> {
         this.handleFollowingChanged = this.handleFollowingChanged.bind(this);
         this.handleAirportsLoaded = this.handleAirportsLoaded.bind(this);
         this.handleMoreInfoChanged = this.handleMoreInfoChanged.bind(this);
+        this.handleFlightPlansLoaded = this.handleFlightPlansLoaded.bind(this);
         this.cleanUp = this.cleanUp.bind(this);
     }
 
@@ -64,6 +67,7 @@ export class Home extends React.Component<any, State> {
 
         this.baseLayerGroup = L.layerGroup().addTo(this.mymap);
         this.airportLayerGroup = L.layerGroup().addTo(this.mymap);
+        this.flightPlanLayerGroup = L.layerGroup().addTo(this.mymap);
         this.setTileLayer(MapTileType.OpenStreetMap);
 
         let hub = new signalr.HubConnectionBuilder()
@@ -305,6 +309,28 @@ export class Home extends React.Component<any, State> {
         }
     }
 
+    private handleFlightPlansLoaded(flightPlans: FlightPlan[]) {
+        if (this.mymap) {
+            this.flightPlanLayerGroup.clearLayers();
+
+            for (var flightPlan of flightPlans) {
+                const latlngs = flightPlan.data.waypoints.reduce((prev: L.LatLngTuple[], curr) =>
+                    prev.concat([[curr.latitude, curr.longitude]]),
+                    [])
+                console.log(latlngs);
+                const polyline = L.polyline(latlngs, { color: 'red' });
+                this.flightPlanLayerGroup.addLayer(polyline);
+
+                for (let waypoint of flightPlan.data.waypoints) {
+                    const marker = L.marker([waypoint.latitude, waypoint.longitude], {
+                        title: waypoint.id
+                    });
+                    this.flightPlanLayerGroup.addLayer(marker);
+                }
+            }
+        }
+    }
+
     render() {
         return <>
             <div id="mapid" style={{ height: '100%' }}></div>
@@ -319,7 +345,7 @@ export class Home extends React.Component<any, State> {
                 onFollowingChanged={this.handleFollowingChanged} followingConnectionId={this.state.followingConnectionId}
                 onMoreInfoChanged={this.handleMoreInfoChanged} moreInfoConnectionIds={this.state.moreInfoConnectionIds}
             />
-            <EventList onAirportsLoaded={this.handleAirportsLoaded}/>
+            <EventList onAirportsLoaded={this.handleAirportsLoaded} onFlightPlansLoaded={this.handleFlightPlansLoaded} />
         </>;
     }
 }

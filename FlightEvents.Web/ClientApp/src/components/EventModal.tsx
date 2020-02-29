@@ -1,7 +1,7 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import { FlightEvent, Airport } from '../Models';
+import { FlightEvent, Airport, FlightPlan } from '../Models';
 import Api from '../Api';
 import parseISO from 'date-fns/parseISO';
 import ReactMarkdown from 'react-markdown';
@@ -11,6 +11,7 @@ interface Props {
     isOpen: boolean;
     toggle: () => void;
     onAirportLoaded: (airports: Airport[]) => void;
+    onFlightPlansLoaded: (flightPlan: FlightPlan[]) => void;
 }
 
 interface State {
@@ -31,6 +32,7 @@ export default class EventModal extends React.Component<Props, State> {
     }
 
     private airports: Airport[] | null = null;
+    private flightPlans: FlightPlan[] | null = null;
 
     private async handleOpen() {
         if (!this.state.flightEvent) {
@@ -45,6 +47,11 @@ export default class EventModal extends React.Component<Props, State> {
                 }
                 this.props.onAirportLoaded(this.airports);
             }
+
+            if (!this.flightPlans) {
+                this.flightPlans = await Api.getFlightPlans(event.id);
+            }
+            this.props.onFlightPlansLoaded(this.flightPlans);
         }
 
     }

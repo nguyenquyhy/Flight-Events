@@ -26,3 +26,41 @@ export interface Airport {
     longitude: number;
     latitude: number;
 }
+
+export interface FlightPlan {
+    id: string
+    data: FlightPlanData
+}
+
+export interface FlightPlanData {
+    title: string
+    description: string
+    cruisingAltitude: number
+    type: "IFR" | "VFR"
+    routeType: string
+    departure: FlightPlanPosition
+    destination: FlightPlanPosition
+    waypoints: FlightPlanWaypoint[]
+}
+
+export interface FlightPlanPosition {
+    id: string
+    name: string
+    latitude: number
+    longitude: number
+}
+
+export interface FlightPlanWaypoint {
+    id: string
+    airway: string
+    type: string
+    latitude: number
+    longitude: number
+    icao: WaypointICAO
+}
+
+export interface WaypointICAO {
+    ident
+    airport
+    region
+}
