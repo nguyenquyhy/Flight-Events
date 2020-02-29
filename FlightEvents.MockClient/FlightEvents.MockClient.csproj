@@ -8,9 +8,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="3.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FlightEvents.Client.ATC\FlightEvents.Client.ATC.csproj" />
     <ProjectReference Include="..\FlightEvents.Common\FlightEvents.Common.csproj" />
   </ItemGroup>
 

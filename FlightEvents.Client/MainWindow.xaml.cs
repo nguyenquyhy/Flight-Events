@@ -1,4 +1,5 @@
-﻿using FlightEvents.Client.Logics;
+﻿using FlightEvents.Client.ATC;
+using FlightEvents.Client.Logics;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Options;
 using System;
@@ -16,16 +17,17 @@ namespace FlightEvents.Client
     public partial class MainWindow : Window
     {
         private readonly MainViewModel viewModel;
-
+        private readonly ATCServer atcServer;
         private readonly HubConnection hub;
 
-        public MainWindow(IFlightConnector flightConnector, MainViewModel viewModel, IOptions<AppSettings> appSettings)
+        public MainWindow(IFlightConnector flightConnector, MainViewModel viewModel, IOptions<AppSettings> appSettings, ATCServer atcServer)
         {
             InitializeComponent();
             flightConnector.AircraftStatusUpdated += FlightConnector_AircraftStatusUpdated;
 
             DataContext = viewModel;
             this.viewModel = viewModel;
+            this.atcServer = atcServer;
 
             hub = new HubConnectionBuilder()
                 .WithUrl(appSettings.Value.WebServerUrl + "/FlightEventHub")
@@ -37,6 +39,8 @@ namespace FlightEvents.Client
             hub.Reconnected += Hub_Reconnected;
 
             TextURL.Text = appSettings.Value.WebServerUrl;
+
+            atcServer.Connected += AtcServer_Connected;
         }
 
         private Task Hub_Reconnected(string arg)
@@ -141,6 +145,36 @@ namespace FlightEvents.Client
         {
             myNotifyIcon.Visibility = Visibility.Collapsed;
             Visibility = Visibility.Visible;
+        }
+
+        private void ButtonStartATC_Click(object sender, RoutedEventArgs e)
+        {
+            ButtonStartATC.IsEnabled = false;
+            atcServer.Start();
+        }
+
+        private void ButtonStopATC_Click(object sender, RoutedEventArgs e)
+        {
+            hub.Remove("UpdateAircraft");
+            atcServer.Stop();
+            ButtonStopATC.Visibility = Visibility.Collapsed;
+            ButtonStartATC.Visibility = Visibility.Visible;
+            ButtonStartATC.IsEnabled = true;
+        }
+
+        private void AtcServer_Connected(object sender, ConnectedEventArgs e)
+        {
+            hub.On<string, AircraftStatus>("UpdateAircraft", async (connectionId, aircraftStatus) =>
+            {
+                await atcServer.SendPositionAsync(aircraftStatus.Callsign, aircraftStatus.Transponder,
+                    aircraftStatus.Latitude, aircraftStatus.Longitude, aircraftStatus.Altitude, aircraftStatus.GroundSpeed);
+            });
+
+            Dispatcher.Invoke(() =>
+            {
+                ButtonStartATC.Visibility = Visibility.Collapsed;
+                ButtonStopATC.Visibility = Visibility.Visible;
+            });
         }
     }
 }

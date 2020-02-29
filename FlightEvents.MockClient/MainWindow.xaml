@@ -17,6 +17,9 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="30" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
 
@@ -26,7 +29,10 @@
         <TextBlock Text="Connection ID" Grid.Row="1" Grid.Column="0" />
         <TextBox x:Name="TextConnectionId" Grid.Row="1" Grid.Column="1" IsReadOnly="True" />
 
-        <Button x:Name="ButtonStart" Content="Start" Grid.Row="2" Grid.Column="1" Click="ButtonStart_Click" />
-        <Button x:Name="ButtonStop" Content="Stop" Grid.Row="3" Grid.Column="1" Click="ButtonStop_Click" />
+        <Button x:Name="ButtonStart" Content="Start Client" Grid.Row="2" Grid.Column="1" Click="ButtonStart_Click" />
+        <Button x:Name="ButtonStop" Content="Stop Client" Grid.Row="3" Grid.Column="1" Click="ButtonStop_Click" />
+
+        <Button x:Name="ButtonStartVATSIM" Content="Start VATSIM Server" Grid.Row="5" Grid.Column="1" Click="ButtonStartVATSIM_Click" />
+        <Button x:Name="ButtonStopVATSIM" Content="Stop VATSIM Server" Grid.Row="6" Grid.Column="1" Click="ButtonStopVATSIM_Click" />
     </Grid>
 </Window>

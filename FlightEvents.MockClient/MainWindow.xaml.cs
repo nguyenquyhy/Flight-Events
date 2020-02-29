@@ -1,5 +1,9 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
+﻿using FlightEvents.Client.ATC;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Net.Sockets;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 
@@ -13,12 +17,12 @@ namespace FlightEvents.MockClient
         private readonly HubConnection hub;
         private readonly Timer timer;
         private readonly Random random = new Random();
-        private double longitude;
-        private double latitude;
+        private double latitude = 47.36360168;
+        private double longitude = 17.50079918;
         private double heading;
         private double airspeed;
         private double altitude;
-
+        private ATCServer atcServer;
         private const double sec = 2;
 
         public MainWindow()
@@ -80,6 +84,56 @@ namespace FlightEvents.MockClient
         {
             timer.Stop();
             await hub.StopAsync();
+        }
+
+        private void ButtonStartVATSIM_Click(object sender, RoutedEventArgs e)
+        {
+            var loggerFactory = LoggerFactory.Create(config => config.AddDebug());
+
+            atcServer = new ATCServer(loggerFactory.CreateLogger<ATCServer>());
+            atcServer.Connected += AtcServer_Connected;
+            atcServer.Start();
+        }
+
+        private void AtcServer_Connected(object sender, ConnectedEventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                TextCallsign.Text = e.Callsign;
+                ButtonStartVATSIM.IsEnabled = false;
+            });
+
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    var callsign = "HY3088";
+                    var squawk = "1233";
+                    longitude += 0.0001;
+                    latitude += 0.0001;
+                    var altitude = 12345;
+                    var groundSpeed = 120;
+
+                    await atcServer.SendPositionAsync(callsign, squawk, latitude, longitude, altitude, groundSpeed);
+
+                    var type = "Test";
+                    var title = "Test aircraft";
+                    var freq = 111.1;
+                    var dep = "LHPR";
+                    var arr = "LHSY";
+                    var reg = "AAAAA";
+
+                    await atcServer.SendFlightPlan(callsign, true, type, reg, title, freq, dep, arr, 200, 15000);
+
+                    await Task.Delay(1000);
+                }
+            });
+        }
+
+        private void ButtonStopVATSIM_Click(object sender, RoutedEventArgs e)
+        {
+            atcServer?.Stop();
+            atcServer = null;
         }
     }
 }

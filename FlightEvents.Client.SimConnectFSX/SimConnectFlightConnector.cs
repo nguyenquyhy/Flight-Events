@@ -234,6 +234,15 @@ namespace FlightEvents.Client.SimConnectFSX
                 0.0f,
                 SimConnect.SIMCONNECT_UNUSED);
 
+            simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
+                "TRANSPONDER CODE:1",
+                "Hz",
+                SIMCONNECT_DATATYPE.INT32,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+
+            // TRANSPONDER CODE:index
+
             // IMPORTANT: register it with the simconnect managed wrapper marshaller
             // if you skip this step, you will only receive a uint in the .dwData field.
             simconnect.RegisterDataDefineStruct<FlightStatusStruct>(DEFINITIONS.FlightStatus);
@@ -271,7 +280,8 @@ namespace FlightEvents.Client.SimConnectFSX
                                     IsOnGround = flightStatus.Value.IsOnGround == 1,
                                     StallWarning = flightStatus.Value.StallWarning == 1,
                                     OverspeedWarning = flightStatus.Value.OverspeedWarning == 1,
-                                    IsAutopilotOn = flightStatus.Value.IsAutopilotOn == 1
+                                    IsAutopilotOn = flightStatus.Value.IsAutopilotOn == 1,
+                                    Transponder = flightStatus.Value.Transponder.ToString().PadLeft(4, '0')
                                 }));
                         }
                         else

@@ -49,5 +49,7 @@ namespace FlightEvents.Client.SimConnectFSX
         public int OverspeedWarning;
 
         public int IsAutopilotOn;
+
+        public int Transponder;
     }
 }

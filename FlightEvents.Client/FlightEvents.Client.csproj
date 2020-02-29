@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FlightEvents.Client.ATC\FlightEvents.Client.ATC.csproj" />
     <ProjectReference Include="..\FlightEvents.Client.Logics\FlightEvents.Client.Logics.csproj" />
     <ProjectReference Include="..\FlightEvents.Client.SimConnectFSX\FlightEvents.Client.SimConnectFSX.csproj" />
   </ItemGroup>

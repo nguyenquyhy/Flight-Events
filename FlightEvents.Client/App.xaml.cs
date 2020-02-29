@@ -1,4 +1,5 @@
-﻿using FlightEvents.Client.Logics;
+﻿using FlightEvents.Client.ATC;
+using FlightEvents.Client.Logics;
 using FlightEvents.Client.SimConnectFSX;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -58,6 +59,7 @@ namespace FlightEvents.Client
 
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<IFlightConnector, SimConnectFlightConnector>();
+            services.AddSingleton<ATCServer>();
 
             services.AddTransient(typeof(MainWindow));
         }

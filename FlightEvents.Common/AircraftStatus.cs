@@ -31,5 +31,6 @@
         public bool OverspeedWarning { get; set; }
 
         public bool IsAutopilotOn { get; set; }
+        public string Transponder { get; set; }
     }
 }
