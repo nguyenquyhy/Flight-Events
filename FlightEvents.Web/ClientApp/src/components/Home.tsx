@@ -39,6 +39,8 @@ export class Home extends React.Component<any, State> {
 
     flightPlanLayerGroup: L.LayerGroup;
 
+    circleMarker: L.Circle;
+
     constructor(props: any) {
         super(props);
 
@@ -179,6 +181,10 @@ export class Home extends React.Component<any, State> {
             markers.aircraft
                 .bindPopup(popup)
                 .setRotationAngle(aircraftStatus.trueHeading);
+
+            if (this.circleMarker && this.state.myConnectionId === connectionId) {
+                this.circleMarker.setLatLng(latlng);
+            }
         });
 
         hub.start();
@@ -195,6 +201,10 @@ export class Home extends React.Component<any, State> {
                     marker.aircraft.removeFrom(this.mymap);
                     marker.info.removeFrom(this.mymap);
                     if (connectionId === this.state.myConnectionId) {
+                        if (this.circleMarker) {
+                            this.circleMarker.removeFrom(this.mymap);
+                            this.circleMarker = null;
+                        }
                         this.setState({
                             myConnectionId: null
                         });
@@ -275,6 +285,19 @@ export class Home extends React.Component<any, State> {
 
     private handleMeChanged(connectionId: string | null) {
         this.setState({ myConnectionId: connectionId });
+
+        if (connectionId) {
+            if (!this.circleMarker) {
+                this.circleMarker = L.circle([0, 0], {
+                    radius: 3048
+                }).addTo(this.mymap);
+            }
+        } else {
+            if (this.circleMarker) {
+                this.circleMarker.removeFrom(this.mymap);
+                this.circleMarker = null;
+            }
+        }
     }
 
     private handleFollowingChanged(connectionId: string | null) {
