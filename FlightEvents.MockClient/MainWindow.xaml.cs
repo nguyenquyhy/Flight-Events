@@ -52,8 +52,10 @@ namespace FlightEvents.MockClient
                         IndicatedAirSpeed = airspeed
                     });
 
-                    longitude -= Math.Cos(heading / Math.PI / 2) * (airspeed / 3600.0 * sec) / (Math.Cos(latitude / Math.PI / 2) * 60.108);
-                    latitude -= Math.Sin(heading / Math.PI / 2) * (airspeed / 3600.0 * sec) / 60.108;
+                    var distance = airspeed / 3600.0 * sec;
+
+                    longitude += Math.Sin(heading / 360.0 * Math.PI * 2) * distance / (Math.Cos(latitude / 360.0 * Math.PI * 2) * 60.108);
+                    latitude += Math.Cos(heading / 360.0 * Math.PI * 2) * distance / 60.108;
                 }
             });
         }
