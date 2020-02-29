@@ -105,18 +105,21 @@ export class Home extends React.Component<any, State> {
                 if (connectionId === this.state.myConnectionId) className += " me";
 
                 if (this.state.moreInfoConnectionIds.includes(connectionId)) {
+                    let htmlBody = `<div>${aircraftStatus.callsign}</div><div>${Math.round(aircraftStatus.altitude)} ft</div><div>${Math.round(aircraftStatus.heading)}\u00B0</div><div>${Math.round(aircraftStatus.indicatedAirSpeed)} kias</div>`
+                    let iconSizeValue = [12, 60]
+
                     if (aircraftStatus.trueHeading >= 180) {
                         markers.info.setIcon(L.divIcon({
                             className: className,
-                            html: `<div>${aircraftStatus.callsign}</div><div>${Math.floor(aircraftStatus.altitude)}FT</div><div>${Math.floor(aircraftStatus.heading)}\u00B0</div><div>${Math.floor(aircraftStatus.indicatedAirSpeed)}KTS</div>`,
-                            iconSize: [12, 60],
+                            html: htmlBody,
+                            iconSize: iconSizeValue,
                             iconAnchor: [-12, 10],
                         }))
                     } else {
                         markers.info.setIcon(L.divIcon({
                             className: className + ' right',
-                            html: `<div>${aircraftStatus.callsign}</div><div>${Math.floor(aircraftStatus.altitude)}FT</div><div>${Math.floor(aircraftStatus.heading)}\u00B0</div><div>${Math.floor(aircraftStatus.indicatedAirSpeed)}KTS</div>`,
-                            iconSize: [12, 60],
+                            html: htmlBody,
+                            iconSize: iconSizeValue,
                             iconAnchor: [72, 10],
                         }))
                     }
@@ -125,14 +128,14 @@ export class Home extends React.Component<any, State> {
                         markers.info.setIcon(L.divIcon({
                             className: className,
                             html: `<div>${aircraftStatus.callsign}</div>`,
-                            iconSize: [12, 60],
+                            iconSize: iconSizeValue,
                             iconAnchor: [-12, 10],
                         }))
                     } else {
                         markers.info.setIcon(L.divIcon({
                             className: className + ' right',
                             html: `<div>${aircraftStatus.callsign}</div>`,
-                            iconSize: [12, 60],
+                            iconSize: iconSizeValue,
                             iconAnchor: [72, 10],
                         }))
                     }
