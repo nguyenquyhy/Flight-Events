@@ -1,4 +1,5 @@
 ﻿import * as React from 'react';
+import { UncontrolledTooltip } from 'reactstrap';
 import styled from 'styled-components';
 import { AircraftStatus } from '../Models';
 import Panel from './Controls/Panel';
@@ -11,6 +12,9 @@ interface Props {
     onMeChanged: (connectionId: string | null) => void;
     followingConnectionId: string | null;
     onFollowingChanged: (connectionId: string | null) => void;
+
+    moreInfoConnectionIds: string[];
+    onMoreInfoChanged: (connectionId: string) => void;
 }
 
 export default class AircraftList extends React.Component<Props> {
@@ -32,10 +36,14 @@ export default class AircraftList extends React.Component<Props> {
         }
     }
 
+    handleMoreInfoChanged(connectionId: string) {
+        this.props.onMoreInfoChanged(connectionId);
+    }
+
     public render() {
         const connectionIds = Object.keys(this.props.aircrafts);
         const list = connectionIds.length === 0 ?
-            <tr><td colSpan={3}><NoneText>None</NoneText></td></tr> :
+            <tr><td colSpan={4}><NoneText>None</NoneText></td></tr> :
             connectionIds.map(connectionId => (
                 <ListItem key={connectionId}>
                     <td>
@@ -45,6 +53,7 @@ export default class AircraftList extends React.Component<Props> {
                     </td>
                     <td><Checkbox type="checkbox" checked={this.props.myConnectionId === connectionId} onChange={() => this.handleMeChanged(connectionId)} /></td>
                     <td><Checkbox type="checkbox" checked={this.props.followingConnectionId === connectionId} onChange={() => this.handleFollowChanged(connectionId)} /></td>
+                    <td><Checkbox type="checkbox" checked={this.props.moreInfoConnectionIds.includes(connectionId)} onChange = {() => this.handleMoreInfoChanged(connectionId)} /></td>
                 </ListItem>
             ));
 
@@ -53,8 +62,18 @@ export default class AircraftList extends React.Component<Props> {
                 <thead>
                     <tr>
                         <th><Title>Aircrafts</Title></th>
-                        <th><div style={{ marginRight: 3, marginLeft: 3 }}>Me</div></th>
-                        <th>Follow</th>
+                        <th>
+                            <div id="txtMe">Me</div>
+                            <UncontrolledTooltip placement="right" target="txtMe">This is me</UncontrolledTooltip>
+                        </th>
+                        <th>
+                            <div id="txtFollow">F</div>
+                            <UncontrolledTooltip placement="right" target="txtFollow">Follow this aircraft</UncontrolledTooltip>
+                        </th>
+                        <th>
+                            <div id="txtMore">M</div>
+                            <UncontrolledTooltip placement="right" target="txtMore">Show more info</UncontrolledTooltip>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -67,13 +86,14 @@ export default class AircraftList extends React.Component<Props> {
 
 const Title = styled.div`
 margin-left: 8px;
+margin-right: 8px;
 font-weight: bold;
 font-style: italic;
 text-align: center;
 `
 
 const NoneText = styled.div`
-margin: 0 8px;
+margin: 0 8px 10px 8px;
 `
 
 const Wrapper = styled(Panel)`
@@ -85,8 +105,14 @@ z-index: 1000;
 
 const List = styled.table`
 margin-top: 10px;
+margin-right: 5px;
 list-style: none;
 padding: 0;
+
+th div {
+min-width: 20px;
+text-align: center;
+}
 `
 
 const ListItem = styled.tr`

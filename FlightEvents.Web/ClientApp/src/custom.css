@@ -23,7 +23,7 @@ code {
     border: none;
     font-weight: bold;
     width: 60px;
-    margin-bottom: -2px;
+    padding: 0 4px;
 }
 
 .divicon-aircraft-info.right div {

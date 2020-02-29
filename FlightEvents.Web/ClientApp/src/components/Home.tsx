@@ -19,6 +19,7 @@ interface State {
     aircrafts: { [connectionId: string]: AircraftStatus };
     myConnectionId: string | null;
     followingConnectionId: string | null;
+    moreInfoConnectionIds: string[];
 }
 
 interface Markers {
@@ -42,7 +43,8 @@ export class Home extends React.Component<any, State> {
         this.state = {
             aircrafts: {},
             myConnectionId: null,
-            followingConnectionId: null
+            followingConnectionId: null,
+            moreInfoConnectionIds: []
         }
 
         this.handleAircraftClick = this.handleAircraftClick.bind(this);
@@ -53,6 +55,7 @@ export class Home extends React.Component<any, State> {
         this.handleMeChanged = this.handleMeChanged.bind(this);
         this.handleFollowingChanged = this.handleFollowingChanged.bind(this);
         this.handleAirportsLoaded = this.handleAirportsLoaded.bind(this);
+        this.handleMoreInfoChanged = this.handleMoreInfoChanged.bind(this);
         this.cleanUp = this.cleanUp.bind(this);
     }
 
@@ -97,20 +100,38 @@ export class Home extends React.Component<any, State> {
                 let className = 'divicon-aircraft-info';
                 if (connectionId === this.state.myConnectionId) className += " me";
 
-                if (aircraftStatus.trueHeading >= 180) {
-                    markers.info.setIcon(L.divIcon({
-                        className: className,
-                        html: `<div>${aircraftStatus.callsign}</div><div>${Math.floor(aircraftStatus.altitude)}FT</div><div>${Math.floor(aircraftStatus.heading)}\u00B0</div><div>${Math.floor(aircraftStatus.indicatedAirSpeed)}KTS</div>`,
-                        iconSize: [12, 60],
-                        iconAnchor: [-12, 10],
-                    }))
+                if (this.state.moreInfoConnectionIds.includes(connectionId)) {
+                    if (aircraftStatus.trueHeading >= 180) {
+                        markers.info.setIcon(L.divIcon({
+                            className: className,
+                            html: `<div>${aircraftStatus.callsign}</div><div>${Math.floor(aircraftStatus.altitude)}FT</div><div>${Math.floor(aircraftStatus.heading)}\u00B0</div><div>${Math.floor(aircraftStatus.indicatedAirSpeed)}KTS</div>`,
+                            iconSize: [12, 60],
+                            iconAnchor: [-12, 10],
+                        }))
+                    } else {
+                        markers.info.setIcon(L.divIcon({
+                            className: className + ' right',
+                            html: `<div>${aircraftStatus.callsign}</div><div>${Math.floor(aircraftStatus.altitude)}FT</div><div>${Math.floor(aircraftStatus.heading)}\u00B0</div><div>${Math.floor(aircraftStatus.indicatedAirSpeed)}KTS</div>`,
+                            iconSize: [12, 60],
+                            iconAnchor: [72, 10],
+                        }))
+                    }
                 } else {
-                    markers.info.setIcon(L.divIcon({
-                        className: className + ' right',
-                        html: `<div>${aircraftStatus.callsign}</div><div>${Math.floor(aircraftStatus.altitude)}FT</div><div>${Math.floor(aircraftStatus.heading)}\u00B0</div><div>${Math.floor(aircraftStatus.indicatedAirSpeed)}KTS</div>`,
-                        iconSize: [12, 60],
-                        iconAnchor: [72, 10],
-                    }))
+                    if (aircraftStatus.trueHeading >= 180) {
+                        markers.info.setIcon(L.divIcon({
+                            className: className,
+                            html: `<div>${aircraftStatus.callsign}</div>`,
+                            iconSize: [12, 60],
+                            iconAnchor: [-12, 10],
+                        }))
+                    } else {
+                        markers.info.setIcon(L.divIcon({
+                            className: className + ' right',
+                            html: `<div>${aircraftStatus.callsign}</div>`,
+                            iconSize: [12, 60],
+                            iconAnchor: [72, 10],
+                        }))
+                    }
                 }
             } else {
                 const aircraft = L.marker(latlng, {
@@ -252,6 +273,14 @@ export class Home extends React.Component<any, State> {
         this.setState({ followingConnectionId: connectionId });
     }
 
+    private handleMoreInfoChanged(connectionId: string) {
+        if (this.state.moreInfoConnectionIds.includes(connectionId)) {
+            this.setState({ moreInfoConnectionIds: this.state.moreInfoConnectionIds.filter(o => o !== connectionId) });
+        } else {
+            this.setState({ moreInfoConnectionIds: this.state.moreInfoConnectionIds.concat(connectionId) });
+        }
+    }
+
     private handleAirportsLoaded(airports: Airport[]) {
         if (this.mymap) {
             const minLongitude = airports.reduce((prev, curr) => Math.min(prev, curr.longitude), 180);
@@ -287,7 +316,9 @@ export class Home extends React.Component<any, State> {
             </LayerWrapper>
             <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
                 onMeChanged={this.handleMeChanged} myConnectionId={this.state.myConnectionId}
-                onFollowingChanged={this.handleFollowingChanged} followingConnectionId={this.state.followingConnectionId} />
+                onFollowingChanged={this.handleFollowingChanged} followingConnectionId={this.state.followingConnectionId}
+                onMoreInfoChanged={this.handleMoreInfoChanged} moreInfoConnectionIds={this.state.moreInfoConnectionIds}
+            />
             <EventList onAirportsLoaded={this.handleAirportsLoaded}/>
         </>;
     }
