@@ -16,15 +16,19 @@ namespace FlightEvents.Client
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly Random random = new Random();
+
         private readonly MainViewModel viewModel;
         private readonly ATCServer atcServer;
         private readonly HubConnection hub;
+        private readonly IFlightConnector flightConnector;
 
         private AircraftData aircraftData;
 
         public MainWindow(IFlightConnector flightConnector, MainViewModel viewModel, IOptions<AppSettings> appSettings, ATCServer atcServer)
         {
             InitializeComponent();
+            this.flightConnector = flightConnector;
             flightConnector.AircraftDataUpdated += FlightConnector_AircraftDataUpdated;
             flightConnector.AircraftStatusUpdated += FlightConnector_AircraftStatusUpdated;
             flightConnector.FlightPlanUpdated += FlightConnector_FlightPlanUpdated;
@@ -42,10 +46,74 @@ namespace FlightEvents.Client
             hub.Reconnecting += Hub_Reconnecting;
             hub.Reconnected += Hub_Reconnected;
 
+            hub.On<string, string>("RequestFlightPlan", Hub_OnRequestFlightPlan);
+
             TextURL.Text = appSettings.Value.WebServerUrl;
 
+            atcServer.FlightPlanRequested += AtcServer_FlightPlanRequested;
             atcServer.Connected += AtcServer_Connected;
         }
+
+        #region Interaction
+
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(viewModel.Callsign)) viewModel.Callsign = GenerateCallSign();
+
+            viewModel.HubConnectionState = ConnectionState.Connecting;
+            await hub.StartAsync();
+            viewModel.HubConnectionState = ConnectionState.Connected;
+
+            ButtonStartATC.IsEnabled = true;
+        }
+
+        private void ButtonStartTrack_Click(object sender, RoutedEventArgs e)
+        {
+            TextCallsign.IsEnabled = false;
+            ButtonStartTrack.Visibility = Visibility.Collapsed;
+            ButtonStopTrack.Visibility = Visibility.Visible;
+        }
+
+        private void ButtonStopTrack_Click(object sender, RoutedEventArgs e)
+        {
+            TextCallsign.IsEnabled = true;
+            ButtonStopTrack.Visibility = Visibility.Collapsed;
+            ButtonStartTrack.Visibility = Visibility.Visible;
+        }
+
+        private void ButtonStartATC_Click(object sender, RoutedEventArgs e)
+        {
+            ButtonStartATC.IsEnabled = false;
+            atcServer.Start();
+        }
+
+        private async void ButtonStopATC_Click(object sender, RoutedEventArgs e)
+        {
+            hub.Remove("UpdateAircraft");
+            hub.Remove("UpdateFlightPlan");
+            hub.Remove("ReturnFlightPlan");
+            
+            atcServer.Stop();
+
+            await hub.SendAsync("Leave", "ATC");
+
+            ButtonStopATC.Visibility = Visibility.Collapsed;
+            ButtonStartATC.Visibility = Visibility.Visible;
+            ButtonStartATC.IsEnabled = true;
+        }
+
+        private void TextURL_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo { FileName = TextURL.Text, UseShellExecute = true });
+            }
+            catch { }
+        }
+
+        #endregion
+
+        #region SignalR
 
         private Task Hub_Reconnected(string arg)
         {
@@ -65,129 +133,52 @@ namespace FlightEvents.Client
             return Task.CompletedTask;
         }
 
+        private void Hub_OnRequestFlightPlan(string atcConnectionId, string callsign)
+        {
+            if (viewModel.Callsign == callsign)
+            {
+                flightConnector.RequestFlightPlan(atcConnectionId);
+            }
+        }
+
+        #endregion
+
+        #region SimConnect
+
         private void FlightConnector_AircraftDataUpdated(object sender, AircraftDataUpdatedEventArgs e)
         {
             aircraftData = e.AircraftData;
         }
 
         DateTime lastStatusSent = DateTime.Now;
-        DateTime flightPlanSent = DateTime.Now;
 
         private async void FlightConnector_AircraftStatusUpdated(object sender, AircraftStatusUpdatedEventArgs e)
         {
-            e.AircraftStatus.Callsign = viewModel.Callsign;
-
-            if (hub?.ConnectionId != null && DateTime.Now - lastStatusSent > TimeSpan.FromSeconds(2))
+            // TODO: change this to proper viewmodel
+            if (!TextCallsign.IsEnabled)
             {
-                lastStatusSent = DateTime.Now;
-                await hub.SendAsync("UpdateAircraft", hub.ConnectionId, e.AircraftStatus);
-                lastStatusSent = DateTime.Now;
-            }
+                e.AircraftStatus.Callsign = viewModel.Callsign;
 
-            viewModel.AircraftStatus = null;
-            viewModel.AircraftStatus = e.AircraftStatus;
-
-            if (hub?.ConnectionId != null && flightPlan != null && DateTime.Now - flightPlanSent > TimeSpan.FromSeconds(10))
-            {
-                flightPlanSent = DateTime.Now;
-                flightPlan.Callsign = viewModel.Callsign;
-                await hub.SendAsync("UpdateFlightPlan", hub.ConnectionId, flightPlan);
-                flightPlanSent = DateTime.Now;
-            }
-        }
-
-        private void FlightConnector_FlightPlanUpdated(object sender, FlightPlanUpdatedEventArgs e)
-        {
-            flightPlan = new FlightPlanCompact(e.FlightPlan, viewModel.Callsign, aircraftData.Model, (int)aircraftData.EstimatedCruiseSpeed);
-        }
-
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-                this.DragMove();
-        }
-
-        private async void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            viewModel.HubConnectionState = ConnectionState.Connecting;
-            await hub.StartAsync();
-            viewModel.HubConnectionState = ConnectionState.Connected;
-
-            ButtonStartATC.IsEnabled = true;
-
-            if (string.IsNullOrWhiteSpace(viewModel.Callsign)) viewModel.Callsign = GenerateCallSign();
-        }
-
-        private readonly Random random = new Random();
-
-        private string GenerateCallSign()
-        {
-            var builder = new StringBuilder();
-            builder.Append(((char)('A' + random.Next(26))).ToString());
-            builder.Append(((char)('A' + random.Next(26))).ToString());
-            builder.Append("-");
-            builder.Append(((char)('A' + random.Next(26))).ToString());
-            builder.Append(((char)('A' + random.Next(26))).ToString());
-            builder.Append(((char)('A' + random.Next(26))).ToString());
-            return builder.ToString();
-        }
-
-        private void TextURL_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo
+                if (hub?.ConnectionId != null && DateTime.Now - lastStatusSent > TimeSpan.FromSeconds(2))
                 {
-                    FileName = TextURL.Text,
-                    UseShellExecute = true
-                });
-            }
-            catch {
-            
-            }
-        }
-
-        private bool notified = false;
-        private FlightPlanCompact flightPlan;
-
-        private async void Window_StateChanged(object sender, EventArgs e)
-        {
-            if (WindowState == WindowState.Minimized)
-            {
-                Visibility = Visibility.Collapsed;
-                myNotifyIcon.Visibility = Visibility.Visible;
-                WindowState = WindowState.Normal;
-                if (!notified)
-                {
-                    notified = true;
-                    myNotifyIcon.ShowBalloonTip("Minimized to system tray", "Double click to restore the window.", Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Info);
-                    await Task.Delay(3000);
-                    myNotifyIcon.HideBalloonTip();
+                    lastStatusSent = DateTime.Now;
+                    await hub.SendAsync("UpdateAircraft", hub.ConnectionId, e.AircraftStatus);
+                    lastStatusSent = DateTime.Now;
                 }
+
+                viewModel.AircraftStatus = e.AircraftStatus;
             }
         }
 
-        private void myNotifyIcon_TrayLeftMouseDown(object sender, RoutedEventArgs e)
+        private async void FlightConnector_FlightPlanUpdated(object sender, FlightPlanUpdatedEventArgs e)
         {
-            myNotifyIcon.Visibility = Visibility.Collapsed;
-            Visibility = Visibility.Visible;
+            var flightPlan = new FlightPlanCompact(e.FlightPlan, viewModel.Callsign, aircraftData.Model, (int)aircraftData.EstimatedCruiseSpeed);
+            await hub.SendAsync("ReturnFlightPlan", hub.ConnectionId, flightPlan, e.AtcConnectionIds);
         }
 
-        private void ButtonStartATC_Click(object sender, RoutedEventArgs e)
-        {
-            ButtonStartATC.IsEnabled = false;
-            atcServer.Start();
-        }
+        #endregion
 
-        private async void ButtonStopATC_Click(object sender, RoutedEventArgs e)
-        {
-            hub.Remove("UpdateAircraft");
-            atcServer.Stop();
-            await hub.SendAsync("Leave", "ATC");
-            ButtonStopATC.Visibility = Visibility.Collapsed;
-            ButtonStartATC.Visibility = Visibility.Visible;
-            ButtonStartATC.IsEnabled = true;
-        }
+        #region ATC
 
         private async void AtcServer_Connected(object sender, ConnectedEventArgs e)
         {
@@ -213,6 +204,21 @@ namespace FlightEvents.Client
                     flightPlan.CruisingAltitude,
                     flightPlan.EstimatedEnroute);
             });
+            hub.On<string, FlightPlanCompact>("ReturnFlightPlan", async (connectionId, flightPlan) =>
+            {
+                await atcServer.SendFlightPlanAsync(
+                    flightPlan.Callsign,
+                    flightPlan.Type == "IFR",
+                    flightPlan.AircraftType,
+                    flightPlan.Callsign,
+                    flightPlan.AircraftType,
+                    flightPlan.Departure,
+                    flightPlan.Destination,
+                    flightPlan.Route,
+                    flightPlan.CruisingSpeed,
+                    flightPlan.CruisingAltitude,
+                    flightPlan.EstimatedEnroute);
+            });
             await hub.SendAsync("Join", "ATC");
 
             Dispatcher.Invoke(() =>
@@ -221,5 +227,64 @@ namespace FlightEvents.Client
                 ButtonStopATC.Visibility = Visibility.Visible;
             });
         }
+
+        private async void AtcServer_FlightPlanRequested(object sender, FlightPlanRequestedEventArgs e)
+        {
+            await hub.SendAsync("RequestFlightPlan", e.Callsign);
+        }
+
+        #endregion
+
+        #region Mics
+
+        private string GenerateCallSign()
+        {
+            var builder = new StringBuilder();
+            builder.Append(((char)('A' + random.Next(26))).ToString());
+            builder.Append(((char)('A' + random.Next(26))).ToString());
+            builder.Append("-");
+            builder.Append(((char)('A' + random.Next(26))).ToString());
+            builder.Append(((char)('A' + random.Next(26))).ToString());
+            builder.Append(((char)('A' + random.Next(26))).ToString());
+            return builder.ToString();
+        }
+
+        #endregion
+
+        #region Minimize to System Tray
+
+        private bool notified = false;
+
+        private async void Window_StateChanged(object sender, EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized)
+            {
+                Visibility = Visibility.Collapsed;
+                myNotifyIcon.Visibility = Visibility.Visible;
+                WindowState = WindowState.Normal;
+                if (!notified)
+                {
+                    notified = true;
+                    myNotifyIcon.ShowBalloonTip("Minimized to system tray", "Double click to restore the window.", Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Info);
+                    await Task.Delay(3000);
+                    myNotifyIcon.HideBalloonTip();
+                }
+            }
+        }
+
+        private void myNotifyIcon_TrayLeftMouseDown(object sender, RoutedEventArgs e)
+        {
+            myNotifyIcon.Visibility = Visibility.Collapsed;
+            Visibility = Visibility.Visible;
+        }
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
+
+        #endregion
+
     }
 }

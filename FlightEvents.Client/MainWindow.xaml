@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FlightEvents.Client"
         mc:Ignorable="d" Loaded="Window_Loaded" StateChanged="Window_StateChanged"
-        Title="Flight Events" Height="300" Width="300" ResizeMode="CanMinimize">
+        Title="Flight Events" Height="320" Width="300" ResizeMode="CanMinimize">
     
     <Grid Margin="10">
         <Grid.Resources>
@@ -21,12 +21,13 @@
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="10" />
+            <RowDefinition Height="4" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="10" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -42,21 +43,24 @@
         <TextBlock Text="{Binding SimConnectionState}" Grid.Row="3" Grid.Column="1" />
 
         <TextBlock Text="Callsign" Grid.Row="4" Grid.Column="0" />
-        <TextBox Text="{Binding Callsign, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="4" Grid.Column="1" MaxLength="10" />
+        <TextBox x:Name="TextCallsign" Text="{Binding Callsign, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="4" Grid.Column="1" MaxLength="10" />
 
         <TextBlock Text="Ident" Grid.Row="5" Grid.Column="0" />
-        <CheckBox IsChecked="{Binding TransponderIdent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="5" Grid.Column="1" />
+        <CheckBox IsChecked="{Binding TransponderIdent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" />
+
+        <Button x:Name="ButtonStartTrack" Content="Start Flight Tracking" Grid.Row="6" Grid.Column="1" Click="ButtonStartTrack_Click" />
+        <Button x:Name="ButtonStopTrack" Content="Stop Flight Tracking" Grid.Row="6" Grid.Column="1" Click="ButtonStopTrack_Click" Visibility="Collapsed" />
+
+        <TextBlock Text="ATC Radar" FontWeight="Bold" Grid.Row="8" Grid.ColumnSpan="2" />
         
-        <TextBlock Text="ATC Radar" FontWeight="Bold" Grid.Row="7" Grid.ColumnSpan="2" />
+        <TextBlock Text="Callsign" Grid.Row="9" Grid.Column="0" />
+        <TextBox Text="{Binding AtcCallsign}" Grid.Row="9" Grid.Column="1" MaxLength="10" IsReadOnly="True" />
         
-        <TextBlock Text="Callsign" Grid.Row="8" Grid.Column="0" />
-        <TextBox Text="{Binding AtcCallsign}" Grid.Row="8" Grid.Column="1" MaxLength="10" IsReadOnly="True" />
-        
-        <Button x:Name="ButtonStartATC" Content="Start ATC Mode" Grid.Row="9" Grid.Column="1" Click="ButtonStartATC_Click" IsEnabled="False" />
-        <Button x:Name="ButtonStopATC" Content="Stop ATC Mode" Grid.Row="9" Grid.Column="1" Click="ButtonStopATC_Click" Visibility="Collapsed" />
+        <Button x:Name="ButtonStartATC" Content="Start ATC Mode" Grid.Row="10" Grid.Column="1" Click="ButtonStartATC_Click" IsEnabled="False" />
+        <Button x:Name="ButtonStopATC" Content="Stop ATC Mode" Grid.Row="10" Grid.Column="1" Click="ButtonStopATC_Click" Visibility="Collapsed" />
 
         <TextBlock x:Name="TextURL" Text="https://localhost" 
-                   TextDecorations="Underline" Foreground="Blue" Grid.ColumnSpan="2" Grid.Row="10" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                   TextDecorations="Underline" Foreground="Blue" Grid.ColumnSpan="2" Grid.Row="100" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
                    MouseDown="TextURL_MouseDown"/>
 
         <tb:TaskbarIcon 

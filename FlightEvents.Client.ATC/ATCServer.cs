@@ -17,6 +17,16 @@ namespace FlightEvents.Client.ATC
         public string Callsign { get; }
     }
 
+    public class FlightPlanRequestedEventArgs : EventArgs
+    {
+        public FlightPlanRequestedEventArgs(string callsign)
+        {
+            Callsign = callsign;
+        }
+
+        public string Callsign { get; }
+    }
+
     public enum TransponderMode
     {
         Standby,
@@ -39,6 +49,7 @@ namespace FlightEvents.Client.ATC
         private TcpClient tcpClient;
 
         public event EventHandler<ConnectedEventArgs> Connected;
+        public event EventHandler<FlightPlanRequestedEventArgs> FlightPlanRequested;
 
         public ATCServer(ILogger<ATCServer> logger)
         {
@@ -142,8 +153,25 @@ namespace FlightEvents.Client.ATC
 
                     if (info.StartsWith("$CQ"))
                     {
-                        // TODO: Command (e.g. $CQHYHY:@94835:BC:HY3088:2677)
+                        // TODO: Command 
+                        // (e.g. $CQHYHY:@94835:BC:HY3088:2677)
+                        // (e.g. $CQKAUS_TWR:SERVER:FP:DS-TZZ)
 
+                        var tokens = info.Substring("$CQ".Length).Split(new char[] { ':' }, 4);
+                        var sender = tokens[0];
+                        var recipient = tokens[1];
+                        var command = tokens[2];
+                        var data = tokens.Length == 4 ? tokens[3] : null;
+
+                        switch (command)
+                        {
+                            case "FP":
+                                if (!string.IsNullOrEmpty(data))
+                                {
+                                    FlightPlanRequested?.Invoke(this, new FlightPlanRequestedEventArgs(data));
+                                }
+                                break;
+                        }
                     }
 
                     if (info.StartsWith("#TM"))

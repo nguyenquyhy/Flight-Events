@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.FlightSimulator.SimConnect;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -14,6 +16,8 @@ namespace FlightEvents.Client.SimConnectFSX
         public event EventHandler<AircraftDataUpdatedEventArgs> AircraftDataUpdated;
         public event EventHandler<AircraftStatusUpdatedEventArgs> AircraftStatusUpdated;
         public event EventHandler<FlightPlanUpdatedEventArgs> FlightPlanUpdated;
+
+        private List<string> atcConnectionIds = new List<string>();
 
         private const int StatusDelayMilliseconds = 500;
 
@@ -352,7 +356,7 @@ namespace FlightEvents.Client.SimConnectFSX
             }
         }
 
-        private void simconnect_OnRecvSystemState(SimConnect sender, SIMCONNECT_RECV_SYSTEM_STATE data)
+        private async void simconnect_OnRecvSystemState(SimConnect sender, SIMCONNECT_RECV_SYSTEM_STATE data)
         {
             switch (data.dwRequestID)
             {
@@ -363,11 +367,26 @@ namespace FlightEvents.Client.SimConnectFSX
 
                         var planName = data.szString;
 
-                        using var stream = File.OpenRead(planName);
-                        var serializer = new XmlSerializer(typeof(FlightPlanDocumentXml));
-                        var flightPlan = serializer.Deserialize(stream) as FlightPlanDocumentXml;
+                        if (planName == ".PLN")
+                        {
+                            logger.LogInformation("Flight plan is not read. Wait for 5s...");
+                            await Task.Delay(5000);
 
-                        FlightPlanUpdated?.Invoke(this, new FlightPlanUpdatedEventArgs(flightPlan.FlightPlan.ToData()));
+                            simconnect.RequestSystemState(DATA_REQUESTS.FLIGHT_PLAN, "FlightPlan");
+                        }
+                        else
+                        {
+                            using var stream = File.OpenRead(planName);
+                            var serializer = new XmlSerializer(typeof(FlightPlanDocumentXml));
+                            var flightPlan = serializer.Deserialize(stream) as FlightPlanDocumentXml;
+
+                            var connectionIds = atcConnectionIds;
+                            atcConnectionIds = new List<string>();
+                            if (connectionIds != null && connectionIds.Count > 0)
+                            {
+                                FlightPlanUpdated?.Invoke(this, new FlightPlanUpdatedEventArgs(flightPlan.FlightPlan.ToData(), connectionIds));
+                            }
+                        }
                     }
                     break;
             }
@@ -376,8 +395,6 @@ namespace FlightEvents.Client.SimConnectFSX
         void simconnect_OnRecvOpen(SimConnect sender, SIMCONNECT_RECV_OPEN data)
         {
             logger.LogInformation("Connected to Flight Simulator");
-
-            simconnect.RequestDataOnSimObjectType(DATA_REQUESTS.AIRCRAFT_DATA, DEFINITIONS.AircraftData, 0, SIMCONNECT_SIMOBJECT_TYPE.USER);
 
             cts?.Cancel();
             cts = new CancellationTokenSource();
@@ -422,6 +439,12 @@ namespace FlightEvents.Client.SimConnectFSX
             //{
             //    StartMonitoring();
             //}
+        }
+
+        public void RequestFlightPlan(string connectionId)
+        {
+            atcConnectionIds.Add(connectionId);
+            simconnect.RequestDataOnSimObjectType(DATA_REQUESTS.AIRCRAFT_DATA, DEFINITIONS.AircraftData, 0, SIMCONNECT_SIMOBJECT_TYPE.USER);
         }
     }
 }

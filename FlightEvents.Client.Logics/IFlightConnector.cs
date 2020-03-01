@@ -7,5 +7,7 @@ namespace FlightEvents.Client.Logics
         event EventHandler<AircraftDataUpdatedEventArgs> AircraftDataUpdated;
         event EventHandler<AircraftStatusUpdatedEventArgs> AircraftStatusUpdated;
         event EventHandler<FlightPlanUpdatedEventArgs> FlightPlanUpdated;
+
+        void RequestFlightPlan(string atcConnectionId);
     }
 }
