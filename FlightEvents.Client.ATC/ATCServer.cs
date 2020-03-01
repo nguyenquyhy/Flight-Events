@@ -66,14 +66,14 @@ namespace FlightEvents.Client.ATC
             logger.LogDebug("Sent Position: " + pos);
         }
 
-        public async Task SendFlightPlan(string callsign, bool isIFR, string type, string registration, string title, double frequency, string departure, string arrival, double groundSpeed, double altitude)
-        { 
+        public async Task SendFlightPlanAsync(string callsign, bool isIFR, string type, string registration, string title,
+            string departure, string arrival, string route, int? speed, int altitude, TimeSpan? enroute)
+        {
             var ifrs = isIFR ? "I" : "V";
-            var next = departure + " NATEX " + arrival;
+            var alternate = "NONE";
+            var remarks = $"Aircraft = {title} Registration = {registration}";
 
-            var fp = $"$FP{callsign}:*A:{ifrs}:{type}:{groundSpeed}:{departure}:::{altitude}:{arrival}:::00:00:NONE:Aircraft = {title}  Tuned to {frequency} Registration = {registration}:{next}:";
-            //var uspd = 125;
-            //var fp = $"$FP{callsign}:*A:{ifrs}:{utype}:{(object)uspd}:ZZZZ:00:00:ZZZZ:ZZZZ:00:00:00:00:NONE:Flight Plan is not available for the user aircraft. You know where you are going!                    Aircraft = {utitle} Tuned to {ufreq} Registration = {ureg}::";
+            var fp = $"$FP{callsign}:*A:{ifrs}:{type}:{speed}:{departure}:::{altitude}:{arrival}:::{(enroute == null ? ":" : $"{enroute.Value.Hours.ToString("00")}:{enroute.Value.Minutes.ToString("00")}")}:{alternate}:{remarks}:{route}:";
 
             await writer?.WriteLineAsync(fp);
             await writer?.FlushAsync();
@@ -118,41 +118,23 @@ namespace FlightEvents.Client.ATC
                         break;
                     }
 
-                    //if (info.StartsWith("$AX"))
-                    //{
-                    //    string station = info.Substring(25, 4);
-                    //    try
-                    //    {
-                    //        var oldLines = System.IO.File.ReadAllLines(met);
-                    //        var newLines = ((IEnumerable<string>)oldLines).Where<string>((Func<string, bool>)(line => !line.Contains(station)));
-                    //        System.IO.File.WriteAllLines(met, newLines);
-                    //        WebRequest webRequest = WebRequest.Create("http://tgftp.nws.noaa.gov/data/observations/metar/stations/" + station + ".TXT");
-                    //        using (WebResponse response = webRequest.GetResponse())
-                    //        {
-                    //            using (Stream MET = response.GetResponseStream())
-                    //            {
-                    //                using (StreamReader reader = new StreamReader(MET))
-                    //                {
-                    //                    reader.ReadLine();
-                    //                    string metar = reader.ReadLine();
-                    //                    string sndmet = "$ARJoinFS:" + callsign + ":METAR:" + metar;
-                    //                    System.IO.File.AppendAllText(met, sndmet + Environment.NewLine);
-                    //                    Console.WriteLine("Retreived the latest METAR for " + station);
-                    //                    metar = (string)null;
-                    //                    sndmet = (string)null;
-                    //                }
-                    //            }
-                    //        }
-                    //        oldLines = (string[])null;
-                    //        newLines = (IEnumerable<string>)null;
-                    //        webRequest = (WebRequest)null;
-                    //    }
-                    //    catch
-                    //    {
-                    //        Console.WriteLine("Could not get latest METAR for " + station);
-                    //    }
-                    //    await Form1.Global.sw.WriteLineAsync(System.IO.File.ReadAllText(met));
-                    //}
+                    if (info.StartsWith("$AX"))
+                    {
+                        // TODO: METAR
+
+                    }
+
+                    if (info.StartsWith("$CQ"))
+                    {
+                        // TODO: Command (e.g. $CQHYHY:@94835:BC:HY3088:2677)
+
+                    }
+
+                    if (info.StartsWith("#TM"))
+                    {
+                        // TODO: Message (e.g. #TMHYHY:FP:HY3088 SET 2677)
+
+                    }
 
                     if (this.vrc)
                     {

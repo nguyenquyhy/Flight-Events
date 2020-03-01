@@ -20,6 +20,7 @@
             <RowDefinition Height="30" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
 
@@ -33,6 +34,7 @@
         <Button x:Name="ButtonStop" Content="Stop Client" Grid.Row="3" Grid.Column="1" Click="ButtonStop_Click" />
 
         <Button x:Name="ButtonStartVATSIM" Content="Start VATSIM Server" Grid.Row="5" Grid.Column="1" Click="ButtonStartVATSIM_Click" />
-        <Button x:Name="ButtonStopVATSIM" Content="Stop VATSIM Server" Grid.Row="6" Grid.Column="1" Click="ButtonStopVATSIM_Click" />
+        <Button x:Name="ButtonSendFP" Content="Send Flight Plan" Grid.Row="6" Grid.Column="1" Click="ButtonSendFP_Click" />
+        <Button x:Name="ButtonStopVATSIM" Content="Stop VATSIM Server" Grid.Row="7" Grid.Column="1" Click="ButtonStopVATSIM_Click" />
     </Grid>
 </Window>

@@ -1,5 +1,4 @@
-﻿using FlightEvents.Common;
-using FlightEvents.Data;
+﻿using FlightEvents.Data;
 using HotChocolate;
 using HotChocolate.Types;
 using System.Threading.Tasks;

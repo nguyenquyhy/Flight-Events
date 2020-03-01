@@ -1,5 +1,4 @@
-﻿using FlightEvents.Common;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Threading.Tasks;
 
@@ -12,7 +11,7 @@ namespace FlightEvents.Web.Hubs
             await Clients.Groups("Map", "ATC").SendAsync("UpdateAircraft", connectionId, status);
         }
 
-        public async Task UpdateFlightPlan(string connectionId, FlightPlanData flightPlan)
+        public async Task UpdateFlightPlan(string connectionId, FlightPlanCompact flightPlan)
         {
             await Clients.Groups("ATC").SendAsync("UpdateFlightPlan", connectionId, flightPlan);
         }

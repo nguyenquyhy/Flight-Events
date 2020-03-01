@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace FlightEvents.Data
+namespace FlightEvents
 {
     public class GpsHelper
     {
@@ -30,6 +30,29 @@ namespace FlightEvents.Data
             }
 
             return (lt, ln);
+        }
+
+        public static double CalculateDistance(double latitude1, double longitude1,
+            double latitude2, double longitude2)
+        {
+            //var earthRadiusKm = 6371d;
+            var earthRadiusKt = 3440d;
+
+            var dLat = DegreesToRadians(latitude2 - latitude1);
+            var dLon = DegreesToRadians(longitude2 - longitude1);
+
+            latitude1 = DegreesToRadians(latitude1);
+            latitude2 = DegreesToRadians(latitude2);
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2) * Math.Cos(latitude1) * Math.Cos(latitude2);
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return earthRadiusKt * c;
+        }
+
+        private static double DegreesToRadians(double degrees)
+        {
+            return degrees * Math.PI / 180;
         }
     }
 }

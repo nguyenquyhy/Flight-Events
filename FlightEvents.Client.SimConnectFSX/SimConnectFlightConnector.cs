@@ -2,19 +2,20 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.FlightSimulator.SimConnect;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace FlightEvents.Client.SimConnectFSX
 {
     public class SimConnectFlightConnector : IFlightConnector
     {
+        public event EventHandler<AircraftDataUpdatedEventArgs> AircraftDataUpdated;
         public event EventHandler<AircraftStatusUpdatedEventArgs> AircraftStatusUpdated;
+        public event EventHandler<FlightPlanUpdatedEventArgs> FlightPlanUpdated;
 
         private const int StatusDelayMilliseconds = 500;
-
-        public event EventHandler Crashed;
-        public event EventHandler CrashReset;
 
         public event EventHandler Closed;
 
@@ -75,9 +76,11 @@ namespace FlightEvents.Client.SimConnectFSX
             // listen to exceptions
             simconnect.OnRecvException += simconnect_OnRecvException;
 
-            // catch the assigned object IDs
             simconnect.OnRecvSimobjectDataBytype += simconnect_OnRecvSimobjectDataBytypeAsync;
+            RegisterAircraftDataDefinition();
             RegisterFlightStatusDefinition();
+
+            simconnect.OnRecvSystemState += simconnect_OnRecvSystemState;
         }
 
         public void CloseConnection()
@@ -104,6 +107,41 @@ namespace FlightEvents.Client.SimConnectFSX
             {
                 logger.LogWarning(ex, $"Cannot unsubscribe events! Error: {ex.Message}");
             }
+        }
+
+        private void RegisterAircraftDataDefinition()
+        {
+            simconnect.AddToDataDefinition(DEFINITIONS.AircraftData,
+                "ATC TYPE",
+                null,
+                SIMCONNECT_DATATYPE.STRING32,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+
+            simconnect.AddToDataDefinition(DEFINITIONS.AircraftData,
+                "ATC MODEL",
+                null,
+                SIMCONNECT_DATATYPE.STRING32,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+
+            simconnect.AddToDataDefinition(DEFINITIONS.AircraftData,
+                "Title",
+                null,
+                SIMCONNECT_DATATYPE.STRING256,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+
+            simconnect.AddToDataDefinition(DEFINITIONS.AircraftData,
+                "ESTIMATED CRUISE SPEED",
+                "Knots",
+                SIMCONNECT_DATATYPE.FLOAT64,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+
+            // IMPORTANT: register it with the simconnect managed wrapper marshaller
+            // if you skip this step, you will only receive a uint in the .dwData field.
+            simconnect.RegisterDataDefineStruct<AircraftDataStruct>(DEFINITIONS.AircraftData);
         }
 
         private void RegisterFlightStatusDefinition()
@@ -241,18 +279,38 @@ namespace FlightEvents.Client.SimConnectFSX
                 0.0f,
                 SimConnect.SIMCONNECT_UNUSED);
 
-            // TRANSPONDER CODE:index
-
             // IMPORTANT: register it with the simconnect managed wrapper marshaller
             // if you skip this step, you will only receive a uint in the .dwData field.
             simconnect.RegisterDataDefineStruct<FlightStatusStruct>(DEFINITIONS.FlightStatus);
         }
 
-        private async void simconnect_OnRecvSimobjectDataBytypeAsync(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
+        private void simconnect_OnRecvSimobjectDataBytypeAsync(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
         {
             // Must be general SimObject information
             switch (data.dwRequestID)
             {
+                case (uint)DATA_REQUESTS.AIRCRAFT_DATA:
+                    {
+                        // Handle this when aircraft is changed
+                        var aircraftData = data.dwData[0] as AircraftDataStruct?;
+
+                        if (aircraftData.HasValue)
+                        {
+                            logger.LogDebug("Get Aircraft data");
+
+                            AircraftDataUpdated?.Invoke(this, new AircraftDataUpdatedEventArgs(new AircraftData
+                            {
+                                Type = aircraftData.Value.Type,
+                                Model = aircraftData.Value.Model,
+                                Title = aircraftData.Value.Title,
+                                EstimatedCruiseSpeed = aircraftData.Value.EstimatedCruiseSpeed
+                            }));
+
+                            simconnect.RequestSystemState(DATA_REQUESTS.FLIGHT_PLAN, "FlightPlan");
+                        }
+                    }
+                    break;
+
                 case (uint)DATA_REQUESTS.FLIGHT_STATUS:
                     {
                         var flightStatus = data.dwData[0] as FlightStatusStruct?;
@@ -294,9 +352,32 @@ namespace FlightEvents.Client.SimConnectFSX
             }
         }
 
+        private void simconnect_OnRecvSystemState(SimConnect sender, SIMCONNECT_RECV_SYSTEM_STATE data)
+        {
+            switch (data.dwRequestID)
+            {
+                case (int)DATA_REQUESTS.FLIGHT_PLAN:
+                    if (!string.IsNullOrEmpty(data.szString))
+                    {
+                        logger.LogInformation($"Receive flight plan {data.szString}");
+
+                        var planName = data.szString;
+
+                        using var stream = File.OpenRead(planName);
+                        var serializer = new XmlSerializer(typeof(FlightPlanDocumentXml));
+                        var flightPlan = serializer.Deserialize(stream) as FlightPlanDocumentXml;
+
+                        FlightPlanUpdated?.Invoke(this, new FlightPlanUpdatedEventArgs(flightPlan.FlightPlan.ToData()));
+                    }
+                    break;
+            }
+        }
+
         void simconnect_OnRecvOpen(SimConnect sender, SIMCONNECT_RECV_OPEN data)
         {
             logger.LogInformation("Connected to Flight Simulator");
+
+            simconnect.RequestDataOnSimObjectType(DATA_REQUESTS.AIRCRAFT_DATA, DEFINITIONS.AircraftData, 0, SIMCONNECT_SIMOBJECT_TYPE.USER);
 
             cts?.Cancel();
             cts = new CancellationTokenSource();

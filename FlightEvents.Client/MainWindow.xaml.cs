@@ -20,10 +20,14 @@ namespace FlightEvents.Client
         private readonly ATCServer atcServer;
         private readonly HubConnection hub;
 
+        private AircraftData aircraftData;
+
         public MainWindow(IFlightConnector flightConnector, MainViewModel viewModel, IOptions<AppSettings> appSettings, ATCServer atcServer)
         {
             InitializeComponent();
+            flightConnector.AircraftDataUpdated += FlightConnector_AircraftDataUpdated;
             flightConnector.AircraftStatusUpdated += FlightConnector_AircraftStatusUpdated;
+            flightConnector.FlightPlanUpdated += FlightConnector_FlightPlanUpdated;
 
             DataContext = viewModel;
             this.viewModel = viewModel;
@@ -61,21 +65,40 @@ namespace FlightEvents.Client
             return Task.CompletedTask;
         }
 
-        DateTime last = DateTime.Now;
+        private void FlightConnector_AircraftDataUpdated(object sender, AircraftDataUpdatedEventArgs e)
+        {
+            aircraftData = e.AircraftData;
+        }
+
+        DateTime lastStatusSent = DateTime.Now;
+        DateTime flightPlanSent = DateTime.Now;
 
         private async void FlightConnector_AircraftStatusUpdated(object sender, AircraftStatusUpdatedEventArgs e)
         {
             e.AircraftStatus.Callsign = viewModel.Callsign;
 
-            if (hub?.ConnectionId != null && DateTime.Now - last > TimeSpan.FromSeconds(2))
+            if (hub?.ConnectionId != null && DateTime.Now - lastStatusSent > TimeSpan.FromSeconds(2))
             {
-                last = DateTime.Now;
+                lastStatusSent = DateTime.Now;
                 await hub.SendAsync("UpdateAircraft", hub.ConnectionId, e.AircraftStatus);
-                last = DateTime.Now;
+                lastStatusSent = DateTime.Now;
             }
 
             viewModel.AircraftStatus = null;
             viewModel.AircraftStatus = e.AircraftStatus;
+
+            if (hub?.ConnectionId != null && flightPlan != null && DateTime.Now - flightPlanSent > TimeSpan.FromSeconds(10))
+            {
+                flightPlanSent = DateTime.Now;
+                flightPlan.Callsign = viewModel.Callsign;
+                await hub.SendAsync("UpdateFlightPlan", hub.ConnectionId, flightPlan);
+                flightPlanSent = DateTime.Now;
+            }
+        }
+
+        private void FlightConnector_FlightPlanUpdated(object sender, FlightPlanUpdatedEventArgs e)
+        {
+            flightPlan = new FlightPlanCompact(e.FlightPlan, viewModel.Callsign, aircraftData.Model, (int)aircraftData.EstimatedCruiseSpeed);
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -125,6 +148,7 @@ namespace FlightEvents.Client
         }
 
         private bool notified = false;
+        private FlightPlanCompact flightPlan;
 
         private async void Window_StateChanged(object sender, EventArgs e)
         {
@@ -173,6 +197,21 @@ namespace FlightEvents.Client
             {
                 await atcServer.SendPositionAsync(aircraftStatus.Callsign, aircraftStatus.Transponder,
                     aircraftStatus.Latitude, aircraftStatus.Longitude, aircraftStatus.Altitude, aircraftStatus.GroundSpeed);
+            });
+            hub.On<string, FlightPlanCompact>("UpdateFlightPlan", async (connectionId, flightPlan) =>
+            {
+                await atcServer.SendFlightPlanAsync(
+                    flightPlan.Callsign,
+                    flightPlan.Type == "IFR",
+                    flightPlan.AircraftType,
+                    flightPlan.Callsign,
+                    flightPlan.AircraftType,
+                    flightPlan.Departure,
+                    flightPlan.Destination,
+                    flightPlan.Route,
+                    flightPlan.CruisingSpeed,
+                    flightPlan.CruisingAltitude,
+                    flightPlan.EstimatedEnroute);
             });
             await hub.SendAsync("Join", "ATC");
 

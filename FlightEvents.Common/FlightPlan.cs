@@ -1,7 +1,7 @@
 ﻿using HotChocolate;
 using System.Collections.Generic;
 
-namespace FlightEvents.Common
+namespace FlightEvents
 {
     public class FlightPlanData
     {
@@ -13,7 +13,7 @@ namespace FlightEvents.Common
         public int CruisingAltitude { get; set; }
 
         public FlightPlanPosition Departure { get; set; }
-        public FlightPlanPosition Destination { get; set; } 
+        public FlightPlanPosition Destination { get; set; }
 
         public IEnumerable<FlightPlanWaypoint> Waypoints { get; set; }
     }

@@ -88,7 +88,7 @@ namespace FlightEvents.MockClient
 
         private void ButtonStartVATSIM_Click(object sender, RoutedEventArgs e)
         {
-            var loggerFactory = LoggerFactory.Create(config => config.AddDebug());
+            var loggerFactory = LoggerFactory.Create(config => config.AddDebug().SetMinimumLevel(LogLevel.Information));
 
             atcServer = new ATCServer(loggerFactory.CreateLogger<ATCServer>());
             atcServer.Connected += AtcServer_Connected;
@@ -116,15 +116,6 @@ namespace FlightEvents.MockClient
 
                     await atcServer.SendPositionAsync(callsign, squawk, latitude, longitude, altitude, groundSpeed);
 
-                    var type = "Test";
-                    var title = "Test aircraft";
-                    var freq = 111.1;
-                    var dep = "LHPR";
-                    var arr = "LHSY";
-                    var reg = "AAAAA";
-
-                    await atcServer.SendFlightPlan(callsign, true, type, reg, title, freq, dep, arr, 200, 15000);
-
                     await Task.Delay(1000);
                 }
             });
@@ -134,6 +125,20 @@ namespace FlightEvents.MockClient
         {
             atcServer?.Stop();
             atcServer = null;
+        }
+
+        private async void ButtonSendFP_Click(object sender, RoutedEventArgs e)
+        {
+            var callsign = "HY3088";
+
+            var type = "Test";
+            var title = "Test aircraft";
+            var dep = "LHPR";
+            var arr = "LHSY";
+            var reg = "AAAAA";
+            var route = "NATEX";
+
+            await atcServer.SendFlightPlanAsync(callsign, true, type, reg, title, dep, arr, route, 200, 15000, TimeSpan.FromHours(1.5));
         }
     }
 }

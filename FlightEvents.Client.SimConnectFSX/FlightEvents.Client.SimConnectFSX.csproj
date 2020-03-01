@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FlightEvents.Client.Logics\FlightEvents.Client.Logics.csproj" />
+    <ProjectReference Include="..\FlightEvents.Common\FlightEvents.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

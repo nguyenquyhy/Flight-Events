@@ -9,6 +9,7 @@ namespace FlightEvents.Client.SimConnectFSX
 
     enum DEFINITIONS
     {
+        AircraftData,
         FlightStatus
     }
 
@@ -18,7 +19,20 @@ namespace FlightEvents.Client.SimConnectFSX
         SUBSCRIBE_GENERIC,
         AIRCRAFT_DATA,
         FLIGHT_STATUS,
-        ENVIRONMENT_DATA
+        ENVIRONMENT_DATA,
+        FLIGHT_PLAN
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    struct AircraftDataStruct
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+        public string Type;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+        public string Model;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+        public string Title;
+        public double EstimatedCruiseSpeed;
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
