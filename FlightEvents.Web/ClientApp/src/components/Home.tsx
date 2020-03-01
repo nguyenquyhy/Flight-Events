@@ -64,7 +64,7 @@ export class Home extends React.Component<any, State> {
         this.cleanUp = this.cleanUp.bind(this);
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         this.mymap = L.map('mapid').setView([51.505, -0.09], 13);
 
         this.baseLayerGroup = L.layerGroup().addTo(this.mymap);
@@ -187,7 +187,9 @@ export class Home extends React.Component<any, State> {
             }
         });
 
-        hub.start();
+        await hub.start();
+
+        hub.send('Join', 'Map');
 
         setInterval(this.cleanUp, 2000);
     }

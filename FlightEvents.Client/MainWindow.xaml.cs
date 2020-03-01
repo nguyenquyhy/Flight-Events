@@ -90,6 +90,8 @@ namespace FlightEvents.Client
             await hub.StartAsync();
             viewModel.HubConnectionState = ConnectionState.Connected;
 
+            ButtonStartATC.IsEnabled = true;
+
             if (string.IsNullOrWhiteSpace(viewModel.Callsign)) viewModel.Callsign = GenerateCallSign();
         }
 
@@ -153,22 +155,26 @@ namespace FlightEvents.Client
             atcServer.Start();
         }
 
-        private void ButtonStopATC_Click(object sender, RoutedEventArgs e)
+        private async void ButtonStopATC_Click(object sender, RoutedEventArgs e)
         {
             hub.Remove("UpdateAircraft");
             atcServer.Stop();
+            await hub.SendAsync("Leave", "ATC");
             ButtonStopATC.Visibility = Visibility.Collapsed;
             ButtonStartATC.Visibility = Visibility.Visible;
             ButtonStartATC.IsEnabled = true;
         }
 
-        private void AtcServer_Connected(object sender, ConnectedEventArgs e)
+        private async void AtcServer_Connected(object sender, ConnectedEventArgs e)
         {
+            viewModel.AtcCallsign = e.Callsign;
+
             hub.On<string, AircraftStatus>("UpdateAircraft", async (connectionId, aircraftStatus) =>
             {
                 await atcServer.SendPositionAsync(aircraftStatus.Callsign, aircraftStatus.Transponder,
                     aircraftStatus.Latitude, aircraftStatus.Longitude, aircraftStatus.Altitude, aircraftStatus.GroundSpeed);
             });
+            await hub.SendAsync("Join", "ATC");
 
             Dispatcher.Invoke(() =>
             {

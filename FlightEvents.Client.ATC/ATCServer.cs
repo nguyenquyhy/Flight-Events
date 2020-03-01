@@ -69,15 +69,15 @@ namespace FlightEvents.Client.ATC
         public async Task SendFlightPlan(string callsign, bool isIFR, string type, string registration, string title, double frequency, string departure, string arrival, double groundSpeed, double altitude)
         { 
             var ifrs = isIFR ? "I" : "V";
-            var next = arrival;
+            var next = departure + " NATEX " + arrival;
 
-            var fp = $"$FP{callsign}:*A:{ifrs}:{type}:{groundSpeed}:{departure}:00:00:{altitude}:{arrival}:00:00:00:00:NONE:Aircraft = {title}  Tuned to {frequency}{Environment.NewLine} Registration = {registration}:{next}:";
+            var fp = $"$FP{callsign}:*A:{ifrs}:{type}:{groundSpeed}:{departure}:::{altitude}:{arrival}:::00:00:NONE:Aircraft = {title}  Tuned to {frequency} Registration = {registration}:{next}:";
             //var uspd = 125;
             //var fp = $"$FP{callsign}:*A:{ifrs}:{utype}:{(object)uspd}:ZZZZ:00:00:ZZZZ:ZZZZ:00:00:00:00:NONE:Flight Plan is not available for the user aircraft. You know where you are going!                    Aircraft = {utitle} Tuned to {ufreq} Registration = {ureg}::";
 
             await writer?.WriteLineAsync(fp);
             await writer?.FlushAsync();
-            logger.LogDebug("Sent Flight Plan: " + fp);
+            logger.LogInformation("Sent Flight Plan: " + fp);
         }
 
         private async Task AcceptAndProcessAsync(TcpListener tcpListener)
@@ -94,7 +94,7 @@ namespace FlightEvents.Client.ATC
                 while (true)
                 {
                     var info = await reader.ReadLineAsync();
-                    logger.LogDebug($"Receive: {info}");
+                    logger.LogInformation($"Receive: {info}");
 
                     if (info.Contains("VRC") && !atc)
                     {
