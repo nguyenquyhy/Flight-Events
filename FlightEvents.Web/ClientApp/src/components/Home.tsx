@@ -294,7 +294,11 @@ export class Home extends React.Component<any, State> {
         if (connectionId) {
             if (!this.circleMarker) {
                 this.circleMarker = L.circle([0, 0], {
-                    radius: 3048
+                    radius: 3048,
+                    opacity: 0.5,
+                    fillOpacity: 0,
+                    weight: 2,
+                    color: `black`
                 }).addTo(this.mymap);
             }
         } else {
