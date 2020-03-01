@@ -38,6 +38,9 @@ namespace FlightEvents.Client
         private AircraftStatus aircraftStatus = null;
         public AircraftStatus AircraftStatus { get => aircraftStatus; set => SetProperty(ref aircraftStatus, value); }
 
+        private bool transponderIdent;
+        public bool TransponderIdent { get { return transponderIdent; } set { SetProperty(ref transponderIdent, value); } }
+
         private string atcCallsign = null;
         public string AtcCallsign { get => atcCallsign; set => SetProperty(ref atcCallsign, value); }
     }

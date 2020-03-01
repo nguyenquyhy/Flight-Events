@@ -196,7 +196,7 @@ namespace FlightEvents.Client
             hub.On<string, AircraftStatus>("UpdateAircraft", async (connectionId, aircraftStatus) =>
             {
                 await atcServer.SendPositionAsync(aircraftStatus.Callsign, aircraftStatus.Transponder,
-                    aircraftStatus.Latitude, aircraftStatus.Longitude, aircraftStatus.Altitude, aircraftStatus.GroundSpeed);
+                    aircraftStatus.Latitude, aircraftStatus.Longitude, aircraftStatus.Altitude, aircraftStatus.GroundSpeed, viewModel.TransponderIdent ? TransponderMode.Ident : TransponderMode.ModeC);
             });
             hub.On<string, FlightPlanCompact>("UpdateFlightPlan", async (connectionId, flightPlan) =>
             {

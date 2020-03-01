@@ -17,6 +17,13 @@ namespace FlightEvents.Client.ATC
         public string Callsign { get; }
     }
 
+    public enum TransponderMode
+    {
+        Standby,
+        ModeC,
+        Ident
+    }
+
     public class ATCServer
     {
         private const string ClientCode = "FLTEV";
@@ -57,9 +64,18 @@ namespace FlightEvents.Client.ATC
             tcpListener = null;
         }
 
-        public async Task SendPositionAsync(string callsign, string squawk, double latitude, double longitude, double altitude, double groundSpeed)
+        public async Task SendPositionAsync(string callsign, string squawk, double latitude, double longitude, double altitude, double groundSpeed, TransponderMode transponderMode)
         {
-            var pos = $"@N:{callsign}:{squawk}:1:{latitude}:{longitude}:{altitude}:{groundSpeed}:62905944:5";
+            var modeString = transponderMode switch
+            {
+                TransponderMode.Standby => "S",
+                TransponderMode.ModeC => "N",
+                TransponderMode.Ident => "Y",
+                _ => "N"
+            };
+            var rating = 1;
+
+            var pos = $"@{modeString}:{callsign}:{squawk}:{rating}:{latitude}:{longitude}:{altitude}:{groundSpeed}:62905944:5";
             await writer?.WriteLineAsync(pos);
             await writer?.FlushAsync();
 

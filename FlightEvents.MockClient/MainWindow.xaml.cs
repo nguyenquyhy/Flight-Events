@@ -114,7 +114,7 @@ namespace FlightEvents.MockClient
                     var altitude = 12345;
                     var groundSpeed = 120;
 
-                    await atcServer.SendPositionAsync(callsign, squawk, latitude, longitude, altitude, groundSpeed);
+                    await atcServer.SendPositionAsync(callsign, squawk, latitude, longitude, altitude, groundSpeed, TransponderMode.ModeC);
 
                     await Task.Delay(1000);
                 }
