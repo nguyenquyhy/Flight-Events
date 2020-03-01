@@ -376,15 +376,37 @@ namespace FlightEvents.Client.SimConnectFSX
                         }
                         else
                         {
-                            using var stream = File.OpenRead(planName);
-                            var serializer = new XmlSerializer(typeof(FlightPlanDocumentXml));
-                            var flightPlan = serializer.Deserialize(stream) as FlightPlanDocumentXml;
-
-                            var connectionIds = atcConnectionIds;
-                            atcConnectionIds = new List<string>();
-                            if (connectionIds != null && connectionIds.Count > 0)
+                            if (File.Exists(planName))
                             {
-                                FlightPlanUpdated?.Invoke(this, new FlightPlanUpdatedEventArgs(flightPlan.FlightPlan.ToData(), connectionIds));
+                                using var stream = File.OpenRead(planName);
+                                var serializer = new XmlSerializer(typeof(FlightPlanDocumentXml));
+                                var flightPlan = serializer.Deserialize(stream) as FlightPlanDocumentXml;
+
+                                // Workaround for wrong cruising alt
+                                var fltFileName = planName[0..^4] + ".FLT";
+                                if (File.Exists(fltFileName))
+                                {
+                                    var lines = File.ReadAllLines(fltFileName);
+                                    var line = lines.LastOrDefault(o => o.StartsWith("cruising_altitude="));
+                                    if (line != null)
+                                    {
+                                        if (int.TryParse(line.Substring("cruising_altitude=".Length), out var cruisingAlt))
+                                        {
+                                            flightPlan.FlightPlan.CruisingAlt = cruisingAlt;
+                                        }
+                                    }
+                                }
+
+                                var connectionIds = atcConnectionIds;
+                                atcConnectionIds = new List<string>();
+                                if (connectionIds != null && connectionIds.Count > 0)
+                                {
+                                    FlightPlanUpdated?.Invoke(this, new FlightPlanUpdatedEventArgs(flightPlan.FlightPlan.ToData(), connectionIds));
+                                }
+                            }
+                            else
+                            {
+                                logger.LogWarning($"{planName} does not exist!");
                             }
                         }
                     }
