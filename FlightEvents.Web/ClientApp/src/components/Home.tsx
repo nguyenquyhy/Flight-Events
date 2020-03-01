@@ -112,7 +112,7 @@ export class Home extends React.Component<any, State> {
                 let iconSizeValue: L.PointExpression = [iconSize, 60];
 
                 if (this.state.moreInfoConnectionIds.includes(connectionId)) {
-                    let htmlBody = `<div>${aircraftStatus.callsign}</div><div>${Math.round(aircraftStatus.altitude)} ft</div><div>${Math.round(aircraftStatus.heading)}\u00B0</div><div>${Math.round(aircraftStatus.indicatedAirSpeed)} kias</div>`
+                    let htmlBody = `<div>${aircraftStatus.callsign}<br />ALT ${Math.round(aircraftStatus.altitude)} ft<br />HDG ${Math.round(aircraftStatus.heading)}\u00B0<br />IAS ${Math.round(aircraftStatus.indicatedAirSpeed)} kts</div>`
 
                     if (aircraftStatus.trueHeading >= 180) {
                         markers.info.setIcon(L.divIcon({
@@ -123,7 +123,7 @@ export class Home extends React.Component<any, State> {
                         }))
                     } else {
                         markers.info.setIcon(L.divIcon({
-                            className: className + ' right',
+                            className: className,
                             html: htmlBody,
                             iconSize: iconSizeValue,
                             iconAnchor: [infoBoxWidth + iconSize, 10],
