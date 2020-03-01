@@ -77,6 +77,9 @@ export class Home extends React.Component<any, State> {
             .withAutomaticReconnect()
             .build();
 
+        let iconSize = 12
+        let infoBoxWidth = 100
+
         hub.onreconnected(connectionId => {
             console.log('Connected to SignalR with connection ID ' + connectionId);
         })
@@ -106,7 +109,7 @@ export class Home extends React.Component<any, State> {
                 let className = 'divicon-aircraft-info';
                 if (connectionId === this.state.myConnectionId) className += " me";
 
-                let iconSizeValue: L.PointExpression = [12, 60];
+                let iconSizeValue: L.PointExpression = [iconSize, 60];
 
                 if (this.state.moreInfoConnectionIds.includes(connectionId)) {
                     let htmlBody = `<div>${aircraftStatus.callsign}</div><div>${Math.round(aircraftStatus.altitude)} ft</div><div>${Math.round(aircraftStatus.heading)}\u00B0</div><div>${Math.round(aircraftStatus.indicatedAirSpeed)} kias</div>`
@@ -116,14 +119,14 @@ export class Home extends React.Component<any, State> {
                             className: className,
                             html: htmlBody,
                             iconSize: iconSizeValue,
-                            iconAnchor: [-12, 10],
+                            iconAnchor: [-iconSize, 10],
                         }))
                     } else {
                         markers.info.setIcon(L.divIcon({
                             className: className + ' right',
                             html: htmlBody,
                             iconSize: iconSizeValue,
-                            iconAnchor: [72, 10],
+                            iconAnchor: [infoBoxWidth + iconSize, 10],
                         }))
                     }
                 } else {
@@ -132,14 +135,14 @@ export class Home extends React.Component<any, State> {
                             className: className,
                             html: `<div>${aircraftStatus.callsign}</div>`,
                             iconSize: iconSizeValue,
-                            iconAnchor: [-12, 10],
+                            iconAnchor: [-iconSize, 10],
                         }))
                     } else {
                         markers.info.setIcon(L.divIcon({
                             className: className + ' right',
                             html: `<div>${aircraftStatus.callsign}</div>`,
                             iconSize: iconSizeValue,
-                            iconAnchor: [72, 10],
+                            iconAnchor: [infoBoxWidth + iconSize, 10],
                         }))
                     }
                 }
@@ -156,8 +159,8 @@ export class Home extends React.Component<any, State> {
                     icon: L.divIcon({
                         className: 'divicon-aircraft-info',
                         html: `<div style='width: 50px'>${aircraftStatus.callsign}</div>`,
-                        iconSize: [12, 50],
-                        iconAnchor: [-12, -4],
+                        iconSize: [iconSize, 50],
+                        iconAnchor: [-iconSize, -4],
                     }),
                     zIndexOffset: 1000
                 }).addTo(this.mymap)
