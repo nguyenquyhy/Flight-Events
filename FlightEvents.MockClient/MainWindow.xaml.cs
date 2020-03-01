@@ -71,11 +71,9 @@ namespace FlightEvents.MockClient
             TextConnectionId.Text = hub.ConnectionId;
             TextCallsign.Text = hub.ConnectionId.Substring(0, 6).ToUpper();
 
-            longitude = random.NextDouble() * 360 - 180;
-            latitude = random.NextDouble() * 180 - 90;
             heading = random.NextDouble() * 360;
             airspeed = random.NextDouble() * 100 + 100;
-            altitude = random.NextDouble() * 5500 + 1000;
+            altitude = random.NextDouble() * 5500 + 10000;
 
             timer.Start();
         }
