@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -40,6 +41,7 @@ namespace FlightEvents.Client.ATC
         private const string ClientName = "Flight Events";
 
         private readonly ILogger<ATCServer> logger;
+        private readonly HttpClient httpClient;
 
         private StreamWriter writer;
         private bool vrc = false;
@@ -54,6 +56,7 @@ namespace FlightEvents.Client.ATC
         public ATCServer(ILogger<ATCServer> logger)
         {
             this.logger = logger;
+            this.httpClient = new HttpClient();
         }
 
         public void Start()
@@ -88,7 +91,6 @@ namespace FlightEvents.Client.ATC
 
             var pos = $"@{modeString}:{callsign}:{squawk}:{rating}:{latitude}:{longitude}:{altitude}:{groundSpeed}:62905944:5";
             await writer?.WriteLineAsync(pos);
-            await writer?.FlushAsync();
 
             logger.LogDebug("Sent Position: " + pos);
         }
@@ -116,7 +118,10 @@ namespace FlightEvents.Client.ATC
                 logger.LogInformation("Accepted a connection");
                 using var stream = tcpClient.GetStream();
                 var reader = new StreamReader(stream);
-                writer = new StreamWriter(stream);
+                writer = new StreamWriter(stream)
+                {
+                    AutoFlush = true
+                };
 
                 while (true)
                 {
@@ -127,8 +132,7 @@ namespace FlightEvents.Client.ATC
                     {
                         vrc = true;
                         atc = true;
-                        await writer.WriteLineAsync($"$DI{ClientCode}:CLIENT:client V1.00:3ef36a24");
-                        await writer.FlushAsync();
+                        await SendAsync($"$DI{ClientCode}:CLIENT:client V1.00:3ef36a24");
                         logger.LogInformation("Sent VRC Hello");
                     }
                     //else if (!this.atc && !this.es)
@@ -147,8 +151,9 @@ namespace FlightEvents.Client.ATC
 
                     if (info.StartsWith("$AX"))
                     {
-                        // TODO: METAR
-
+                        // METAR
+                        var station = info.Substring($"$AX{callsign}:SERVER:METAR:".Length, 4);
+                        await SendMETARAsync(station);
                     }
 
                     if (info.StartsWith("$CQ"))
@@ -165,6 +170,31 @@ namespace FlightEvents.Client.ATC
 
                         switch (command)
                         {
+                            case "ATC":
+                                if (recipient == "SERVER")
+                                {
+                                    await SendAsync($"$CRSERVER:{callsign}:ATC:N:{callsign}");
+                                }
+                                break;
+
+                            case "CAPS":
+                                if (recipient == "SERVER")
+                                {
+                                    await SendAsync($"$CRSERVER:{callsign}:CAPS:ATCINFO=1:SECPOS=1");
+                                }
+
+                                break;
+                            case "IP":
+                                if (recipient == "SERVER")
+                                {
+                                    var ipep = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
+                                    var ipa = ipep.Address;
+                                    await SendAsync($"$CRSERVER:{callsign}:IP:{ipa.ToString()}");
+
+                                    await SendAsync($"$CQSERVER:{callsign}:CAPS");
+                                }
+                                break;
+
                             case "FP":
                                 if (!string.IsNullOrEmpty(data))
                                 {
@@ -176,8 +206,7 @@ namespace FlightEvents.Client.ATC
 
                     if (info.StartsWith("#TM"))
                     {
-                        // TODO: Message (e.g. #TMHYHY:FP:HY3088 SET 2677)
-
+                        // TODO: Message (e.g. #TMHYHY:FP:HY3088 SET 2677)0
                     }
 
                     if (this.vrc)
@@ -185,8 +214,7 @@ namespace FlightEvents.Client.ATC
                         if (info.Contains($"$CQ{callsign}:SERVER:ATC:{callsign}") && !this.atc)
                         {
                             logger.LogInformation("Send VRC");
-                            await writer.WriteLineAsync($"$CR{ClientCode}:{callsign}:ATC:Y:{callsign}");
-                            await writer.FlushAsync();
+                            await SendAsync($"$CR{ClientCode}:{callsign}:ATC:Y:{callsign}");
                             this.atc = true;
                         }
                     }
@@ -196,14 +224,47 @@ namespace FlightEvents.Client.ATC
                         {
                             logger.LogInformation("Connected");
 
-                            callsign = info.Substring(3, 4);
-                            await writer.WriteLineAsync($"#TM{ClientCode}:{callsign}:Connected to {ClientName}.");
-                            await writer.FlushAsync();
+                            var tokens = info.Substring("#AA".Length).Split(":");
+                            callsign = tokens[0];
+                            await SendAsync($"#TM{ClientCode}:{callsign}:Connected to {ClientName}.");
 
                             Connected?.Invoke(this, new ConnectedEventArgs(callsign));
                         }
                     }
                 }
+            }
+        }
+
+        public async Task SendMETARAsync(string station)
+        {
+            var metar = await GetLiveMETARAsync(station);
+            logger.LogInformation($"Receive metar {metar}");
+            await SendAsync($"$ARSERVER:{callsign}:METAR:{metar}");
+        }
+
+        private async Task SendAsync(string data)
+        {
+            if (writer != null)
+            {
+                await writer.WriteLineAsync(data);
+                logger.LogDebug($"Sent: {data}");
+            }
+            else
+            {
+                logger.LogDebug($"Cannot send: {data}");
+            }
+        }
+
+        private async Task<string> GetLiveMETARAsync(string station)
+        {
+            try
+            {
+                var data = await httpClient.GetStringAsync($"https://tgftp.nws.noaa.gov/data/observations/metar/stations/{station}.TXT");
+                return data.Split("\n")[1].Trim();
+            }
+            catch (HttpRequestException)
+            {
+                return null;
             }
         }
     }
