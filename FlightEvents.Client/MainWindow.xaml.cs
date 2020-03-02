@@ -1,9 +1,11 @@
 ﻿using FlightEvents.Client.ATC;
 using FlightEvents.Client.Logics;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -21,21 +23,24 @@ namespace FlightEvents.Client
         private readonly MainViewModel viewModel;
         private readonly ATCServer atcServer;
         private readonly HubConnection hub;
+        private readonly ILogger<MainWindow> logger;
         private readonly IFlightConnector flightConnector;
 
         private AircraftData aircraftData;
 
-        public MainWindow(IFlightConnector flightConnector, MainViewModel viewModel, IOptions<AppSettings> appSettings, ATCServer atcServer)
+        public MainWindow(ILogger<MainWindow> logger, IFlightConnector flightConnector, MainViewModel viewModel, IOptions<AppSettings> appSettings, ATCServer atcServer)
         {
             InitializeComponent();
+            this.logger = logger;
             this.flightConnector = flightConnector;
+            this.atcServer = atcServer;
+            this.viewModel = viewModel;
+
             flightConnector.AircraftDataUpdated += FlightConnector_AircraftDataUpdated;
             flightConnector.AircraftStatusUpdated += FlightConnector_AircraftStatusUpdated;
             flightConnector.FlightPlanUpdated += FlightConnector_FlightPlanUpdated;
 
             DataContext = viewModel;
-            this.viewModel = viewModel;
-            this.atcServer = atcServer;
 
             hub = new HubConnectionBuilder()
                 .WithUrl(appSettings.Value.WebServerUrl + "/FlightEventHub")
@@ -60,11 +65,24 @@ namespace FlightEvents.Client
         {
             if (string.IsNullOrWhiteSpace(viewModel.Callsign)) viewModel.Callsign = GenerateCallSign();
 
-            viewModel.HubConnectionState = ConnectionState.Connecting;
-            await hub.StartAsync();
-            viewModel.HubConnectionState = ConnectionState.Connected;
+            while (true)
+            {
+                try
+                {
+                    viewModel.HubConnectionState = ConnectionState.Connecting;
+                    await hub.StartAsync();
+                    viewModel.HubConnectionState = ConnectionState.Connected;
 
-            ButtonStartATC.IsEnabled = true;
+                    ButtonStartATC.IsEnabled = true;
+
+                    break;
+                }
+                catch (HttpRequestException ex)
+                {
+                    logger.LogWarning(ex, "Cannot connect to SignalR server! Retry in 5s...");
+                    await Task.Delay(5000);
+                }
+            }
         }
 
         private void ButtonStartTrack_Click(object sender, RoutedEventArgs e)
