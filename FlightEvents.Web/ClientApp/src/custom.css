@@ -18,11 +18,11 @@ code {
 }
 
 .divicon-aircraft-info div {
-    font-family: Arial;
+    font-family: Lucida Console;
     background-color: rgba(255, 255, 255, 0.2);
     border: none;
     font-weight: bold;
-    width: 60px;
+    width: 100px;
     padding: 0 4px;
 }
 
@@ -31,5 +31,5 @@ code {
 }
 
 .divicon-aircraft-info.me div {
-    text-decoration: underline;
+    color: darkblue;
 }

@@ -63,15 +63,15 @@ export default class AircraftList extends React.Component<Props> {
                     <tr>
                         <th><Title>Aircrafts</Title></th>
                         <th>
-                            <div id="txtMe">Me</div>
-                            <UncontrolledTooltip placement="right" target="txtMe">This is me</UncontrolledTooltip>
+                            <div id="txtMe">Own</div>
+                            <UncontrolledTooltip placement="right" target="txtMe">Own aircraft. Will display the visible range circle for multiplayer</UncontrolledTooltip>
                         </th>
                         <th>
-                            <div id="txtFollow">F</div>
-                            <UncontrolledTooltip placement="right" target="txtFollow">Follow this aircraft</UncontrolledTooltip>
+                            <div id="txtFollow">Flw</div>
+                            <UncontrolledTooltip placement="right" target="txtFollow">Keep the map centered on this aircraft</UncontrolledTooltip>
                         </th>
                         <th>
-                            <div id="txtMore">M</div>
+                            <div id="txtMore">Nfo</div>
                             <UncontrolledTooltip placement="right" target="txtMore">Show more info</UncontrolledTooltip>
                         </th>
                     </tr>
