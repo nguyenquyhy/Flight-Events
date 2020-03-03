@@ -101,6 +101,8 @@ position: absolute;
 top: 10px;
 right: 10px;
 z-index: 1000;
+max-height: calc(100% - 200px);
+overflow-y: auto;
 `
 
 const List = styled.table`
