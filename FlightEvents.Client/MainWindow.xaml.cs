@@ -22,18 +22,20 @@ namespace FlightEvents.Client
 
         private readonly MainViewModel viewModel;
         private readonly ATCServer atcServer;
+        private readonly UserPreferencesLoader userPreferencesLoader;
         private readonly HubConnection hub;
         private readonly ILogger<MainWindow> logger;
         private readonly IFlightConnector flightConnector;
 
         private AircraftData aircraftData;
 
-        public MainWindow(ILogger<MainWindow> logger, IFlightConnector flightConnector, MainViewModel viewModel, IOptions<AppSettings> appSettings, ATCServer atcServer)
+        public MainWindow(ILogger<MainWindow> logger, IFlightConnector flightConnector, MainViewModel viewModel, IOptions<AppSettings> appSettings, ATCServer atcServer, UserPreferencesLoader userPreferencesLoader)
         {
             InitializeComponent();
             this.logger = logger;
             this.flightConnector = flightConnector;
             this.atcServer = atcServer;
+            this.userPreferencesLoader = userPreferencesLoader;
             this.viewModel = viewModel;
 
             flightConnector.AircraftDataUpdated += FlightConnector_AircraftDataUpdated;
@@ -64,7 +66,11 @@ namespace FlightEvents.Client
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(viewModel.Callsign)) viewModel.Callsign = GenerateCallSign();
+            if (string.IsNullOrWhiteSpace(viewModel.Callsign))
+            {
+                var pref = await userPreferencesLoader.LoadAsync();
+                viewModel.Callsign = string.IsNullOrWhiteSpace(pref.LastCallsign) ? GenerateCallSign() : pref.LastCallsign;
+            }
 
             while (true)
             {
@@ -86,9 +92,12 @@ namespace FlightEvents.Client
             }
         }
 
-        private void ButtonStartTrack_Click(object sender, RoutedEventArgs e)
+        private async void ButtonStartTrack_Click(object sender, RoutedEventArgs e)
         {
             TextCallsign.IsEnabled = false;
+
+            await userPreferencesLoader.UpdateAsync(o => o.LastCallsign = viewModel.Callsign);
+
             ButtonStartTrack.Visibility = Visibility.Collapsed;
             ButtonStopTrack.Visibility = Visibility.Visible;
         }

@@ -46,8 +46,11 @@ namespace FlightEvents.Client
         private void ConfigureServices(ServiceCollection services)
         {
             Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
                 .WriteTo.Debug()
-                .WriteTo.File("flightevents.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3)
+                .WriteTo.Logger(config => config
+                    .MinimumLevel.Information()
+                    .WriteTo.File("flightevents.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3))
                 .CreateLogger();
 
             services.AddOptions();
@@ -60,6 +63,7 @@ namespace FlightEvents.Client
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<IFlightConnector, SimConnectFlightConnector>();
             services.AddSingleton<ATCServer>();
+            services.AddSingleton(new UserPreferencesLoader("preferences.json"));
 
             services.AddTransient(typeof(MainWindow));
         }
