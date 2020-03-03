@@ -80,8 +80,10 @@ export class Home extends React.Component<any, State> {
         let iconSize = 12
         let infoBoxWidth = 100
 
-        hub.onreconnected(connectionId => {
+        hub.onreconnected(async connectionId => {
             console.log('Connected to SignalR with connection ID ' + connectionId);
+
+            await hub.send('Join', 'Map');
         })
 
         hub.on("UpdateAircraft", (connectionId, aircraftStatus: AircraftStatus) => {
@@ -192,7 +194,7 @@ export class Home extends React.Component<any, State> {
 
         await hub.start();
 
-        hub.send('Join', 'Map');
+        await hub.send('Join', 'Map');
 
         setInterval(this.cleanUp, 2000);
     }
