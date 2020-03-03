@@ -57,6 +57,7 @@ namespace FlightEvents.Client
 
             atcServer.FlightPlanRequested += AtcServer_FlightPlanRequested;
             atcServer.Connected += AtcServer_Connected;
+            atcServer.IdentSent += AtcServer_IdentSent;
         }
 
         #region Interaction
@@ -249,6 +250,14 @@ namespace FlightEvents.Client
         private async void AtcServer_FlightPlanRequested(object sender, FlightPlanRequestedEventArgs e)
         {
             await hub.SendAsync("RequestFlightPlan", e.Callsign);
+        }
+
+        private void AtcServer_IdentSent(object sender, EventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                viewModel.TransponderIdent = false;
+            });
         }
 
         #endregion

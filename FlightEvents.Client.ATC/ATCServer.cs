@@ -51,7 +51,8 @@ namespace FlightEvents.Client.ATC
         private TcpClient tcpClient;
 
         public event EventHandler<ConnectedEventArgs> Connected;
-        public event EventHandler<FlightPlanRequestedEventArgs> FlightPlanRequested;
+        public event EventHandler<FlightPlanRequestedEventArgs> FlightPlanRequested; 
+        public event EventHandler IdentSent;
 
         public ATCServer(ILogger<ATCServer> logger)
         {
@@ -93,6 +94,8 @@ namespace FlightEvents.Client.ATC
             await writer?.WriteLineAsync(pos);
 
             logger.LogDebug("Sent Position: " + pos);
+
+            if (transponderMode == TransponderMode.Ident) IdentSent?.Invoke(this, new EventArgs());
         }
 
         public async Task SendFlightPlanAsync(string callsign, bool isIFR, string type, string registration, string title,
