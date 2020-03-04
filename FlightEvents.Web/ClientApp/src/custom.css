@@ -17,6 +17,11 @@ code {
     border-color: #1861ac;
 }
 
+.divicon-waypoint {
+    background-color: none;
+    border: none;
+}
+
 .divicon-aircraft-info div {
     font-family: Lucida Console;
     background-color: rgba(255, 255, 255, 0.2);

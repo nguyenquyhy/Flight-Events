@@ -364,7 +364,14 @@ export class Home extends React.Component<any, State> {
 
                 for (let waypoint of flightPlan.data.waypoints) {
                     const marker = L.marker([waypoint.latitude, waypoint.longitude], {
-                        title: waypoint.id
+                        title: waypoint.id,
+                        icon: L.divIcon({
+                            className: 'divicon-waypoint',
+                            html: `<div style="width: 8px; height: 8px; background-color: black; border-radius: 4px"></div><div>${waypoint.id}</div>`,
+                            iconSize: [8, 8],
+                            iconAnchor: [4, 4],
+                        })
+                        
                     });
                     this.flightPlanLayerGroup.addLayer(marker);
                 }
