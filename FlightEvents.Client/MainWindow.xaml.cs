@@ -120,10 +120,12 @@ namespace FlightEvents.Client
 
         private async void ButtonStopATC_Click(object sender, RoutedEventArgs e)
         {
+            viewModel.AtcCallsign = null;
+
             hub.Remove("UpdateAircraft");
             hub.Remove("UpdateFlightPlan");
             hub.Remove("ReturnFlightPlan");
-            
+
             atcServer.Stop();
 
             await hub.SendAsync("Leave", "ATC");
@@ -146,10 +148,14 @@ namespace FlightEvents.Client
 
         #region SignalR
 
-        private Task Hub_Reconnected(string arg)
+        private async Task Hub_Reconnected(string arg)
         {
             viewModel.HubConnectionState = ConnectionState.Connected;
-            return Task.CompletedTask;
+
+            if (!string.IsNullOrEmpty(viewModel.AtcCallsign))
+            {
+                await hub.SendAsync("Join", "ATC");
+            }
         }
 
         private Task Hub_Reconnecting(Exception arg)
