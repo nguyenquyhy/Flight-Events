@@ -4,37 +4,27 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FlightEvents.MockClient"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="250" Width="300">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        mc:Ignorable="d" Loaded="Window_Loaded" Unloaded="Window_Unloaded"
+        Title="MainWindow" Height="400" Width="300">
+    <StackPanel>
+        <ListView x:Name="ListClient" MaxHeight="200">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <TextBlock Text="{Binding ConnectionId}" />
+                        <Button Content="Stop Client" Click="ButtonStop_Click" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="30" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition />
-        </Grid.RowDefinitions>
+        <TextBox x:Name="TextNumber" Text="50" />
+        <Button x:Name="ButtonStart" Content="Start Clients" Grid.Row="2" Grid.Column="1" Click="ButtonStart_Click" />
 
-        <TextBlock Text="Callsign" Grid.Row="0" Grid.Column="0" />
-        <TextBox x:Name="TextCallsign" Grid.Row="0" Grid.Column="1" />
-
-        <TextBlock Text="Connection ID" Grid.Row="1" Grid.Column="0" />
-        <TextBox x:Name="TextConnectionId" Grid.Row="1" Grid.Column="1" IsReadOnly="True" />
-
-        <Button x:Name="ButtonStart" Content="Start Client" Grid.Row="2" Grid.Column="1" Click="ButtonStart_Click" />
-        <Button x:Name="ButtonStop" Content="Stop Client" Grid.Row="3" Grid.Column="1" Click="ButtonStop_Click" />
+        <Line Margin="0,20" Stroke="Black" StrokeThickness="2" />
 
         <Button x:Name="ButtonStartVATSIM" Content="Start VATSIM Server" Grid.Row="5" Grid.Column="1" Click="ButtonStartVATSIM_Click" />
         <Button x:Name="ButtonSendFP" Content="Send Flight Plan" Grid.Row="6" Grid.Column="1" Click="ButtonSendFP_Click" />
         <Button x:Name="ButtonStopVATSIM" Content="Stop VATSIM Server" Grid.Row="7" Grid.Column="1" Click="ButtonStopVATSIM_Click" />
-    </Grid>
+    </StackPanel>
 </Window>
