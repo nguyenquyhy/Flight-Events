@@ -1,8 +1,10 @@
 ﻿using FlightEvents.Client.ATC;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -19,6 +21,7 @@ namespace FlightEvents.MockClient
                 //.WithUrl("https://localhost:44359/FlightEventHub")
                 .WithUrl("https://events.flighttracker.tech/FlightEventHub")
                 .WithAutomaticReconnect()
+                .AddMessagePackProtocol()
                 .Build();
         }
 
@@ -40,7 +43,7 @@ namespace FlightEvents.MockClient
         private readonly Timer timer;
         private readonly Random random = new Random();
         private ATCServer atcServer;
-        private const double sec = 2;
+        private const double sec = 0.5;
 
         private readonly ObservableCollection<MockAircraft> aircrafts = new ObservableCollection<MockAircraft>();
 
@@ -89,6 +92,8 @@ namespace FlightEvents.MockClient
 
             for (var i = 0; i < number; i++)
             {
+                Debug.WriteLine("Start connecting client index " + i);
+
                 var aircraft = new MockAircraft();
 
                 await aircraft.Hub.StartAsync();

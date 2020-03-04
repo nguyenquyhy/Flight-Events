@@ -1,6 +1,7 @@
 ﻿using FlightEvents.Client.ATC;
 using FlightEvents.Client.Logics;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -18,6 +19,7 @@ namespace FlightEvents.Client
     /// </summary>
     public partial class MainWindow : Window
     {
+        private const int MinimumUpdatePeriod = 500;
         private readonly Random random = new Random();
 
         private readonly MainViewModel viewModel;
@@ -47,6 +49,7 @@ namespace FlightEvents.Client
             hub = new HubConnectionBuilder()
                 .WithUrl(appSettings.Value.WebServerUrl + "/FlightEventHub")
                 .WithAutomaticReconnect()
+                .AddMessagePackProtocol()
                 .Build();
 
             hub.Closed += Hub_Closed;
@@ -187,7 +190,7 @@ namespace FlightEvents.Client
             {
                 e.AircraftStatus.Callsign = viewModel.Callsign;
 
-                if (hub?.ConnectionId != null && DateTime.Now - lastStatusSent > TimeSpan.FromSeconds(2))
+                if (hub?.ConnectionId != null && DateTime.Now - lastStatusSent > TimeSpan.FromMilliseconds(MinimumUpdatePeriod))
                 {
                     lastStatusSent = DateTime.Now;
                     await hub.SendAsync("UpdateAircraft", hub.ConnectionId, e.AircraftStatus);

@@ -48,7 +48,7 @@ export default class AircraftList extends React.Component<Props> {
                 <ListItem key={connectionId}>
                     <td>
                         <button className="btn btn-link" onClick={() => this.props.onAircraftClick(connectionId, this.props.aircrafts[connectionId])}>
-                            {this.props.aircrafts[connectionId].callsign || connectionId.substring(5)}
+                            {this.props.aircrafts[connectionId].Callsign || connectionId.substring(5)}
                         </button>
                     </td>
                     <td><Checkbox type="checkbox" checked={this.props.myConnectionId === connectionId} onChange={() => this.handleMeChanged(connectionId)} /></td>

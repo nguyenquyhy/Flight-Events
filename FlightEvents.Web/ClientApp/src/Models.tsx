@@ -1,14 +1,14 @@
 ﻿export interface AircraftStatus {
-    callsign: string;
+    Callsign: string;
 
-    longitude: number;
-    latitude: number;
-    heading: number;
-    trueHeading: number;
+    Longitude: number;
+    Latitude: number;
+    Heading: number;
+    TrueHeading: number;
 
-    altitude: number;
-    altitudeAboveGround: number;
-    indicatedAirSpeed: number;
+    Altitude: number;
+    AltitudeAboveGround: number;
+    IndicatedAirSpeed: number;
 }
 
 export interface FlightEvent {

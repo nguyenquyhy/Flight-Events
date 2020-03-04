@@ -46,7 +46,11 @@ namespace FlightEvents.Web
                 configuration.RootPath = "ClientApp/build";
             });
 
-            services.AddSignalR();
+            services.AddSignalR()
+#if !DEBUG
+                .AddAzureSignalR()
+#endif
+                .AddMessagePackProtocol();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

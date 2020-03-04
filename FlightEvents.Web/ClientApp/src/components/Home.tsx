@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import * as L from 'leaflet';
 import 'leaflet-rotatedmarker';
 import * as signalr from '@microsoft/signalr';
+import 'msgpack5';
+import * as protocol from '@microsoft/signalr-protocol-msgpack';
 import { AircraftStatus, Airport, FlightPlan } from '../Models';
 import AircraftList from './AircraftList';
 import EventList from './EventList';
@@ -75,6 +77,7 @@ export class Home extends React.Component<any, State> {
         let hub = new signalr.HubConnectionBuilder()
             .withUrl('/FlightEventHub')
             .withAutomaticReconnect()
+            .withHubProtocol(new protocol.MessagePackHubProtocol())
             .build();
 
         let iconSize = 12
@@ -94,7 +97,7 @@ export class Home extends React.Component<any, State> {
                 }
             });
 
-            let latlng: L.LatLngExpression = [aircraftStatus.latitude, aircraftStatus.longitude];
+            let latlng: L.LatLngExpression = [aircraftStatus.Latitude, aircraftStatus.Longitude];
 
             if (Object.keys(this.markers).length === 0) {
                 this.mymap.setView(latlng, 11);
@@ -114,9 +117,9 @@ export class Home extends React.Component<any, State> {
                 let iconSizeValue: L.PointExpression = [iconSize, 60];
 
                 if (this.state.moreInfoConnectionIds.includes(connectionId)) {
-                    let htmlBody = `<div>${aircraftStatus.callsign}<br />ALT ${Math.round(aircraftStatus.altitude)} ft<br />HDG ${Math.round(aircraftStatus.heading)}\u00B0<br />IAS ${Math.round(aircraftStatus.indicatedAirSpeed)} kts</div>`
+                    let htmlBody = `<div>${aircraftStatus.Callsign}<br />ALT ${Math.round(aircraftStatus.Altitude)} ft<br />HDG ${Math.round(aircraftStatus.Heading)}\u00B0<br />IAS ${Math.round(aircraftStatus.IndicatedAirSpeed)} kts</div>`
 
-                    if (aircraftStatus.trueHeading >= 180) {
+                    if (aircraftStatus.TrueHeading >= 180) {
                         markers.info.setIcon(L.divIcon({
                             className: className,
                             html: htmlBody,
@@ -132,17 +135,17 @@ export class Home extends React.Component<any, State> {
                         }))
                     }
                 } else {
-                    if (aircraftStatus.trueHeading >= 180) {
+                    if (aircraftStatus.TrueHeading >= 180) {
                         markers.info.setIcon(L.divIcon({
                             className: className,
-                            html: `<div>${aircraftStatus.callsign}</div>`,
+                            html: `<div>${aircraftStatus.Callsign}</div>`,
                             iconSize: iconSizeValue,
                             iconAnchor: [-iconSize, 10],
                         }))
                     } else {
                         markers.info.setIcon(L.divIcon({
                             className: className + ' right',
-                            html: `<div>${aircraftStatus.callsign}</div>`,
+                            html: `<div>${aircraftStatus.Callsign}</div>`,
                             iconSize: iconSizeValue,
                             iconAnchor: [infoBoxWidth + iconSize, 10],
                         }))
@@ -160,7 +163,7 @@ export class Home extends React.Component<any, State> {
                 const info = L.marker(latlng, {
                     icon: L.divIcon({
                         className: 'divicon-aircraft-info',
-                        html: `<div style='width: 50px'>${aircraftStatus.callsign}</div>`,
+                        html: `<div style='width: 50px'>${aircraftStatus.Callsign}</div>`,
                         iconSize: [iconSize, 50],
                         iconAnchor: [-iconSize, -4],
                     }),
@@ -174,9 +177,9 @@ export class Home extends React.Component<any, State> {
                 this.markers[connectionId] = markers;
             }
 
-            let popup = `Altitude: ${Math.floor(aircraftStatus.altitude)}<br />Airspeed: ${Math.floor(aircraftStatus.indicatedAirSpeed)}`;
-            if (aircraftStatus.callsign) {
-                popup = `<b>${aircraftStatus.callsign}</b><br />${popup}`;
+            let popup = `Altitude: ${Math.floor(aircraftStatus.Altitude)}<br />Airspeed: ${Math.floor(aircraftStatus.IndicatedAirSpeed)}`;
+            if (aircraftStatus.Callsign) {
+                popup = `<b>${aircraftStatus.Callsign}</b><br />${popup}`;
             }
 
             markers.info.bindPopup(popup, {
@@ -185,7 +188,7 @@ export class Home extends React.Component<any, State> {
             markers.info.setIcon(markers.info.getIcon());
             markers.aircraft
                 .bindPopup(popup)
-                .setRotationAngle(aircraftStatus.trueHeading);
+                .setRotationAngle(aircraftStatus.TrueHeading);
 
             if (this.circleMarker && this.state.myConnectionId === connectionId) {
                 this.circleMarker.setLatLng(latlng);
@@ -269,7 +272,7 @@ export class Home extends React.Component<any, State> {
 
     private handleAircraftClick(connectionId: string, aircraftStatus: AircraftStatus) {
         if (this.mymap) {
-            let latlng: L.LatLngExpression = [aircraftStatus.latitude, aircraftStatus.longitude];
+            let latlng: L.LatLngExpression = [aircraftStatus.Latitude, aircraftStatus.Longitude];
             this.mymap.setView(latlng, this.mymap.getZoom());
         }
     }
