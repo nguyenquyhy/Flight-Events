@@ -37,10 +37,22 @@ namespace FlightEvents.Client
             ConfigureServices(serviceCollection);
 
             ServiceProvider = serviceCollection.BuildServiceProvider();
-
-            mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
-            mainWindow.Loaded += MainWindow_Loaded;
-            mainWindow.Show();
+            try
+            {
+                mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+                mainWindow.Loaded += MainWindow_Loaded;
+                mainWindow.Show();
+            }
+            catch (BadImageFormatException)
+            {
+                MessageBox.Show("SimConnect not found. This component is needed to connect to Flight Simulator.\n" +
+                    "Please download SimConnect from\n\nhttp://www.fspassengers.com/?action=simconnect\n\n" +
+                    "follow the ReadMe.txt in the zip file and try to start again.\n\nThis program will now exit.",
+                    "Needed component is missing",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Shutdown(-1);
+            }
         }
 
         private void ConfigureServices(ServiceCollection services)
