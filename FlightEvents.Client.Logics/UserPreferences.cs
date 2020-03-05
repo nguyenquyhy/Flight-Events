@@ -66,8 +66,15 @@ namespace FlightEvents.Client.Logics
         {
             if (File.Exists(filePath))
             {
-                using var stream = File.OpenRead(filePath);
-                return await JsonSerializer.DeserializeAsync<UserPreferences>(stream);
+                try
+                {
+                    using var stream = File.OpenRead(filePath);
+                    return await JsonSerializer.DeserializeAsync<UserPreferences>(stream);
+                }
+                catch (JsonException)
+                {
+                    return new UserPreferences();
+                }
             }
             else
             {
