@@ -1,6 +1,9 @@
 ﻿using FlightEvents.Client.ATC;
 using FlightEvents.Client.Logics;
 using FlightEvents.Client.SimConnectFSX;
+using Microsoft.AppCenter;
+using Microsoft.AppCenter.Analytics;
+using Microsoft.AppCenter.Crashes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -27,6 +30,10 @@ namespace FlightEvents.Client
 
         protected override void OnStartup(StartupEventArgs e)
         {
+#if !DEBUG
+            AppCenter.Start("6a75536f-3bd1-446c-b707-c31aabe3fb6f", typeof(Analytics), typeof(Crashes));
+#endif
+
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
