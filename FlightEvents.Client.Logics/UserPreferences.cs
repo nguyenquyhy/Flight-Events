@@ -55,11 +55,11 @@ namespace FlightEvents.Client.Logics
             }
         }
 
-        private Task SaveToFileAsync(UserPreferences pref)
+        private async Task SaveToFileAsync(UserPreferences pref)
         {
             if (File.Exists(filePath)) File.Move(filePath, filePath + ".bak", true);
             using var stream = File.Create(filePath);
-            return JsonSerializer.SerializeAsync(stream, pref);
+            await JsonSerializer.SerializeAsync(stream, pref);
         }
 
         private async Task<UserPreferences> LoadFromFileAsync()
@@ -69,7 +69,7 @@ namespace FlightEvents.Client.Logics
                 try
                 {
                     using var stream = File.OpenRead(filePath);
-                    return await JsonSerializer.DeserializeAsync<UserPreferences>(stream);
+                    return await JsonSerializer.DeserializeAsync<UserPreferences>(stream) ?? new UserPreferences();
                 }
                 catch (JsonException)
                 {
