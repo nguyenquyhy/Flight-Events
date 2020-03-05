@@ -9,5 +9,6 @@ namespace FlightEvents.Client.Logics
         event EventHandler<FlightPlanUpdatedEventArgs> FlightPlanUpdated;
 
         void RequestFlightPlan(string atcConnectionId);
+        void Send(string message);
     }
 }

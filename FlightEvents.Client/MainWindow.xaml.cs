@@ -103,6 +103,8 @@ namespace FlightEvents.Client
 
             ButtonStartTrack.Visibility = Visibility.Collapsed;
             ButtonStopTrack.Visibility = Visibility.Visible;
+
+            flightConnector.Send("Connected to Flight Events!");
         }
 
         private void ButtonStopTrack_Click(object sender, RoutedEventArgs e)

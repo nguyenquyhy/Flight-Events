@@ -74,17 +74,22 @@ namespace FlightEvents.Client.SimConnectFSX
             simconnect = new SimConnect("Flight Broadcaster", Handle, WM_USER_SIMCONNECT, null, 0);
 
             // listen to connect and quit msgs
-            simconnect.OnRecvOpen += new SimConnect.RecvOpenEventHandler(simconnect_OnRecvOpen);
-            simconnect.OnRecvQuit += new SimConnect.RecvQuitEventHandler(simconnect_OnRecvQuit);
+            simconnect.OnRecvOpen += new SimConnect.RecvOpenEventHandler(Simconnect_OnRecvOpen);
+            simconnect.OnRecvQuit += new SimConnect.RecvQuitEventHandler(Simconnect_OnRecvQuit);
 
             // listen to exceptions
-            simconnect.OnRecvException += simconnect_OnRecvException;
+            simconnect.OnRecvException += Simconnect_OnRecvException;
 
-            simconnect.OnRecvSimobjectDataBytype += simconnect_OnRecvSimobjectDataBytypeAsync;
+            simconnect.OnRecvSimobjectDataBytype += Simconnect_OnRecvSimobjectDataBytypeAsync;
             RegisterAircraftDataDefinition();
             RegisterFlightStatusDefinition();
 
-            simconnect.OnRecvSystemState += simconnect_OnRecvSystemState;
+            simconnect.OnRecvSystemState += Simconnect_OnRecvSystemState;
+        }
+
+        public void Send(string message)
+        {
+            simconnect?.Text(SIMCONNECT_TEXT_TYPE.PRINT_BLACK, 3, EVENTS.CONNECTED, message);
         }
 
         public void CloseConnection()
@@ -288,7 +293,7 @@ namespace FlightEvents.Client.SimConnectFSX
             simconnect.RegisterDataDefineStruct<FlightStatusStruct>(DEFINITIONS.FlightStatus);
         }
 
-        private void simconnect_OnRecvSimobjectDataBytypeAsync(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
+        private void Simconnect_OnRecvSimobjectDataBytypeAsync(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
         {
             // Must be general SimObject information
             switch (data.dwRequestID)
@@ -356,7 +361,7 @@ namespace FlightEvents.Client.SimConnectFSX
             }
         }
 
-        private async void simconnect_OnRecvSystemState(SimConnect sender, SIMCONNECT_RECV_SYSTEM_STATE data)
+        private async void Simconnect_OnRecvSystemState(SimConnect sender, SIMCONNECT_RECV_SYSTEM_STATE data)
         {
             switch (data.dwRequestID)
             {
@@ -414,7 +419,7 @@ namespace FlightEvents.Client.SimConnectFSX
             }
         }
 
-        void simconnect_OnRecvOpen(SimConnect sender, SIMCONNECT_RECV_OPEN data)
+        void Simconnect_OnRecvOpen(SimConnect sender, SIMCONNECT_RECV_OPEN data)
         {
             logger.LogInformation("Connected to Flight Simulator");
 
@@ -436,14 +441,14 @@ namespace FlightEvents.Client.SimConnectFSX
         }
 
         // The case where the user closes Flight Simulator
-        void simconnect_OnRecvQuit(SimConnect sender, SIMCONNECT_RECV data)
+        void Simconnect_OnRecvQuit(SimConnect sender, SIMCONNECT_RECV data)
         {
             logger.LogInformation("Flight Simulator has exited");
             Closed?.Invoke(this, new EventArgs());
             CloseConnection();
         }
 
-        void simconnect_OnRecvException(SimConnect sender, SIMCONNECT_RECV_EXCEPTION data)
+        void Simconnect_OnRecvException(SimConnect sender, SIMCONNECT_RECV_EXCEPTION data)
         {
             logger.LogError("Exception received: {0}", data.dwException);
         }

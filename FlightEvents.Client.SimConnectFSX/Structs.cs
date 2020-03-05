@@ -23,6 +23,11 @@ namespace FlightEvents.Client.SimConnectFSX
         FLIGHT_PLAN
     }
 
+    internal enum EVENTS
+    {
+        CONNECTED
+    }
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     struct AircraftDataStruct
     {
