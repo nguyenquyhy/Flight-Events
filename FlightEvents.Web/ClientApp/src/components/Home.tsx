@@ -6,7 +6,9 @@ import * as protocol from '@microsoft/signalr-protocol-msgpack';
 import { AircraftStatus, Airport, FlightPlan } from '../Models';
 import AircraftList from './AircraftList';
 import EventList from './EventList';
+import { IMap } from '../maps/IMap';
 import LeafletMap, { MapTileType } from '../maps/LeaftletMap';
+import MaptalksMap from '../maps/MaptalksMap';
 
 interface State {
     aircrafts: { [connectionId: string]: AircraftStatus };
@@ -18,7 +20,8 @@ interface State {
 export class Home extends React.Component<any, State> {
     static displayName = Home.name;
 
-    private leafletMap: LeafletMap = new LeafletMap();
+    //private leafletMap: IMap = new LeafletMap();
+    private leafletMap: IMap = new MaptalksMap();
 
     private aircrafts: { [connectionId: string]: { aircraftStatus: AircraftStatus, lastUpdated: Date } } = {};
 
@@ -48,7 +51,7 @@ export class Home extends React.Component<any, State> {
     async componentDidMount() {
         this.leafletMap.initialize('mapid');
 
-        this.leafletMap.setTileLayer(MapTileType.OpenStreetMap);
+        //this.leafletMap.setTileLayer(MapTileType.OpenStreetMap);
 
         let hub = new signalr.HubConnectionBuilder()
             .withUrl('/FlightEventHub')
@@ -122,19 +125,19 @@ export class Home extends React.Component<any, State> {
     }
 
     private handleOpenStreetMap() {
-        this.leafletMap.setTileLayer(MapTileType.OpenStreetMap);
+        //this.leafletMap.setTileLayer(MapTileType.OpenStreetMap);
     }
 
     private handleOpenTopoMap() {
-        this.leafletMap.setTileLayer(MapTileType.OpenTopoMap);
+        //this.leafletMap.setTileLayer(MapTileType.OpenTopoMap);
     }
 
     private handleEsriWorldImagery() {
-        this.leafletMap.setTileLayer(MapTileType.EsriWorldImagery);
+        //this.leafletMap.setTileLayer(MapTileType.EsriWorldImagery);
     }
 
     private handleEsriTopo() {
-        this.leafletMap.setTileLayer(MapTileType.EsriTopo);
+        //this.leafletMap.setTileLayer(MapTileType.EsriTopo);
     }
 
     private handleMeChanged(connectionId: string | null) {
