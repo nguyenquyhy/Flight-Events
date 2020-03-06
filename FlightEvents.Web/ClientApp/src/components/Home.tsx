@@ -6,8 +6,8 @@ import * as protocol from '@microsoft/signalr-protocol-msgpack';
 import { AircraftStatus, Airport, FlightPlan } from '../Models';
 import AircraftList from './AircraftList';
 import EventList from './EventList';
-import { IMap } from '../maps/IMap';
-import LeafletMap, { MapTileType } from '../maps/LeaftletMap';
+import { IMap, MapTileType } from '../maps/IMap';
+import LeafletMap from '../maps/LeaftletMap';
 import MaptalksMap from '../maps/MaptalksMap';
 
 interface State {
@@ -21,7 +21,7 @@ export class Home extends React.Component<any, State> {
     static displayName = Home.name;
 
     //private leafletMap: IMap = new LeafletMap();
-    private leafletMap: IMap = new MaptalksMap();
+    private map: IMap = new MaptalksMap();
 
     private aircrafts: { [connectionId: string]: { aircraftStatus: AircraftStatus, lastUpdated: Date } } = {};
 
@@ -49,7 +49,7 @@ export class Home extends React.Component<any, State> {
     }
 
     async componentDidMount() {
-        this.leafletMap.initialize('mapid');
+        this.map.initialize('mapid');
 
         //this.leafletMap.setTileLayer(MapTileType.OpenStreetMap);
 
@@ -78,7 +78,7 @@ export class Home extends React.Component<any, State> {
                 aircraftStatus: aircraftStatus
             };
 
-            this.leafletMap.moveMarker(connectionId, aircraftStatus, this.state.myConnectionId === connectionId, connectionId === this.state.followingConnectionId, this.state.moreInfoConnectionIds.includes(connectionId));
+            this.map.moveMarker(connectionId, aircraftStatus, this.state.myConnectionId === connectionId, connectionId === this.state.followingConnectionId, this.state.moreInfoConnectionIds.includes(connectionId));
         });
 
         await hub.start();
@@ -93,7 +93,7 @@ export class Home extends React.Component<any, State> {
         for (let connectionId of connectionIds) {
             const aircraft = this.aircrafts[connectionId];
             if (new Date().getTime() - aircraft.lastUpdated.getTime() > 5 * 1000) {
-                this.leafletMap.cleanUp(connectionId, connectionId === this.state.myConnectionId);
+                this.map.cleanUp(connectionId, connectionId === this.state.myConnectionId);
 
                 if (connectionId === this.state.myConnectionId) {
                     this.setState({
@@ -119,34 +119,34 @@ export class Home extends React.Component<any, State> {
     }
 
     private handleAircraftClick(connectionId: string, aircraftStatus: AircraftStatus) {
-        if (this.leafletMap) {
-            this.leafletMap.forcusAircraft(aircraftStatus);
+        if (this.map) {
+            this.map.forcusAircraft(aircraftStatus);
         }
     }
 
     private handleOpenStreetMap() {
-        //this.leafletMap.setTileLayer(MapTileType.OpenStreetMap);
+        this.map.setTileLayer(MapTileType.OpenStreetMap);
     }
 
     private handleOpenTopoMap() {
-        //this.leafletMap.setTileLayer(MapTileType.OpenTopoMap);
+        this.map.setTileLayer(MapTileType.OpenTopoMap);
     }
 
     private handleEsriWorldImagery() {
-        //this.leafletMap.setTileLayer(MapTileType.EsriWorldImagery);
+        this.map.setTileLayer(MapTileType.EsriWorldImagery);
     }
 
     private handleEsriTopo() {
-        //this.leafletMap.setTileLayer(MapTileType.EsriTopo);
+        this.map.setTileLayer(MapTileType.EsriTopo);
     }
 
     private handleMeChanged(connectionId: string | null) {
         this.setState({ myConnectionId: connectionId });
 
         if (connectionId) {
-            this.leafletMap.addRangeCircle();
+            this.map.addRangeCircle();
         } else {
-            this.leafletMap.removeRangeCircle();
+            this.map.removeRangeCircle();
         }
     }
 
@@ -163,11 +163,11 @@ export class Home extends React.Component<any, State> {
     }
 
     public handleAirportsLoaded(airports: Airport[]) {
-        this.leafletMap.drawAirports(airports);
+        this.map.drawAirports(airports);
     }
 
     public handleFlightPlansLoaded(flightPlans: FlightPlan[]) {
-        this.leafletMap.drawFlightPlans(flightPlans);
+        this.map.drawFlightPlans(flightPlans);
     }
 
     render() {

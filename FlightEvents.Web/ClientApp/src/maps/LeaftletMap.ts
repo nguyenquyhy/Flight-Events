@@ -1,15 +1,9 @@
-﻿import { IMap } from './IMap';
+﻿import { IMap, MapTileType } from './IMap';
 import * as L from 'leaflet';
 import 'leaflet-rotatedmarker';
 import { MAPBOX_API_KEY } from '../Constants';
 import { AircraftStatus, Airport, FlightPlan } from '../Models';
 
-export enum MapTileType {
-    OpenStreetMap,
-    OpenTopoMap,
-    EsriWorldImagery,
-    EsriTopo
-}
 
 interface Markers {
     aircraft: L.Marker<any>

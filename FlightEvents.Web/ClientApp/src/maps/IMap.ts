@@ -9,4 +9,13 @@ export interface IMap {
     cleanUp(connectionId: string, isMe: boolean)
     addRangeCircle()
     removeRangeCircle()
+    setTileLayer(type: MapTileType)
+}
+
+export enum MapTileType {
+    OpenStreetMap,
+    OpenTopoMap,
+    EsriWorldImagery,
+    EsriTopo,
+    Carto
 }

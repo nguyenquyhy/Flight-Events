@@ -1,6 +1,7 @@
-﻿import { IMap } from './IMap';
+﻿import { IMap, MapTileType } from './IMap';
 import * as maptalks from 'maptalks';
 import { AircraftStatus, Airport, FlightPlan } from '../Models';
+import { MAPBOX_API_KEY } from '../Constants';
 
 interface Markers {
     aircraft: Sector
@@ -17,6 +18,7 @@ interface Coordinate {
 interface Map {
     panTo: (latlng: Coordinate) => void;
     setPitch: (pitch: number) => void;
+    setBaseLayer: (layer: any) => void;
 }
 
 interface VectorLayer {
@@ -45,13 +47,7 @@ export default class MaptalksMap implements IMap {
     initialize(divId: string) {
         this.map = new maptalks.Map(divId, {
             center: [-0.113049, 51.498568],
-            zoom: 14,
-            baseLayer: new maptalks.TileLayer('base', {
-                urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-                subdomains: ['a', 'b', 'c', 'd'],
-                attribution: '&copy; <a href="http://osm.org">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/">CARTO</a>'
-            }),
-            projection: 'identity'
+            zoom: 14
         });
 
         this.aircraftLayer = new maptalks.VectorLayer('vector', {
@@ -62,6 +58,49 @@ export default class MaptalksMap implements IMap {
                 lineColor: '#aaa'
             }
         }).addTo(this.map);
+
+        this.setTileLayer(MapTileType.OpenStreetMap);
+    }
+
+    public setTileLayer(type: MapTileType) {
+        if (!this.map) return;
+
+        switch (type) {
+            case MapTileType.OpenStreetMap:
+                this.map.setBaseLayer(new maptalks.TileLayer('openstreetmap', {
+                    urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' + MAPBOX_API_KEY,//{ accessToken }',
+                    maxZoom: 18,
+                    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                }));
+                break;
+            case MapTileType.OpenTopoMap:
+                this.map.setBaseLayer(new maptalks.TileLayer('opentopomap', {
+                    urlTemplate: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+                    subdomains: ['a', 'b', 'c'],
+                    maxZoom: 17,
+                    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+                }));
+                break;
+            case MapTileType.EsriWorldImagery:
+                this.map.setBaseLayer(new maptalks.TileLayer('esri', {
+                    urlTemplate: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                }));
+                break;
+            case MapTileType.EsriTopo:
+                this.map.setBaseLayer(new maptalks.TileLayer('esritopo', {
+                    urlTemplate: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', 
+                    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+                }));
+                break;
+            case MapTileType.Carto:
+                this.map.setBaseLayer(new maptalks.TileLayer('carto', {
+                    urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                    subdomains: ['a', 'b', 'c', 'd'],
+                    attribution: '&copy; <a href="http://osm.org">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/">CARTO</a>'
+                }));
+                break;
+        }
     }
 
     moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isMoreInfo: boolean) {
@@ -140,7 +179,7 @@ export default class MaptalksMap implements IMap {
             const aircraftLine = new maptalks.Marker(latlng, {
                 symbol: {
                     'markerType': 'path',
-                    'markerPath': '',
+                    'markerPath': 'M',
                     'markerFill': 'rgb(216,115,149)',
                     'markerLineColor': '#aaa',
                     'markerPathWidth': 305,
