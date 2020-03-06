@@ -42,6 +42,15 @@ export default class MaptalksMap implements IMap {
     map: Map | undefined;
     markers: { [connectionId: string]: Markers } = {};
 
+    visibleCircle = new maptalks.Circle([0, 0], 3048, {
+        symbol: {
+            lineColor: '#000000',
+            lineWidth: 2,
+            lineOpacity: 0.25,
+            polygonFill: 'none'
+        }
+    })
+
     aircraftLayer: VectorLayer | undefined;
 
     initialize(divId: string) {
@@ -58,6 +67,9 @@ export default class MaptalksMap implements IMap {
                 lineColor: '#aaa'
             }
         }).addTo(this.map);
+
+        this.aircraftLayer!!.addGeometry(this.visibleCircle!!);
+        this.visibleCircle.hide();
 
         this.setTileLayer(MapTileType.OpenStreetMap);
     }
@@ -122,16 +134,25 @@ export default class MaptalksMap implements IMap {
         let markers = this.markers[connectionId];
         if (markers) {
             // Existing marker
+            const distanceFactor = .3048
+            const duration = 500
+            const altitude = aircraftStatus.Altitude * distanceFactor
 
             const offset = latlng.sub(markers.aircraft.getCoordinates());
 
-            markers.aircraft.setProperties({ altitude: aircraftStatus.Altitude * 0.3048 });
-            markers.aircraft.animate({ translate: [offset['x'], offset['y']] }, { duration: 500 });
+            markers.aircraft.setProperties({ altitude: altitude });
+            markers.aircraft.animate({ translate: [offset['x'], offset['y']] }, { duration: duration });
             markers.aircraft.setStartAngle(-aircraftStatus.TrueHeading - 10 - 90);
             markers.aircraft.setEndAngle(-aircraftStatus.TrueHeading + 10 - 90);
 
-            markers.aircraftLine.setProperties({ altitude: aircraftStatus.Altitude * 0.3048 });
-            markers.aircraftLine.animate({ translate: [offset['x'], offset['y']] }, { duration: 500 });
+            markers.aircraftLine.setProperties({ altitude: altitude });
+            markers.aircraftLine.animate({ translate: [offset['x'], offset['y']] }, { duration: duration });
+
+            if (isMe) {
+                const circleOffset = latlng.sub(this.visibleCircle.getCoordinates());
+                this.visibleCircle.setProperties({ altitude: altitude });
+                this.visibleCircle.animate({ translate: [circleOffset['x'], circleOffset['y']] }, { duration: duration });
+            }
 
             //markers.info.setLatLng(latlng);
 
@@ -283,11 +304,11 @@ export default class MaptalksMap implements IMap {
     }
 
     addRangeCircle() {
-        throw new Error("Method not implemented.");
+        this.visibleCircle.show();
     }
 
     removeRangeCircle() {
-        throw new Error("Method not implemented.");
+        this.visibleCircle.hide();
     }
 
 
