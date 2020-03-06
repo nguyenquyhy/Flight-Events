@@ -32,6 +32,10 @@ export default class LeafletMap implements IMap {
         setInterval(this.cleanUp, 2000);
     }
 
+    public deinitialize() {
+        this.mymap.remove();
+    }
+
     public setTileLayer(type: MapTileType) {
         this.baseLayerGroup.clearLayers();
         switch (type) {

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import styled from 'styled-components';
+import { ButtonGroup, Button } from 'reactstrap';
 import * as signalr from '@microsoft/signalr';
 import 'msgpack5';
 import * as protocol from '@microsoft/signalr-protocol-msgpack';
@@ -15,13 +16,15 @@ interface State {
     myConnectionId: string | null;
     followingConnectionId: string | null;
     moreInfoConnectionIds: string[];
+
+    map3D: boolean;
+    mapTileType: MapTileType;
 }
 
 export class Home extends React.Component<any, State> {
     static displayName = Home.name;
 
-    //private leafletMap: IMap = new LeafletMap();
-    private map: IMap = new MaptalksMap();
+    private map: IMap = new LeafletMap();
 
     private aircrafts: { [connectionId: string]: { aircraftStatus: AircraftStatus, lastUpdated: Date } } = {};
 
@@ -32,10 +35,16 @@ export class Home extends React.Component<any, State> {
             aircrafts: {},
             myConnectionId: null,
             followingConnectionId: null,
-            moreInfoConnectionIds: []
+            moreInfoConnectionIds: [],
+            map3D: false,
+            mapTileType: MapTileType.OpenStreetMap,
         }
 
         this.handleAircraftClick = this.handleAircraftClick.bind(this);
+
+        this.handleMap2D = this.handleMap2D.bind(this);
+        this.handleMap3D = this.handleMap3D.bind(this);
+
         this.handleOpenStreetMap = this.handleOpenStreetMap.bind(this);
         this.handleOpenTopoMap = this.handleOpenTopoMap.bind(this);
         this.handleEsriWorldImagery = this.handleEsriWorldImagery.bind(this);
@@ -49,9 +58,7 @@ export class Home extends React.Component<any, State> {
     }
 
     async componentDidMount() {
-        this.map.initialize('mapid');
-
-        //this.leafletMap.setTileLayer(MapTileType.OpenStreetMap);
+        this.initializeMap();
 
         let hub = new signalr.HubConnectionBuilder()
             .withUrl('/FlightEventHub')
@@ -86,6 +93,11 @@ export class Home extends React.Component<any, State> {
         await hub.send('Join', 'Map');
 
         setInterval(this.cleanUp, 2000);
+    }
+
+    private initializeMap() {
+        this.map.initialize('mapid');
+        this.map.setTileLayer(this.state.mapTileType);
     }
 
     private cleanUp() {
@@ -124,19 +136,51 @@ export class Home extends React.Component<any, State> {
         }
     }
 
+    private handleMap2D() {
+        this.setState({
+            map3D: false
+        });
+
+        this.map.deinitialize();
+        this.map = new LeafletMap();
+        this.initializeMap();
+    }
+
+    private handleMap3D() {
+        this.setState({
+            map3D: true
+        });
+
+        this.map.deinitialize();
+        this.map = new MaptalksMap();
+        this.initializeMap();
+    }
+
     private handleOpenStreetMap() {
+        this.setState({
+            mapTileType: MapTileType.OpenStreetMap
+        })
         this.map.setTileLayer(MapTileType.OpenStreetMap);
     }
 
     private handleOpenTopoMap() {
+        this.setState({
+            mapTileType: MapTileType.OpenTopoMap
+        })
         this.map.setTileLayer(MapTileType.OpenTopoMap);
     }
 
     private handleEsriWorldImagery() {
+        this.setState({
+            mapTileType: MapTileType.EsriWorldImagery
+        })
         this.map.setTileLayer(MapTileType.EsriWorldImagery);
     }
 
     private handleEsriTopo() {
+        this.setState({
+            mapTileType: MapTileType.EsriTopo
+        })
         this.map.setTileLayer(MapTileType.EsriTopo);
     }
 
@@ -173,11 +217,17 @@ export class Home extends React.Component<any, State> {
     render() {
         return <>
             <div id="mapid" style={{ height: '100%' }}></div>
+            <TypeWrapper className="btn-group-vertical">
+                <ButtonGroup>
+                    <Button className="btn btn-light" active={!this.state.map3D} onClick={this.handleMap2D}>2D</Button>
+                    <Button className="btn btn-light" active={this.state.map3D} onClick={this.handleMap3D}>3D</Button>
+                </ButtonGroup>
+            </TypeWrapper>
             <LayerWrapper className="btn-group-vertical">
-                <TileButton className="btn btn-light" onClick={this.handleOpenStreetMap}>OpenStreetMap</TileButton>
-                <TileButton className="btn btn-light" onClick={this.handleOpenTopoMap}>OpenTopoMap</TileButton>
-                <TileButton className="btn btn-light" onClick={this.handleEsriWorldImagery}>Esri Imagery</TileButton>
-                <TileButton className="btn btn-light" onClick={this.handleEsriTopo}>Esri Topo</TileButton>
+                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.OpenStreetMap} onClick={this.handleOpenStreetMap}>OpenStreetMap</Button>
+                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.OpenTopoMap} onClick={this.handleOpenTopoMap}>OpenTopoMap</Button>
+                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.EsriWorldImagery} onClick={this.handleEsriWorldImagery}>Esri Imagery</Button>
+                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.EsriTopo} onClick={this.handleEsriTopo}>Esri Topo</Button>
             </LayerWrapper>
             <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
                 onMeChanged={this.handleMeChanged} myConnectionId={this.state.myConnectionId}
@@ -191,7 +241,7 @@ export class Home extends React.Component<any, State> {
 
 const LayerWrapper = styled.div`
 position: absolute;
-top: 80px;
+top: 130px;
 left: 10px;
 z-index: 1000;
 width: 140px;
@@ -203,5 +253,12 @@ button {
 }
 `;
 
-const TileButton = styled.button`
-`
+const TypeWrapper = styled.div`
+position: absolute;
+top: 80px;
+left: 10px;
+z-index: 1000;
+width: 140px;
+box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+border-radius: 4px;
+`;

@@ -2,6 +2,7 @@
 
 export interface IMap {
     initialize(divId: string)
+    deinitialize();
     moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isMoreInfo: boolean)
     drawAirports(airports: Airport[])
     drawFlightPlans(flightPlans: FlightPlan[])

@@ -9,8 +9,6 @@ interface Markers {
     //info: any
 }
 
-type LatLng = number[]
-
 interface Coordinate {
     sub: (other: Coordinate) => any
 }
@@ -19,6 +17,7 @@ interface Map {
     panTo: (latlng: Coordinate) => void;
     setPitch: (pitch: number) => void;
     setBaseLayer: (layer: any) => void;
+    remove: () => void;
 }
 
 interface VectorLayer {
@@ -70,8 +69,12 @@ export default class MaptalksMap implements IMap {
 
         this.aircraftLayer!!.addGeometry(this.visibleCircle!!);
         this.visibleCircle.hide();
+    }
 
-        this.setTileLayer(MapTileType.OpenStreetMap);
+    deinitialize() {
+        if (this.map) {
+            this.map.remove();
+        }
     }
 
     public setTileLayer(type: MapTileType) {
