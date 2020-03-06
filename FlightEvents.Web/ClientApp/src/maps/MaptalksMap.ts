@@ -1,8 +1,9 @@
 ﻿import { IMap } from './IMap';
 import * as maptalks from 'maptalks';
+import { AircraftStatus, Airport, FlightPlan } from '../Models';
 
 interface Markers {
-    aircraft: Marker
+    aircraft: Sector
     aircraftLine: Marker
     //info: any
 }
@@ -28,6 +29,11 @@ interface Marker {
     setProperties: (props: any) => void;
     animate: (animation: any, props: any) => void;
     remove: () => void;
+}
+
+interface Sector extends Marker {
+    setStartAngle: (angle: number) => void;
+    setEndAngle: (angle: number) => void;
 }
 
 export default class MaptalksMap implements IMap {
@@ -58,7 +64,7 @@ export default class MaptalksMap implements IMap {
         }).addTo(this.map);
     }
 
-    moveMarker(connectionId: string, aircraftStatus: import("../Models").AircraftStatus, isMe: boolean, isFollowing: boolean, isMoreInfo: boolean) {
+    moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isMoreInfo: boolean) {
         if (!this.map || !this.aircraftLayer) return;
 
         const iconSize = 12
@@ -78,19 +84,16 @@ export default class MaptalksMap implements IMap {
         if (markers) {
             // Existing marker
 
-            //markers.aircraft.setCoordinates(latlng);
-            markers.aircraft.setProperties({
-                altitude: aircraftStatus.Altitude * 0.3048
-            });
             const offset = latlng.sub(markers.aircraft.getCoordinates());
-            markers.aircraft.animate({
-                translate: [offset['x'], offset['y']],
-                symbol: {
-                    markerRotation: -aircraftStatus.TrueHeading
-                }
-            }, {
-                duration: 500
-            });
+
+            markers.aircraft.setProperties({ altitude: aircraftStatus.Altitude * 0.3048 });
+            markers.aircraft.animate({ translate: [offset['x'], offset['y']] }, { duration: 500 });
+            markers.aircraft.setStartAngle(-aircraftStatus.TrueHeading - 10 - 90);
+            markers.aircraft.setEndAngle(-aircraftStatus.TrueHeading + 10 - 90);
+
+            markers.aircraftLine.setProperties({ altitude: aircraftStatus.Altitude * 0.3048 });
+            markers.aircraftLine.animate({ translate: [offset['x'], offset['y']] }, { duration: 500 });
+
             //markers.info.setLatLng(latlng);
 
             //let className = 'divicon-aircraft-info';
@@ -157,7 +160,7 @@ export default class MaptalksMap implements IMap {
                 //}),
                 //zIndexOffset: 2000
             })
-            const aircraft = new maptalks.Sector(latlng, 10, aircraftStatus.TrueHeading - 10 + 90, aircraftStatus.TrueHeading + 10 + 90, {
+            const aircraft = new maptalks.Sector(latlng, 20, -aircraftStatus.TrueHeading - 10 - 90, -aircraftStatus.TrueHeading + 10 - 90, {
                 symbol: {
                     lineColor: '#34495e',
                     lineWidth: 2,
@@ -211,16 +214,18 @@ export default class MaptalksMap implements IMap {
         //}
     }
 
-    drawAirports(airports: import("../Models").Airport[]) {
+    drawAirports(airports: Airport[]) {
         throw new Error("Method not implemented.");
     }
 
-    drawFlightPlans(flightPlans: import("../Models").FlightPlan[]) {
+    drawFlightPlans(flightPlans: FlightPlan[]) {
         throw new Error("Method not implemented.");
     }
 
-    forcusAircraft(aircraftStatus: import("../Models").AircraftStatus) {
-        throw new Error("Method not implemented.");
+    forcusAircraft(aircraftStatus: AircraftStatus) {
+        if (this.map) {
+            this.map.panTo(new maptalks.Coordinate([aircraftStatus.Longitude, aircraftStatus.Latitude]));
+        }
     }
 
     cleanUp(connectionId: string, isMe: boolean) {
