@@ -187,10 +187,11 @@ export default class MaptalksMap implements IMap {
             this.map.panTo(latlng);
         }
 
+        const altitude = aircraftStatus.Altitude * MaptalksMap.FEET_TO_METER
+
         let markers = this.markers[connectionId];
         if (markers) {
             // Existing marker
-            const altitude = aircraftStatus.Altitude * MaptalksMap.FEET_TO_METER
 
             const offset = latlng.sub(markers.aircraft.getCoordinates());
 
@@ -202,6 +203,7 @@ export default class MaptalksMap implements IMap {
             markers.aircraftLine.setProperties({ altitude: altitude });
             markers.aircraftLine.animate({ translate: [offset['x'], offset['y']] }, { duration: MaptalksMap.ANIMATION_DURATION });
 
+            markers.info.setProperties({ altitude: altitude });
             markers.info.animate({ translate: [offset['x'], offset['y']] }, { duration: MaptalksMap.ANIMATION_DURATION });
 
             if (isMe) {
@@ -220,13 +222,10 @@ export default class MaptalksMap implements IMap {
                 })
             }
 
-            if (isMoreInfo) {
-                const body = `${aircraftStatus.Callsign}\nALT ${Math.round(aircraftStatus.Altitude)} ft\nHDG ${Math.round(aircraftStatus.Heading)}\u00B0\nIAS ${Math.round(aircraftStatus.IndicatedAirSpeed)} kts`
-                markers.info.setContent(body);
-            } else {
-                const body = `${aircraftStatus.Callsign}`
-                markers.info.setContent(body);
-            }
+            const body = isMoreInfo ?
+                `${aircraftStatus.Callsign}\nALT ${Math.round(aircraftStatus.Altitude)} ft\nHDG ${Math.round(aircraftStatus.Heading)}\u00B0\nIAS ${Math.round(aircraftStatus.IndicatedAirSpeed)} kts` :
+                `${aircraftStatus.Callsign}`
+            markers.info.setContent(body);
         } else {
             const aircraftLine = new maptalks.Marker(latlng, {
                 symbol: {
@@ -242,7 +241,7 @@ export default class MaptalksMap implements IMap {
                     'markerRotation': -aircraftStatus.TrueHeading
                 },
                 properties: {
-                    altitude: aircraftStatus.Altitude * MaptalksMap.FEET_TO_METER
+                    altitude: altitude
                 },
             })
             const aircraft = new maptalks.Sector(latlng, MaptalksMap.AIRCRAFT_SIZE, -aircraftStatus.TrueHeading - 10 - 90, -aircraftStatus.TrueHeading + 10 - 90, {
@@ -253,7 +252,7 @@ export default class MaptalksMap implements IMap {
                     polygonOpacity: 1
                 },
                 properties: {
-                    altitude: aircraftStatus.Altitude * MaptalksMap.FEET_TO_METER
+                    altitude: altitude
                 }
             })
             const info = new maptalks.Label(`${aircraftStatus.Callsign}`, latlng, {
@@ -280,7 +279,7 @@ export default class MaptalksMap implements IMap {
                     }
                 },
                 properties: {
-                    altitude: aircraftStatus.Altitude * MaptalksMap.FEET_TO_METER
+                    altitude: altitude
                 }
             });
             markers = {
