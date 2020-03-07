@@ -20,10 +20,13 @@ interface Map {
     remove: () => void;
     on: (events: string, handler: () => void) => void;
     getZoom: () => number;
+    fitExtent: (extent: any, zoomOffset: number) => void;
 }
 
 interface VectorLayer {
     addGeometry: (markers: Geometry | Geometry[]) => void;
+    clear: () => void;
+    addTo: (map: Map) => void;
 }
 
 interface Geometry {
@@ -75,16 +78,26 @@ export default class MaptalksMap implements IMap {
     })
 
     aircraftLayer: VectorLayer | undefined;
+    airportLayer: VectorLayer = new maptalks.VectorLayer('airport');
+    flightPlanLayer: VectorLayer = new maptalks.VectorLayer('flightPlan', {
+        enableAltitude: true,
+        drawAltitude: {
+            polygonFill: '#1bbc9b',
+            polygonOpacity: 0.3,
+            lineWidth: 0
+        }
+    });
 
     initialize(divId: string) {
         const map = new maptalks.Map(divId, {
             center: [-0.113049, 51.498568],
-            zoom: 14
+            zoom: 14,
+            pitch: 30
         });
 
         map.on('zoomend', () => this.handleZoom());
 
-        const aircraftLayer = new maptalks.VectorLayer('vector', {
+        const aircraftLayer = new maptalks.VectorLayer('aircraft', {
             enableAltitude: true,
             // draw altitude
             drawAltitude: {
@@ -94,6 +107,9 @@ export default class MaptalksMap implements IMap {
         }).addTo(map);
 
         aircraftLayer.addGeometry(this.visibleCircle);
+
+        this.airportLayer.addTo(map);
+        this.flightPlanLayer.addTo(map);
 
         this.visibleCircle.hide();
 
@@ -247,7 +263,8 @@ export default class MaptalksMap implements IMap {
                     textSize: 12,
                     textWeight: 'bold',
                     textVerticalAlignment: 'top',
-                    textHorizontalAlignment: 'right'
+                    textHorizontalAlignment: 'right',
+                    textDy: -10,
                 },
                 boxStyle: {
                     padding: [4, 4],
@@ -279,22 +296,82 @@ export default class MaptalksMap implements IMap {
                 this.visibleCircle.setCoordinates(latlng);
             }
         }
-
-        let popup = `Altitude: ${Math.floor(aircraftStatus.Altitude)}<br />Airspeed: ${Math.floor(aircraftStatus.IndicatedAirSpeed)}`;
-        if (aircraftStatus.Callsign) {
-            popup = `<b>${aircraftStatus.Callsign}</b><br />${popup}`;
-        }
     }
 
     drawAirports(airports: Airport[]) {
-        // TODO:
+        if (this.map) {
+            const minLongitude = airports.reduce((prev, curr) => Math.min(prev, curr.longitude), 180);
+            const maxLongitude = airports.reduce((prev, curr) => Math.max(prev, curr.longitude), -180);
+            const minLatitude = airports.reduce((prev, curr) => Math.min(prev, curr.latitude), 90);
+            const maxLatitude = airports.reduce((prev, curr) => Math.max(prev, curr.latitude), -90);
+
+            const extent = new maptalks.Extent(minLongitude, minLatitude, maxLongitude, maxLatitude);
+            this.map.fitExtent(extent, 0);
+
+            this.airportLayer.clear();
+
+            for (let airport of airports) {
+                new maptalks.ui.UIMarker(
+                    new maptalks.Coordinate([airport.longitude, airport.latitude]),
+                    {
+                        content: `<div><strong>${airport.ident}</strong></div>`,
+                        dy: -40
+                    }
+                ).addTo(this.airportLayer).show();
+
+                new maptalks.Marker(
+                    new maptalks.Coordinate([airport.longitude, airport.latitude])
+                ).addTo(this.airportLayer);
+            }
+        }
     }
 
     drawFlightPlans(flightPlans: FlightPlan[]) {
-        // TODO:
+        if (this.map) {
+            this.flightPlanLayer.clear();
+
+            let index = 0;
+            const colors = ['red', 'blue'];
+
+            for (var flightPlan of flightPlans) {
+                const latlngs = flightPlan.data.waypoints.reduce((prev: Coordinate[], curr) =>
+                    prev.concat(new maptalks.Coordinate([curr.longitude, curr.latitude])),
+                    [])
+
+                const altitudes = flightPlan.data.waypoints.reduce((prev: number[], curr, index) =>
+                    prev.concat(index === 0 || index === flightPlan.data.waypoints.length - 1 ? 0 : flightPlan.data.cruisingAltitude * MaptalksMap.FEET_TO_METER),
+                    [])
+
+                new maptalks.LineString(latlngs, {
+                    symbol: {
+                        lineColor: colors[(index++ % colors.length)],
+                        lineWidth: 3
+                    },
+                    properties: {
+                        altitude: altitudes
+                    }
+                }).addTo(this.flightPlanLayer);
+
+                for (let i = 0; i < flightPlan.data.waypoints.length; i++) {
+                    const waypoint = flightPlan.data.waypoints[i];
+                    new maptalks.Marker(new maptalks.Coordinate([waypoint.longitude, waypoint.latitude]), {
+                        properties: {
+                            name: waypoint.id,
+                            altitude: altitudes[i],
+                        },
+                        symbol: {
+                            textFaceName: 'Lucida Console',
+                            textName: '{name}',
+                            textWeight: 'bold',
+                            textDy: -15,
+                        }
+                    }).addTo(this.flightPlanLayer);
+                }
+            }
+        }
     }
 
-    forcusAircraft(aircraftStatus: AircraftStatus) {
+    focusAircraft(aircraftStatus: AircraftStatus) {
         if (this.map) {
             this.map.panTo(new maptalks.Coordinate([aircraftStatus.Longitude, aircraftStatus.Latitude]));
         }

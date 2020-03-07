@@ -73,19 +73,23 @@ export class Home extends React.Component<any, State> {
         })
 
         hub.on("UpdateAircraft", (connectionId, aircraftStatus: AircraftStatus) => {
-            this.setState({
-                aircrafts: {
-                    ...this.state.aircrafts,
-                    [connectionId]: aircraftStatus
-                }
-            });
+            try {
+                this.setState({
+                    aircrafts: {
+                        ...this.state.aircrafts,
+                        [connectionId]: aircraftStatus
+                    }
+                });
 
-            this.aircrafts[connectionId] = {
-                lastUpdated: new Date(),
-                aircraftStatus: aircraftStatus
-            };
+                this.aircrafts[connectionId] = {
+                    lastUpdated: new Date(),
+                    aircraftStatus: aircraftStatus
+                };
 
-            this.map.moveMarker(connectionId, aircraftStatus, this.state.myConnectionId === connectionId, connectionId === this.state.followingConnectionId, this.state.moreInfoConnectionIds.includes(connectionId));
+                this.map.moveMarker(connectionId, aircraftStatus, this.state.myConnectionId === connectionId, connectionId === this.state.followingConnectionId, this.state.moreInfoConnectionIds.includes(connectionId));
+            } catch (e) {
+                console.error(e);
+            }
         });
 
         await hub.start();
@@ -132,7 +136,7 @@ export class Home extends React.Component<any, State> {
 
     private handleAircraftClick(connectionId: string, aircraftStatus: AircraftStatus) {
         if (this.map) {
-            this.map.forcusAircraft(aircraftStatus);
+            this.map.focusAircraft(aircraftStatus);
         }
     }
 

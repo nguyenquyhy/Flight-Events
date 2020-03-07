@@ -6,7 +6,7 @@ export interface IMap {
     moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isMoreInfo: boolean)
     drawAirports(airports: Airport[])
     drawFlightPlans(flightPlans: FlightPlan[])
-    forcusAircraft(aircraftStatus: AircraftStatus)
+    focusAircraft(aircraftStatus: AircraftStatus)
     cleanUp(connectionId: string, isMe: boolean)
     addRangeCircle()
     removeRangeCircle()

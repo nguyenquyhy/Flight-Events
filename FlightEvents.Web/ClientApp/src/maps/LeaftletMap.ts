@@ -206,7 +206,7 @@ export default class LeafletMap implements IMap {
                 const latlngs = flightPlan.data.waypoints.reduce((prev: L.LatLngTuple[], curr) =>
                     prev.concat([[curr.latitude, curr.longitude]]),
                     [])
-                console.log(latlngs);
+
                 const polyline = L.polyline(latlngs, { color: colors[(index++ % colors.length)] });
                 this.flightPlanLayerGroup.addLayer(polyline);
 
@@ -227,7 +227,7 @@ export default class LeafletMap implements IMap {
         }
     }
 
-    public forcusAircraft(aircraftStatus: AircraftStatus) {
+    public focusAircraft(aircraftStatus: AircraftStatus) {
         if (this.mymap) {
             let latlng: L.LatLngExpression = [aircraftStatus.Latitude, aircraftStatus.Longitude];
             this.mymap.setView(latlng, this.mymap.getZoom());
