@@ -46,7 +46,6 @@ export default class EventModal extends React.Component<Props, State> {
                 if (!this.airports) {
                     this.airports = await Api.getAirports(event.waypoints.split(' '));
                 }
-                this.props.onAirportLoaded(this.airports);
             }
 
             if (!this.state.flightPlans) {
@@ -54,11 +53,16 @@ export default class EventModal extends React.Component<Props, State> {
                 this.setState({ flightPlans: flightPlans }, () => {
                     this.props.onFlightPlansLoaded(flightPlans);
                 })
-            } else {
-                this.props.onFlightPlansLoaded(this.state.flightPlans);
             }
         }
 
+        if (this.airports) {
+            this.props.onAirportLoaded(this.airports);
+        }
+
+        if (this.state.flightPlans) {
+            this.props.onFlightPlansLoaded(this.state.flightPlans);
+        }
     }
 
     public render() {
@@ -66,14 +70,14 @@ export default class EventModal extends React.Component<Props, State> {
             <>
                 <div><StyledTime>{parseISO(this.state.flightEvent.startDateTime).toLocaleString()}</StyledTime></div>
                 <div><ReactMarkdown>{this.state.flightEvent.description}</ReactMarkdown></div>
-                {!!this.state.flightEvent.url && <div>URL: <a href={this.state.flightEvent.url} target="_blank">{this.state.flightEvent.url}</a></div>}
+                {!!this.state.flightEvent.url && <div>URL: <a href={this.state.flightEvent.url} target="_blank" rel="noopener noreferrer">{this.state.flightEvent.url}</a></div>}
 
                 {this.state.flightPlans && <>
                     <h4>Flight Plans</h4>
 
                     <ul>
                         {this.state.flightPlans.map(flightPlan => (
-                            <li><a href={flightPlan.downloadUrl} target="_blank" download={flightPlan.id}>{flightPlan.data.title}</a></li>
+                            <li key={flightPlan.id}><a href={flightPlan.downloadUrl} target="_blank" rel="noopener noreferrer" download={flightPlan.id}>{flightPlan.data.title}</a></li>
                         ))}
                     </ul>
                 </>}

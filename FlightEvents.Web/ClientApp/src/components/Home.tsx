@@ -1,24 +1,30 @@
 import * as React from 'react';
 import styled from 'styled-components';
+import { ButtonGroup, Button } from 'reactstrap';
 import * as signalr from '@microsoft/signalr';
 import 'msgpack5';
 import * as protocol from '@microsoft/signalr-protocol-msgpack';
 import { AircraftStatus, Airport, FlightPlan } from '../Models';
 import AircraftList from './AircraftList';
 import EventList from './EventList';
-import LeafletMap, { MapTileType } from '../maps/LeaftletMap';
+import { IMap, MapTileType } from '../maps/IMap';
+import LeafletMap from '../maps/LeaftletMap';
+import MaptalksMap from '../maps/MaptalksMap';
 
 interface State {
     aircrafts: { [connectionId: string]: AircraftStatus };
     myConnectionId: string | null;
     followingConnectionId: string | null;
     moreInfoConnectionIds: string[];
+
+    map3D: boolean;
+    mapTileType: MapTileType;
 }
 
 export class Home extends React.Component<any, State> {
     static displayName = Home.name;
 
-    private leafletMap: LeafletMap = new LeafletMap();
+    private map: IMap = new LeafletMap();
 
     private aircrafts: { [connectionId: string]: { aircraftStatus: AircraftStatus, lastUpdated: Date } } = {};
 
@@ -29,10 +35,16 @@ export class Home extends React.Component<any, State> {
             aircrafts: {},
             myConnectionId: null,
             followingConnectionId: null,
-            moreInfoConnectionIds: []
+            moreInfoConnectionIds: [],
+            map3D: false,
+            mapTileType: MapTileType.OpenStreetMap,
         }
 
         this.handleAircraftClick = this.handleAircraftClick.bind(this);
+
+        this.handleMap2D = this.handleMap2D.bind(this);
+        this.handleMap3D = this.handleMap3D.bind(this);
+
         this.handleOpenStreetMap = this.handleOpenStreetMap.bind(this);
         this.handleOpenTopoMap = this.handleOpenTopoMap.bind(this);
         this.handleEsriWorldImagery = this.handleEsriWorldImagery.bind(this);
@@ -46,9 +58,7 @@ export class Home extends React.Component<any, State> {
     }
 
     async componentDidMount() {
-        this.leafletMap.initialize('mapid');
-
-        this.leafletMap.setTileLayer(MapTileType.OpenStreetMap);
+        this.initializeMap();
 
         let hub = new signalr.HubConnectionBuilder()
             .withUrl('/FlightEventHub')
@@ -63,19 +73,23 @@ export class Home extends React.Component<any, State> {
         })
 
         hub.on("UpdateAircraft", (connectionId, aircraftStatus: AircraftStatus) => {
-            this.setState({
-                aircrafts: {
-                    ...this.state.aircrafts,
-                    [connectionId]: aircraftStatus
-                }
-            });
+            try {
+                this.setState({
+                    aircrafts: {
+                        ...this.state.aircrafts,
+                        [connectionId]: aircraftStatus
+                    }
+                });
 
-            this.aircrafts[connectionId] = {
-                lastUpdated: new Date(),
-                aircraftStatus: aircraftStatus
-            };
+                this.aircrafts[connectionId] = {
+                    lastUpdated: new Date(),
+                    aircraftStatus: aircraftStatus
+                };
 
-            this.leafletMap.moveMarker(connectionId, aircraftStatus, this.state.myConnectionId === connectionId, connectionId === this.state.followingConnectionId, this.state.moreInfoConnectionIds.includes(connectionId));
+                this.map.moveMarker(connectionId, aircraftStatus, this.state.myConnectionId === connectionId, connectionId === this.state.followingConnectionId, this.state.moreInfoConnectionIds.includes(connectionId));
+            } catch (e) {
+                console.error(e);
+            }
         });
 
         await hub.start();
@@ -85,12 +99,17 @@ export class Home extends React.Component<any, State> {
         setInterval(this.cleanUp, 2000);
     }
 
+    private initializeMap() {
+        this.map.initialize('mapid');
+        this.map.setTileLayer(this.state.mapTileType);
+    }
+
     private cleanUp() {
         const connectionIds = Object.keys(this.aircrafts);
         for (let connectionId of connectionIds) {
             const aircraft = this.aircrafts[connectionId];
             if (new Date().getTime() - aircraft.lastUpdated.getTime() > 5 * 1000) {
-                this.leafletMap.cleanUp(connectionId, connectionId === this.state.myConnectionId);
+                this.map.cleanUp(connectionId, connectionId === this.state.myConnectionId);
 
                 if (connectionId === this.state.myConnectionId) {
                     this.setState({
@@ -116,34 +135,66 @@ export class Home extends React.Component<any, State> {
     }
 
     private handleAircraftClick(connectionId: string, aircraftStatus: AircraftStatus) {
-        if (this.leafletMap) {
-            this.leafletMap.forcusAircraft(aircraftStatus);
+        if (this.map) {
+            this.map.focusAircraft(aircraftStatus);
         }
     }
 
+    private handleMap2D() {
+        this.setState({
+            map3D: false
+        });
+
+        this.map.deinitialize();
+        this.map = new LeafletMap();
+        this.initializeMap();
+    }
+
+    private handleMap3D() {
+        this.setState({
+            map3D: true
+        });
+
+        this.map.deinitialize();
+        this.map = new MaptalksMap();
+        this.initializeMap();
+    }
+
     private handleOpenStreetMap() {
-        this.leafletMap.setTileLayer(MapTileType.OpenStreetMap);
+        this.setState({
+            mapTileType: MapTileType.OpenStreetMap
+        })
+        this.map.setTileLayer(MapTileType.OpenStreetMap);
     }
 
     private handleOpenTopoMap() {
-        this.leafletMap.setTileLayer(MapTileType.OpenTopoMap);
+        this.setState({
+            mapTileType: MapTileType.OpenTopoMap
+        })
+        this.map.setTileLayer(MapTileType.OpenTopoMap);
     }
 
     private handleEsriWorldImagery() {
-        this.leafletMap.setTileLayer(MapTileType.EsriWorldImagery);
+        this.setState({
+            mapTileType: MapTileType.EsriWorldImagery
+        })
+        this.map.setTileLayer(MapTileType.EsriWorldImagery);
     }
 
     private handleEsriTopo() {
-        this.leafletMap.setTileLayer(MapTileType.EsriTopo);
+        this.setState({
+            mapTileType: MapTileType.EsriTopo
+        })
+        this.map.setTileLayer(MapTileType.EsriTopo);
     }
 
     private handleMeChanged(connectionId: string | null) {
         this.setState({ myConnectionId: connectionId });
 
         if (connectionId) {
-            this.leafletMap.addRangeCircle();
+            this.map.addRangeCircle();
         } else {
-            this.leafletMap.removeRangeCircle();
+            this.map.removeRangeCircle();
         }
     }
 
@@ -160,21 +211,27 @@ export class Home extends React.Component<any, State> {
     }
 
     public handleAirportsLoaded(airports: Airport[]) {
-        this.leafletMap.drawAirports(airports);
+        this.map.drawAirports(airports);
     }
 
     public handleFlightPlansLoaded(flightPlans: FlightPlan[]) {
-        this.leafletMap.drawFlightPlans(flightPlans);
+        this.map.drawFlightPlans(flightPlans);
     }
 
     render() {
         return <>
             <div id="mapid" style={{ height: '100%' }}></div>
+            <TypeWrapper className="btn-group-vertical">
+                <ButtonGroup>
+                    <Button className="btn btn-light" active={!this.state.map3D} onClick={this.handleMap2D}>2D</Button>
+                    <Button className="btn btn-light" active={this.state.map3D} onClick={this.handleMap3D}>3D</Button>
+                </ButtonGroup>
+            </TypeWrapper>
             <LayerWrapper className="btn-group-vertical">
-                <TileButton className="btn btn-light" onClick={this.handleOpenStreetMap}>OpenStreetMap</TileButton>
-                <TileButton className="btn btn-light" onClick={this.handleOpenTopoMap}>OpenTopoMap</TileButton>
-                <TileButton className="btn btn-light" onClick={this.handleEsriWorldImagery}>Esri Imagery</TileButton>
-                <TileButton className="btn btn-light" onClick={this.handleEsriTopo}>Esri Topo</TileButton>
+                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.OpenStreetMap} onClick={this.handleOpenStreetMap}>OpenStreetMap</Button>
+                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.OpenTopoMap} onClick={this.handleOpenTopoMap}>OpenTopoMap</Button>
+                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.EsriWorldImagery} onClick={this.handleEsriWorldImagery}>Esri Imagery</Button>
+                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.EsriTopo} onClick={this.handleEsriTopo}>Esri Topo</Button>
             </LayerWrapper>
             <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
                 onMeChanged={this.handleMeChanged} myConnectionId={this.state.myConnectionId}
@@ -188,7 +245,7 @@ export class Home extends React.Component<any, State> {
 
 const LayerWrapper = styled.div`
 position: absolute;
-top: 80px;
+top: 130px;
 left: 10px;
 z-index: 1000;
 width: 140px;
@@ -200,5 +257,12 @@ button {
 }
 `;
 
-const TileButton = styled.button`
-`
+const TypeWrapper = styled.div`
+position: absolute;
+top: 80px;
+left: 10px;
+z-index: 1000;
+width: 140px;
+box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+border-radius: 4px;
+`;

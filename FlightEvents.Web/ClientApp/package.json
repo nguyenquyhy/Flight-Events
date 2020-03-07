@@ -11,6 +11,7 @@
     "jquery": "^3.4.1",
     "leaflet": "^1.6.0",
     "leaflet-rotatedmarker": "^0.2.0",
+    "maptalks": "^0.47.0",
     "merge": "^1.2.1",
     "msgpack5": "^4.2.1",
     "oidc-client": "^1.10.1",

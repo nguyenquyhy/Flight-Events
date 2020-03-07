@@ -1,15 +1,9 @@
-﻿import { IMap } from './IMap';
+﻿import { IMap, MapTileType } from './IMap';
 import * as L from 'leaflet';
 import 'leaflet-rotatedmarker';
 import { MAPBOX_API_KEY } from '../Constants';
 import { AircraftStatus, Airport, FlightPlan } from '../Models';
 
-export enum MapTileType {
-    OpenStreetMap,
-    OpenTopoMap,
-    EsriWorldImagery,
-    EsriTopo
-}
 
 interface Markers {
     aircraft: L.Marker<any>
@@ -36,6 +30,10 @@ export default class LeafletMap implements IMap {
         this.flightPlanLayerGroup = L.layerGroup().addTo(this.mymap);
 
         setInterval(this.cleanUp, 2000);
+    }
+
+    public deinitialize() {
+        this.mymap.remove();
     }
 
     public setTileLayer(type: MapTileType) {
@@ -208,7 +206,7 @@ export default class LeafletMap implements IMap {
                 const latlngs = flightPlan.data.waypoints.reduce((prev: L.LatLngTuple[], curr) =>
                     prev.concat([[curr.latitude, curr.longitude]]),
                     [])
-                console.log(latlngs);
+
                 const polyline = L.polyline(latlngs, { color: colors[(index++ % colors.length)] });
                 this.flightPlanLayerGroup.addLayer(polyline);
 
@@ -229,7 +227,7 @@ export default class LeafletMap implements IMap {
         }
     }
 
-    public forcusAircraft(aircraftStatus: AircraftStatus) {
+    public focusAircraft(aircraftStatus: AircraftStatus) {
         if (this.mymap) {
             let latlng: L.LatLngExpression = [aircraftStatus.Latitude, aircraftStatus.Longitude];
             this.mymap.setView(latlng, this.mymap.getZoom());
