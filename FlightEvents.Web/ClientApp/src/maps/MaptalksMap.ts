@@ -18,6 +18,8 @@ interface Map {
     setPitch: (pitch: number) => void;
     setBaseLayer: (layer: any) => void;
     remove: () => void;
+    on: (events: string, handler: () => void) => void;
+    getZoom: () => number;
 }
 
 interface VectorLayer {
@@ -35,9 +37,14 @@ interface Marker {
 interface Sector extends Marker {
     setStartAngle: (angle: number) => void;
     setEndAngle: (angle: number) => void;
+    setRadius: (radius: number) => void;
 }
 
 export default class MaptalksMap implements IMap {
+    static AIRCRAFT_SIZE = 120;
+    static ANIMATION_DURATION = 500;
+    static FEET_TO_METER = .3048;
+
     map: Map | undefined;
     markers: { [connectionId: string]: Markers } = {};
 
@@ -53,10 +60,12 @@ export default class MaptalksMap implements IMap {
     aircraftLayer: VectorLayer | undefined;
 
     initialize(divId: string) {
-        this.map = new maptalks.Map(divId, {
+        const map = new maptalks.Map(divId, {
             center: [-0.113049, 51.498568],
             zoom: 14
         });
+
+        map.on('zoomend', () => this.handleZoom());
 
         this.aircraftLayer = new maptalks.VectorLayer('vector', {
             enableAltitude: true,
@@ -65,10 +74,22 @@ export default class MaptalksMap implements IMap {
                 lineWidth: 1,
                 lineColor: '#aaa'
             }
-        }).addTo(this.map);
+        }).addTo(map);
+
+        this.map = map;
 
         this.aircraftLayer!!.addGeometry(this.visibleCircle!!);
         this.visibleCircle.hide();
+    }
+
+    private handleZoom() {
+        if (!this.map) return;
+
+        const radius = Math.pow(2, 14 - this.map.getZoom()) * MaptalksMap.AIRCRAFT_SIZE;
+        for (let connectionId in this.markers) {
+            const marker = this.markers[connectionId];
+            marker.aircraft.setRadius(radius);
+        }
     }
 
     deinitialize() {
@@ -129,7 +150,7 @@ export default class MaptalksMap implements IMap {
         if (Object.keys(this.markers).length === 0) {
             // Move to 1st aircraft
             this.map.panTo(latlng);
-            this.map.setPitch(60);
+            this.map.setPitch(30);
         } else if (isFollowing) {
             this.map.panTo(latlng);
         }
@@ -137,24 +158,22 @@ export default class MaptalksMap implements IMap {
         let markers = this.markers[connectionId];
         if (markers) {
             // Existing marker
-            const distanceFactor = .3048
-            const duration = 500
-            const altitude = aircraftStatus.Altitude * distanceFactor
+            const altitude = aircraftStatus.Altitude * MaptalksMap.FEET_TO_METER
 
             const offset = latlng.sub(markers.aircraft.getCoordinates());
 
             markers.aircraft.setProperties({ altitude: altitude });
-            markers.aircraft.animate({ translate: [offset['x'], offset['y']] }, { duration: duration });
+            markers.aircraft.animate({ translate: [offset['x'], offset['y']] }, { duration: MaptalksMap.ANIMATION_DURATION });
             markers.aircraft.setStartAngle(-aircraftStatus.TrueHeading - 10 - 90);
             markers.aircraft.setEndAngle(-aircraftStatus.TrueHeading + 10 - 90);
 
             markers.aircraftLine.setProperties({ altitude: altitude });
-            markers.aircraftLine.animate({ translate: [offset['x'], offset['y']] }, { duration: duration });
+            markers.aircraftLine.animate({ translate: [offset['x'], offset['y']] }, { duration: MaptalksMap.ANIMATION_DURATION });
 
             if (isMe) {
                 const circleOffset = latlng.sub(this.visibleCircle.getCoordinates());
                 this.visibleCircle.setProperties({ altitude: altitude });
-                this.visibleCircle.animate({ translate: [circleOffset['x'], circleOffset['y']] }, { duration: duration });
+                this.visibleCircle.animate({ translate: [circleOffset['x'], circleOffset['y']] }, { duration: MaptalksMap.ANIMATION_DURATION });
             }
 
             //markers.info.setLatLng(latlng);
@@ -214,7 +233,7 @@ export default class MaptalksMap implements IMap {
                     'markerRotation': -aircraftStatus.TrueHeading
                 },
                 properties: {
-                    altitude: aircraftStatus.Altitude * 0.3048
+                    altitude: aircraftStatus.Altitude * MaptalksMap.FEET_TO_METER
                 },
                 //icon: L.icon({
                 //    iconUrl: 'marker-aircraft.png',
@@ -223,7 +242,7 @@ export default class MaptalksMap implements IMap {
                 //}),
                 //zIndexOffset: 2000
             })
-            const aircraft = new maptalks.Sector(latlng, 20, -aircraftStatus.TrueHeading - 10 - 90, -aircraftStatus.TrueHeading + 10 - 90, {
+            const aircraft = new maptalks.Sector(latlng, MaptalksMap.AIRCRAFT_SIZE, -aircraftStatus.TrueHeading - 10 - 90, -aircraftStatus.TrueHeading + 10 - 90, {
                 symbol: {
                     lineColor: '#34495e',
                     lineWidth: 2,
