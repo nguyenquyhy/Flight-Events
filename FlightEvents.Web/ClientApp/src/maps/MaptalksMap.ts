@@ -10,7 +10,13 @@ interface Markers {
 }
 
 interface Coordinate {
+    x: number;
+    y: number;
     sub: (other: Coordinate) => any
+}
+
+interface Point {
+
 }
 
 interface Map {
@@ -19,8 +25,14 @@ interface Map {
     setBaseLayer: (layer: any) => void;
     remove: () => void;
     on: (events: string, handler: () => void) => void;
+    setCenter: (coordinate: Coordinate) => void;
     getZoom: () => number;
-    fitExtent: (extent: any, zoomOffset: number) => void;
+    setZoom: (zoom: number) => void;
+    getMinZoom: () => number;
+    getMaxZoom: () => number;
+    fitExtent: (extent: any, zoomOffset: number, option?: any) => void;
+    getProjection: () => any;
+    coordinateToContainerPoint: (coord: Coordinate, zoom?: number, point?: Point) => Point;
 }
 
 interface VectorLayer {
@@ -90,8 +102,8 @@ export default class MaptalksMap implements IMap {
 
     initialize(divId: string) {
         const map = new maptalks.Map(divId, {
-            center: [-0.113049, 51.498568],
-            zoom: 14,
+            center: [-0.09, 51.505],
+            zoom: 13,
             pitch: 30
         });
 
@@ -117,23 +129,13 @@ export default class MaptalksMap implements IMap {
         this.map = map;
     }
 
-    private handleZoom() {
-        if (!this.map) return;
-
-        const radius = Math.pow(2, 14 - this.map.getZoom()) * MaptalksMap.AIRCRAFT_SIZE;
-        for (let connectionId in this.markers) {
-            const marker = this.markers[connectionId];
-            marker.aircraft.setRadius(radius);
-        }
-    }
-
     deinitialize() {
         if (this.map) {
             this.map.remove();
         }
     }
 
-    public setTileLayer(type: MapTileType) {
+    setTileLayer(type: MapTileType) {
         if (!this.map) return;
 
         switch (type) {
@@ -160,7 +162,7 @@ export default class MaptalksMap implements IMap {
                 break;
             case MapTileType.EsriTopo:
                 this.map.setBaseLayer(new maptalks.TileLayer('esritopo', {
-                    urlTemplate: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', 
+                    urlTemplate: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
                     attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
                 }));
                 break;
@@ -244,7 +246,7 @@ export default class MaptalksMap implements IMap {
                     altitude: altitude
                 },
             })
-            const aircraft = new maptalks.Sector(latlng, MaptalksMap.AIRCRAFT_SIZE, -aircraftStatus.TrueHeading - 10 - 90, -aircraftStatus.TrueHeading + 10 - 90, {
+            const aircraft = new maptalks.Sector(latlng, this.determineAircraftSize(), -aircraftStatus.TrueHeading - 10 - 90, -aircraftStatus.TrueHeading + 10 - 90, {
                 symbol: {
                     lineColor: '#34495e',
                     lineWidth: 2,
@@ -304,8 +306,7 @@ export default class MaptalksMap implements IMap {
             const minLatitude = airports.reduce((prev, curr) => Math.min(prev, curr.latitude), 90);
             const maxLatitude = airports.reduce((prev, curr) => Math.max(prev, curr.latitude), -90);
 
-            const extent = new maptalks.Extent(minLongitude, minLatitude, maxLongitude, maxLatitude);
-            this.map.fitExtent(extent, 0);
+            this.fitExtent(new maptalks.Coordinate(minLongitude, minLatitude), new maptalks.Coordinate(maxLongitude, maxLatitude));
 
             this.airportLayer.clear();
 
@@ -395,5 +396,27 @@ export default class MaptalksMap implements IMap {
 
     removeRangeCircle() {
         this.visibleCircle.hide();
+    }
+
+    private fitExtent(c1: Coordinate, c2: Coordinate) {
+        if (!this.map) return;
+
+        const extent = new maptalks.Extent(c1, c2);
+        this.map.setPitch(0);
+        this.map.fitExtent(extent, -1);
+        this.map.setPitch(30);
+    }
+
+    private handleZoom() {
+        const radius = this.determineAircraftSize();
+        for (let connectionId in this.markers) {
+            const marker = this.markers[connectionId];
+            marker.aircraft.setRadius(radius);
+        }
+    }
+
+    private determineAircraftSize() {
+        if (!this.map) return MaptalksMap.AIRCRAFT_SIZE;
+        return Math.pow(2, 14 - this.map.getZoom()) * MaptalksMap.AIRCRAFT_SIZE;
     }
 }
