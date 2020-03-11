@@ -41,7 +41,15 @@ export default class AircraftList extends React.Component<Props> {
     }
 
     public render() {
-        const connectionIds = Object.keys(this.props.aircrafts);
+        let connectionIds = Object
+            .entries(this.props.aircrafts)
+            .sort((a, b) => (a[1].callsign || a[0].substring(5)).localeCompare((b[1].callsign || b[0].substring(5))))
+            .map(o => o[0]);
+
+        if (this.props.myConnectionId) {
+            connectionIds = connectionIds.filter(o => o !== this.props.myConnectionId);
+            connectionIds = [this.props.myConnectionId].concat(connectionIds);
+        }
         const list = connectionIds.length === 0 ?
             <tr><td colSpan={4}><NoneText>None</NoneText></td></tr> :
             connectionIds.map(connectionId => (
