@@ -43,5 +43,8 @@ namespace FlightEvents.Client
 
         private string atcCallsign = null;
         public string AtcCallsign { get => atcCallsign; set => SetProperty(ref atcCallsign, value); }
+
+        private bool isTracking;
+        public bool IsTracking { get { return isTracking; } set { SetProperty(ref isTracking, value); } }
     }
 }

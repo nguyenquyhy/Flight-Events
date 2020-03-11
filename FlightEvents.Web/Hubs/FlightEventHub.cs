@@ -27,6 +27,11 @@ namespace FlightEvents.Web.Hubs
             await Clients.Clients(atcConnectionIds).SendAsync("ReturnFlightPlan", connectionId, flightPlan);
         }
 
+        public async Task SendMessage(string from, string to, string message)
+        {
+            await Clients.All.SendAsync("SendMessage", from, to, message);
+        }
+
         public async Task Join(string group)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, group);

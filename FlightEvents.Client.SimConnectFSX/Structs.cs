@@ -25,7 +25,8 @@ namespace FlightEvents.Client.SimConnectFSX
 
     internal enum EVENTS
     {
-        CONNECTED
+        CONNECTED,
+        MESSAGE_RECEIVED
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
@@ -70,5 +71,7 @@ namespace FlightEvents.Client.SimConnectFSX
         public int IsAutopilotOn;
 
         public int Transponder;
+        public int Com1;
+        public int Com2;
     }
 }

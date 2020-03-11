@@ -32,5 +32,7 @@
 
         public bool IsAutopilotOn { get; set; }
         public string Transponder { get; set; }
+        public int FreqencyCom1 { get; set; }
+        public int FreqencyCom2 { get; set; }
     }
 }

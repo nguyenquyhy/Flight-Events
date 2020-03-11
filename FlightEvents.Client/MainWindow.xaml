@@ -4,8 +4,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FlightEvents.Client"
+        xmlns:converters="clr-namespace:FlightEvents.Client.Converters"
         mc:Ignorable="d" Loaded="Window_Loaded" StateChanged="Window_StateChanged"
         Title="Flight Events" Height="320" Width="300" ResizeMode="CanMinimize">
+
+    <Window.Resources>
+        <converters:BoolReversedConverter x:Key="BoolReversedConverter" />
+    </Window.Resources>
     
     <Grid Margin="10">
         <Grid.Resources>
@@ -43,7 +48,9 @@
         <TextBlock Text="{Binding SimConnectionState}" Grid.Row="3" Grid.Column="1" />
 
         <TextBlock Text="Callsign" Grid.Row="4" Grid.Column="0" />
-        <TextBox x:Name="TextCallsign" Text="{Binding Callsign, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="4" Grid.Column="1" MaxLength="10" />
+        <TextBox Text="{Binding Callsign, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                 IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}"
+                 Grid.Row="4" Grid.Column="1" MaxLength="10" />
 
         <TextBlock Text="Ident" Grid.Row="5" Grid.Column="0" />
         <CheckBox IsChecked="{Binding TransponderIdent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" />

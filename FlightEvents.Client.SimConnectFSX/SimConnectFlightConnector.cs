@@ -89,7 +89,7 @@ namespace FlightEvents.Client.SimConnectFSX
 
         public void Send(string message)
         {
-            simconnect?.Text(SIMCONNECT_TEXT_TYPE.PRINT_BLACK, 3, EVENTS.CONNECTED, message);
+            simconnect?.Text(SIMCONNECT_TEXT_TYPE.PRINT_BLACK, 3, EVENTS.MESSAGE_RECEIVED, message);
         }
 
         public void CloseConnection()
@@ -287,6 +287,18 @@ namespace FlightEvents.Client.SimConnectFSX
                 SIMCONNECT_DATATYPE.INT32,
                 0.0f,
                 SimConnect.SIMCONNECT_UNUSED);
+            simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
+                "COM ACTIVE FREQUENCY:1",
+                "kHz",
+                SIMCONNECT_DATATYPE.INT32,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+            simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
+                "COM ACTIVE FREQUENCY:2",
+                "kHz",
+                SIMCONNECT_DATATYPE.INT32,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
 
             // IMPORTANT: register it with the simconnect managed wrapper marshaller
             // if you skip this step, you will only receive a uint in the .dwData field.
@@ -348,7 +360,9 @@ namespace FlightEvents.Client.SimConnectFSX
                                     StallWarning = flightStatus.Value.StallWarning == 1,
                                     OverspeedWarning = flightStatus.Value.OverspeedWarning == 1,
                                     IsAutopilotOn = flightStatus.Value.IsAutopilotOn == 1,
-                                    Transponder = flightStatus.Value.Transponder.ToString().PadLeft(4, '0')
+                                    Transponder = flightStatus.Value.Transponder.ToString().PadLeft(4, '0'),
+                                    FreqencyCom1 = flightStatus.Value.Com1,
+                                    FreqencyCom2 = flightStatus.Value.Com2,
                                 }));
                         }
                         else

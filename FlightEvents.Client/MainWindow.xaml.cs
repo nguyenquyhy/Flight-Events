@@ -57,12 +57,14 @@ namespace FlightEvents.Client
             hub.Reconnected += Hub_Reconnected;
 
             hub.On<string, string>("RequestFlightPlan", Hub_OnRequestFlightPlan);
+            hub.On<string, string, string>("SendMessage", Hub_OnMessageSent);
 
             TextURL.Text = appSettings.Value.WebServerUrl;
 
             atcServer.FlightPlanRequested += AtcServer_FlightPlanRequested;
             atcServer.Connected += AtcServer_Connected;
             atcServer.IdentSent += AtcServer_IdentSent;
+            atcServer.MessageSent += AtcServer_MessageSent;
         }
 
         #region Interaction
@@ -97,7 +99,7 @@ namespace FlightEvents.Client
 
         private async void ButtonStartTrack_Click(object sender, RoutedEventArgs e)
         {
-            TextCallsign.IsEnabled = false;
+            viewModel.IsTracking = true;
 
             await userPreferencesLoader.UpdateAsync(o => o.LastCallsign = viewModel.Callsign);
 
@@ -109,7 +111,7 @@ namespace FlightEvents.Client
 
         private void ButtonStopTrack_Click(object sender, RoutedEventArgs e)
         {
-            TextCallsign.IsEnabled = true;
+            viewModel.IsTracking = false;
             ButtonStopTrack.Visibility = Visibility.Collapsed;
             ButtonStartTrack.Visibility = Visibility.Visible;
         }
@@ -180,6 +182,26 @@ namespace FlightEvents.Client
             }
         }
 
+        private void Hub_OnMessageSent(string from, string to, string message)
+        {
+            if (viewModel.IsTracking && viewModel.Callsign != from)
+            {
+                if (to.StartsWith("@"))
+                {
+                    // @18700
+                    var frequency = "1" + to.Substring(1);
+                    if (frequency == viewModel.AircraftStatus.FreqencyCom1.ToString() || frequency == viewModel.AircraftStatus.FreqencyCom2.ToString())
+                    {
+                        flightConnector.Send($"{from} [{frequency}]: {message}");
+                    }
+                }
+                else if (to == viewModel.Callsign)
+                {
+                    flightConnector.Send($"{from}: {message}");
+                }
+            }
+        }
+
         #endregion
 
         #region SimConnect
@@ -193,8 +215,7 @@ namespace FlightEvents.Client
 
         private async void FlightConnector_AircraftStatusUpdated(object sender, AircraftStatusUpdatedEventArgs e)
         {
-            // TODO: change this to proper viewmodel
-            if (!TextCallsign.IsEnabled)
+            if (viewModel.IsTracking)
             {
                 e.AircraftStatus.Callsign = viewModel.Callsign;
 
@@ -278,6 +299,11 @@ namespace FlightEvents.Client
             {
                 viewModel.TransponderIdent = false;
             });
+        }
+
+        private async void AtcServer_MessageSent(object sender, MessageSentEventArgs e)
+        {
+            await hub.SendAsync("SendMessage", viewModel.AtcCallsign, e.To, e.Message);
         }
 
         #endregion

@@ -28,6 +28,18 @@ namespace FlightEvents.Client.ATC
         public string Callsign { get; }
     }
 
+    public class MessageSentEventArgs : EventArgs
+    {
+        public MessageSentEventArgs(string to, string message)
+        {
+            To = to;
+            Message = message;
+        }
+
+        public string To { get; }
+        public string Message { get; }
+    }
+
     public enum TransponderMode
     {
         Standby,
@@ -51,7 +63,8 @@ namespace FlightEvents.Client.ATC
         private TcpClient tcpClient;
 
         public event EventHandler<ConnectedEventArgs> Connected;
-        public event EventHandler<FlightPlanRequestedEventArgs> FlightPlanRequested; 
+        public event EventHandler<FlightPlanRequestedEventArgs> FlightPlanRequested;
+        public event EventHandler<MessageSentEventArgs> MessageSent;
         public event EventHandler IdentSent;
 
         public ATCServer(ILogger<ATCServer> logger)
@@ -207,9 +220,16 @@ namespace FlightEvents.Client.ATC
                         }
                     }
 
-                    if (info.StartsWith("#TM"))
+                    if (info.StartsWith($"#TM{callsign}:"))
                     {
-                        // TODO: Message (e.g. #TMHYHY:FP:HY3088 SET 2677)0
+                        // TODO: Message (e.g. #TMHYHY:FP:HY3088 SET 2677)
+                        // #TMEDDM_TWR:@18700:hello all
+
+                        var tokens = info.Split(new char[] { ':' }, 3);
+                        var to = tokens[1];
+                        var msg = tokens[2];
+
+                        MessageSent?.Invoke(this, new MessageSentEventArgs(to, msg));
                     }
 
                     if (this.vrc)
