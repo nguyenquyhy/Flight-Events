@@ -179,7 +179,7 @@ export default class MaptalksMap implements IMap {
     moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isMoreInfo: boolean) {
         if (!this.map || !this.aircraftLayer) return;
 
-        let latlng: Coordinate = new maptalks.Coordinate([aircraftStatus.Longitude, aircraftStatus.Latitude]);
+        let latlng: Coordinate = new maptalks.Coordinate([aircraftStatus.longitude, aircraftStatus.latitude]);
 
         if (Object.keys(this.markers).length === 0) {
             // Move to 1st aircraft
@@ -189,7 +189,7 @@ export default class MaptalksMap implements IMap {
             this.map.panTo(latlng);
         }
 
-        const altitude = aircraftStatus.Altitude * MaptalksMap.FEET_TO_METER
+        const altitude = aircraftStatus.altitude * MaptalksMap.FEET_TO_METER
 
         let markers = this.markers[connectionId];
         if (markers) {
@@ -199,8 +199,8 @@ export default class MaptalksMap implements IMap {
 
             markers.aircraft.setProperties({ altitude: altitude });
             markers.aircraft.animate({ translate: [offset['x'], offset['y']] }, { duration: MaptalksMap.ANIMATION_DURATION });
-            markers.aircraft.setStartAngle(-aircraftStatus.TrueHeading - 10 - 90);
-            markers.aircraft.setEndAngle(-aircraftStatus.TrueHeading + 10 - 90);
+            markers.aircraft.setStartAngle(-aircraftStatus.trueHeading - 10 - 90);
+            markers.aircraft.setEndAngle(-aircraftStatus.trueHeading + 10 - 90);
 
             markers.aircraftLine.setProperties({ altitude: altitude });
             markers.aircraftLine.animate({ translate: [offset['x'], offset['y']] }, { duration: MaptalksMap.ANIMATION_DURATION });
@@ -225,8 +225,8 @@ export default class MaptalksMap implements IMap {
             }
 
             const body = isMoreInfo ?
-                `${aircraftStatus.Callsign}\nALT ${Math.round(aircraftStatus.Altitude)} ft\nHDG ${Math.round(aircraftStatus.Heading)}\u00B0\nIAS ${Math.round(aircraftStatus.IndicatedAirSpeed)} kts` :
-                `${aircraftStatus.Callsign}`
+                `${aircraftStatus.callsign}\nALT ${Math.round(aircraftStatus.altitude)} ft\nHDG ${Math.round(aircraftStatus.heading)}\u00B0\nIAS ${Math.round(aircraftStatus.indicatedAirSpeed)} kts` :
+                `${aircraftStatus.callsign}`
             markers.info.setContent(body);
         } else {
             const aircraftLine = new maptalks.Marker(latlng, {
@@ -240,13 +240,13 @@ export default class MaptalksMap implements IMap {
                     'markerWidth': 30,
                     'markerHeight': 42,
 
-                    'markerRotation': -aircraftStatus.TrueHeading
+                    'markerRotation': -aircraftStatus.trueHeading
                 },
                 properties: {
                     altitude: altitude
                 },
             })
-            const aircraft = new maptalks.Sector(latlng, this.determineAircraftSize(), -aircraftStatus.TrueHeading - 10 - 90, -aircraftStatus.TrueHeading + 10 - 90, {
+            const aircraft = new maptalks.Sector(latlng, this.determineAircraftSize(), -aircraftStatus.trueHeading - 10 - 90, -aircraftStatus.trueHeading + 10 - 90, {
                 symbol: {
                     lineColor: '#34495e',
                     lineWidth: 2,
@@ -257,7 +257,7 @@ export default class MaptalksMap implements IMap {
                     altitude: altitude
                 }
             })
-            const info = new maptalks.Label(`${aircraftStatus.Callsign}`, latlng, {
+            const info = new maptalks.Label(`${aircraftStatus.callsign}`, latlng, {
                 textSymbol: {
                     textFaceName: 'Lucida Console',
                     textFill: '#34495e',
@@ -373,7 +373,7 @@ export default class MaptalksMap implements IMap {
 
     focusAircraft(aircraftStatus: AircraftStatus) {
         if (this.map) {
-            this.map.panTo(new maptalks.Coordinate([aircraftStatus.Longitude, aircraftStatus.Latitude]));
+            this.map.panTo(new maptalks.Coordinate([aircraftStatus.longitude, aircraftStatus.latitude]));
         }
     }
 

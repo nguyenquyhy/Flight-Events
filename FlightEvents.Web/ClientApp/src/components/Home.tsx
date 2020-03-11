@@ -63,7 +63,7 @@ export class Home extends React.Component<any, State> {
         let hub = new signalr.HubConnectionBuilder()
             .withUrl('/FlightEventHub')
             .withAutomaticReconnect()
-            .withHubProtocol(new protocol.MessagePackHubProtocol())
+            //.withHubProtocol(new protocol.MessagePackHubProtocol())
             .build();
 
         hub.onreconnected(async connectionId => {

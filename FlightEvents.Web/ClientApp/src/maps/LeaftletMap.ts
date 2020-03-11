@@ -72,7 +72,7 @@ export default class LeafletMap implements IMap {
         const iconSize = 12
         const infoBoxWidth = 100
 
-        let latlng: L.LatLngExpression = [aircraftStatus.Latitude, aircraftStatus.Longitude];
+        let latlng: L.LatLngExpression = [aircraftStatus.latitude, aircraftStatus.longitude];
 
         if (Object.keys(this.markers).length === 0) {
             // Move to 1st aircraft
@@ -94,9 +94,9 @@ export default class LeafletMap implements IMap {
             let iconSizeValue: L.PointExpression = [iconSize, 60];
 
             if (isMoreInfo) {
-                let htmlBody = `<div>${aircraftStatus.Callsign}<br />ALT ${Math.round(aircraftStatus.Altitude)} ft<br />HDG ${Math.round(aircraftStatus.Heading)}\u00B0<br />IAS ${Math.round(aircraftStatus.IndicatedAirSpeed)} kts</div>`
+                let htmlBody = `<div>${aircraftStatus.callsign}<br />ALT ${Math.round(aircraftStatus.altitude)} ft<br />HDG ${Math.round(aircraftStatus.heading)}\u00B0<br />IAS ${Math.round(aircraftStatus.indicatedAirSpeed)} kts</div>`
 
-                if (aircraftStatus.TrueHeading >= 180) {
+                if (aircraftStatus.trueHeading >= 180) {
                     markers.info.setIcon(L.divIcon({
                         className: className,
                         html: htmlBody,
@@ -112,17 +112,17 @@ export default class LeafletMap implements IMap {
                     }))
                 }
             } else {
-                if (aircraftStatus.TrueHeading >= 180) {
+                if (aircraftStatus.trueHeading >= 180) {
                     markers.info.setIcon(L.divIcon({
                         className: className,
-                        html: `<div>${aircraftStatus.Callsign}</div>`,
+                        html: `<div>${aircraftStatus.callsign}</div>`,
                         iconSize: iconSizeValue,
                         iconAnchor: [-iconSize, 10],
                     }))
                 } else {
                     markers.info.setIcon(L.divIcon({
                         className: className + ' right',
-                        html: `<div>${aircraftStatus.Callsign}</div>`,
+                        html: `<div>${aircraftStatus.callsign}</div>`,
                         iconSize: iconSizeValue,
                         iconAnchor: [infoBoxWidth + iconSize, 10],
                     }))
@@ -140,7 +140,7 @@ export default class LeafletMap implements IMap {
             const info = L.marker(latlng, {
                 icon: L.divIcon({
                     className: 'divicon-aircraft-info',
-                    html: `<div style='width: 50px'>${aircraftStatus.Callsign}</div>`,
+                    html: `<div style='width: 50px'>${aircraftStatus.callsign}</div>`,
                     iconSize: [iconSize, 50],
                     iconAnchor: [-iconSize, -4],
                 }),
@@ -153,9 +153,9 @@ export default class LeafletMap implements IMap {
             this.markers[connectionId] = markers;
         }
 
-        let popup = `Altitude: ${Math.floor(aircraftStatus.Altitude)}<br />Airspeed: ${Math.floor(aircraftStatus.IndicatedAirSpeed)}`;
-        if (aircraftStatus.Callsign) {
-            popup = `<b>${aircraftStatus.Callsign}</b><br />${popup}`;
+        let popup = `Altitude: ${Math.floor(aircraftStatus.altitude)}<br />Airspeed: ${Math.floor(aircraftStatus.indicatedAirSpeed)}`;
+        if (aircraftStatus.callsign) {
+            popup = `<b>${aircraftStatus.callsign}</b><br />${popup}`;
         }
 
         markers.info.bindPopup(popup, {
@@ -164,7 +164,7 @@ export default class LeafletMap implements IMap {
         markers.info.setIcon(markers.info.getIcon());
         markers.aircraft
             .bindPopup(popup)
-            .setRotationAngle(aircraftStatus.TrueHeading);
+            .setRotationAngle(aircraftStatus.trueHeading);
 
         if (this.circleMarker && isMe) {
             this.circleMarker.setLatLng(latlng);
@@ -229,7 +229,7 @@ export default class LeafletMap implements IMap {
 
     public focusAircraft(aircraftStatus: AircraftStatus) {
         if (this.mymap) {
-            let latlng: L.LatLngExpression = [aircraftStatus.Latitude, aircraftStatus.Longitude];
+            let latlng: L.LatLngExpression = [aircraftStatus.latitude, aircraftStatus.longitude];
             this.mymap.setView(latlng, this.mymap.getZoom());
         }
     }
