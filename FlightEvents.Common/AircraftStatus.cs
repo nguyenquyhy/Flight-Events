@@ -34,5 +34,13 @@
         public string Transponder { get; set; }
         public int FreqencyCom1 { get; set; }
         public int FreqencyCom2 { get; set; }
+        public TransponderMode TransponderMode { get; set; } = TransponderMode.ModeC;
+    }
+
+    public enum TransponderMode
+    {
+        Standby,
+        ModeC,
+        Ident
     }
 }

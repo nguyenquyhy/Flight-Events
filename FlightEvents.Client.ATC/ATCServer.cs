@@ -40,7 +40,7 @@ namespace FlightEvents.Client.ATC
         public string Message { get; }
     }
 
-    public enum TransponderMode
+    public enum AtcTransponderMode
     {
         Standby,
         ModeC,
@@ -65,7 +65,6 @@ namespace FlightEvents.Client.ATC
         public event EventHandler<ConnectedEventArgs> Connected;
         public event EventHandler<FlightPlanRequestedEventArgs> FlightPlanRequested;
         public event EventHandler<MessageSentEventArgs> MessageSent;
-        public event EventHandler IdentSent;
 
         public ATCServer(ILogger<ATCServer> logger)
         {
@@ -92,13 +91,13 @@ namespace FlightEvents.Client.ATC
             tcpListener = null;
         }
 
-        public async Task SendPositionAsync(string callsign, string squawk, double latitude, double longitude, double altitude, double groundSpeed, TransponderMode transponderMode)
+        public async Task SendPositionAsync(string callsign, string squawk, double latitude, double longitude, double altitude, double groundSpeed, AtcTransponderMode transponderMode)
         {
             var modeString = transponderMode switch
             {
-                TransponderMode.Standby => "S",
-                TransponderMode.ModeC => "N",
-                TransponderMode.Ident => "Y",
+                AtcTransponderMode.Standby => "S",
+                AtcTransponderMode.ModeC => "N",
+                AtcTransponderMode.Ident => "Y",
                 _ => "N"
             };
             var rating = 1;
@@ -107,8 +106,6 @@ namespace FlightEvents.Client.ATC
             await writer?.WriteLineAsync(pos);
 
             logger.LogDebug("Sent Position: " + pos);
-
-            if (transponderMode == TransponderMode.Ident) IdentSent?.Invoke(this, new EventArgs());
         }
 
         public async Task SendFlightPlanAsync(string callsign, bool isIFR, string type, string registration, string title,

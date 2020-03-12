@@ -63,7 +63,6 @@ namespace FlightEvents.Client
 
             atcServer.FlightPlanRequested += AtcServer_FlightPlanRequested;
             atcServer.Connected += AtcServer_Connected;
-            atcServer.IdentSent += AtcServer_IdentSent;
             atcServer.MessageSent += AtcServer_MessageSent;
         }
 
@@ -218,12 +217,15 @@ namespace FlightEvents.Client
             if (viewModel.IsTracking)
             {
                 e.AircraftStatus.Callsign = viewModel.Callsign;
+                e.AircraftStatus.TransponderMode = viewModel.TransponderIdent ? TransponderMode.Ident : TransponderMode.ModeC;
 
                 if (hub?.ConnectionId != null && DateTime.Now - lastStatusSent > TimeSpan.FromMilliseconds(MinimumUpdatePeriod))
                 {
                     lastStatusSent = DateTime.Now;
                     await hub.SendAsync("UpdateAircraft", hub.ConnectionId, e.AircraftStatus);
                     lastStatusSent = DateTime.Now;
+
+                    if (viewModel.TransponderIdent) viewModel.TransponderIdent = false;
                 }
 
                 viewModel.AircraftStatus = e.AircraftStatus;
@@ -247,7 +249,13 @@ namespace FlightEvents.Client
             hub.On<string, AircraftStatus>("UpdateAircraft", async (connectionId, aircraftStatus) =>
             {
                 await atcServer.SendPositionAsync(aircraftStatus.Callsign, aircraftStatus.Transponder,
-                    aircraftStatus.Latitude, aircraftStatus.Longitude, aircraftStatus.Altitude, aircraftStatus.GroundSpeed, viewModel.TransponderIdent ? TransponderMode.Ident : TransponderMode.ModeC);
+                    aircraftStatus.Latitude, aircraftStatus.Longitude, aircraftStatus.Altitude, aircraftStatus.GroundSpeed, 
+                    aircraftStatus.TransponderMode switch {
+                        TransponderMode.Standby => AtcTransponderMode.Standby,
+                        TransponderMode.ModeC => AtcTransponderMode.ModeC,
+                        TransponderMode.Ident => AtcTransponderMode.Ident,
+                        _ => AtcTransponderMode.Standby
+                    });
             });
             hub.On<string, FlightPlanCompact>("UpdateFlightPlan", async (connectionId, flightPlan) =>
             {
