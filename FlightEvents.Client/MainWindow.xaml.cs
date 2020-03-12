@@ -181,22 +181,26 @@ namespace FlightEvents.Client
             }
         }
 
-        private void Hub_OnMessageSent(string from, string to, string message)
+        private void Hub_OnMessageSent(string from, string toRaw, string message)
         {
             if (viewModel.IsTracking && viewModel.Callsign != from)
             {
-                if (to.StartsWith("@"))
+                var tos = toRaw.Split("&");
+                foreach (var to in tos)
                 {
-                    // @18700
-                    var frequency = "1" + to.Substring(1);
-                    if (frequency == viewModel.AircraftStatus.FreqencyCom1.ToString() || frequency == viewModel.AircraftStatus.FreqencyCom2.ToString())
+                    if (to.StartsWith("@"))
                     {
-                        flightConnector.Send($"{from} [{frequency}]: {message}");
+                        // @18700 @22900&@20000
+                        var frequency = "1" + to.Substring(1);
+                        if (frequency == viewModel.AircraftStatus.FreqencyCom1.ToString() || frequency == viewModel.AircraftStatus.FreqencyCom2.ToString())
+                        {
+                            flightConnector.Send($"{from} [{frequency}]: {message}");
+                        }
                     }
-                }
-                else if (to == viewModel.Callsign)
-                {
-                    flightConnector.Send($"{from}: {message}");
+                    else if (to == viewModel.Callsign)
+                    {
+                        flightConnector.Send($"{from}: {message}");
+                    }
                 }
             }
         }
