@@ -1,0 +1,55 @@
+name: .NET Core
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.101
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
+
+  package-web:
+    runs-on: [windows-latest]
+    name: Create Web package
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Publish with dotnet
+        run: dotnet publish --configuration Release --output publish-web FlightEvents.Web
+      - name: Collect artifact
+        uses: actions/upload-artifact@1.0.0
+        with:
+          name: Website package
+          path: publish-web
+
+  publish-web:
+    runs-on: [windows-latest]
+    name: Publish Web package
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Overwrite Secrets
+        run: echo 'export const MAPBOX_API_KEY = "${{ secrets.MAPBOX_API_KEY }}"' > FlightEvents.Web/ClientApp/src/Constants.ts
+      - name: Publish with dotnet
+        run: dotnet publish --configuration Release --output publish-web FlightEvents.Web
+      - name: Azure Login
+        uses: Azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Azure WebApp
+        uses: Azure/webapps-deploy@v2
+        with:
+          app-name: flightevents
+          package: publish-web
