@@ -69,3 +69,27 @@ jobs:
         with:
           name: FlightEvents.Client
           path: publish-client
+  
+  publish-client:
+    runs-on: [ubuntu-latest]
+    name: Publish Client
+    needs: [package-client]
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@1.0.0
+        with:
+          name: FlightEvents.Client
+          path: publish-client/
+      - name: Zip Release
+        uses: TheDoctor0/zip-release@v0.2.1
+        with:
+          filename: FlightEvents.Client.zip
+          path: publish-client/
+      - name: Azure Login
+        uses: Azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Upload via Azure CLI
+        uses: Azure/cli@v1.0.0
+        with:
+          inlineScript: az storage blob upload --account-name flightevents --container-name downloads --file FlightEvents.Client.zip --name FlightEvents.Client.zip
