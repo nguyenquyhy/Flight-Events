@@ -53,3 +53,19 @@ jobs:
         with:
           app-name: flightevents
           package: publish-web
+          
+  package-client:
+    runs-on: [windows-latest]
+    name: Package Client
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Publish with dotnet
+        run: dotnet publish --configuration Release --output publish-client --runtime win-x86 --self-contained false /p:PublishSingleFile=true /p:PublishReadyToRun=true FlightEvents.Client
+      - name: Copy extra content
+        run: copy FlightEvents.Client/appsettings.Release.json publish-client/appsettings.json & copy FlightEvents.Client/README.txt publish-client/README.txt & dir publish-client
+      - name: Collect artifact
+        uses: actions/upload-artifact@1.0.0
+        with:
+          name: FlightEvents.Client
+          path: publish-client
