@@ -1,0 +1,12 @@
+﻿{
+  "versions": [
+    {
+      "id": "1.2.0",
+      "changes": "Update notification"
+    },
+    {
+      "id": "1.1.0",
+      "changes": "Show messages from ATC"
+    }
+  ]
+}

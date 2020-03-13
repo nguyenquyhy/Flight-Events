@@ -53,7 +53,7 @@ namespace FlightEvents.Client
             catch (BadImageFormatException)
             {
                 MessageBox.Show("SimConnect not found. This component is needed to connect to Flight Simulator.\n" +
-                    "Please download SimConnect from\n\nhttp://www.fspassengers.com/?action=simconnect\n\n" +
+                    "Please download SimConnect from\n\nhttps://events-storage.flighttracker.tech/downloads/SimConnect.zip\n\n" +
                     "follow the ReadMe.txt in the zip file and try to start again.\n\nThis program will now exit.",
                     "Needed component is missing",
                     MessageBoxButton.OK,
@@ -82,6 +82,7 @@ namespace FlightEvents.Client
             services.AddSingleton<IFlightConnector, SimConnectFlightConnector>();
             services.AddSingleton<ATCServer>();
             services.AddSingleton(new UserPreferencesLoader("preferences.json"));
+            services.AddSingleton(new VersionLogic("https://events-storage.flighttracker.tech/downloads/versions.json"));
 
             services.AddTransient(typeof(MainWindow));
         }

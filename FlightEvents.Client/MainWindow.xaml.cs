@@ -25,19 +25,22 @@ namespace FlightEvents.Client
         private readonly MainViewModel viewModel;
         private readonly ATCServer atcServer;
         private readonly UserPreferencesLoader userPreferencesLoader;
+        private readonly VersionLogic versionLogic;
         private readonly HubConnection hub;
         private readonly ILogger<MainWindow> logger;
         private readonly IFlightConnector flightConnector;
 
         private AircraftData aircraftData;
 
-        public MainWindow(ILogger<MainWindow> logger, IFlightConnector flightConnector, MainViewModel viewModel, IOptions<AppSettings> appSettings, ATCServer atcServer, UserPreferencesLoader userPreferencesLoader)
+        public MainWindow(ILogger<MainWindow> logger, IFlightConnector flightConnector, MainViewModel viewModel, IOptions<AppSettings> appSettings, 
+            ATCServer atcServer, UserPreferencesLoader userPreferencesLoader, VersionLogic versionLogic)
         {
             InitializeComponent();
             this.logger = logger;
             this.flightConnector = flightConnector;
             this.atcServer = atcServer;
             this.userPreferencesLoader = userPreferencesLoader;
+            this.versionLogic = versionLogic;
             this.viewModel = viewModel;
 
             flightConnector.AircraftDataUpdated += FlightConnector_AircraftDataUpdated;
@@ -74,6 +77,27 @@ namespace FlightEvents.Client
             {
                 var pref = await userPreferencesLoader.LoadAsync();
                 viewModel.Callsign = string.IsNullOrWhiteSpace(pref.LastCallsign) ? GenerateCallSign() : pref.LastCallsign;
+            }
+
+            try
+            {
+                var version = await versionLogic.GetUpdatedVersionAsync();
+                if (version != null)
+                {
+                    var result = MessageBox.Show($"A new version {version.ToString()} is available.\nDo you want to download it?", "Flight Events Update", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            UseShellExecute = true,
+                            FileName = "https://events-storage.flighttracker.tech/downloads/FlightEvents.Client.zip"
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot check for update!");
             }
 
             while (true)
