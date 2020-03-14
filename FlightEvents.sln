@@ -27,7 +27,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightEvents.MockClient", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightEvents.Data.AzureStorage", "FlightEvents.Data.AzureStorage\FlightEvents.Data.AzureStorage.csproj", "{AC7D99F4-3F4B-4F7E-BE76-4944E223E91D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightEvents.Client.ATC", "FlightEvents.Client.ATC\FlightEvents.Client.ATC.csproj", "{3AD1343F-875A-48AA-87B6-8954613EA7C7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightEvents.Client.ATC", "FlightEvents.Client.ATC\FlightEvents.Client.ATC.csproj", "{3AD1343F-875A-48AA-87B6-8954613EA7C7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AF70EA6A-8AD8-4429-9D87-019F0EA39839}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\dotnetcore.yml = .github\workflows\dotnetcore.yml
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
