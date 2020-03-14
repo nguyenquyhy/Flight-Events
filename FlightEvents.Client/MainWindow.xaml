@@ -6,16 +6,16 @@
         xmlns:local="clr-namespace:FlightEvents.Client"
         xmlns:converters="clr-namespace:FlightEvents.Client.Converters"
         mc:Ignorable="d" Loaded="Window_Loaded" StateChanged="Window_StateChanged"
-        Title="Flight Events" Height="320" Width="300" ResizeMode="CanMinimize">
+        Title="Flight Events" Height="240" Width="300" ResizeMode="CanMinimize">
 
     <Window.Resources>
         <converters:BoolReversedConverter x:Key="BoolReversedConverter" />
     </Window.Resources>
     
-    <Grid Margin="10">
+    <Grid Margin="10,0,10,2">
         <Grid.Resources>
             <Style TargetType="TextBlock">
-                <Setter Property="Margin" Value="5" />
+                <Setter Property="Margin" Value="0,5,5,5" />
             </Style>
         </Grid.Resources>
         
@@ -26,48 +26,70 @@
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="4" />
+            <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="4" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition />
         </Grid.RowDefinitions>
 
         <TextBlock Text="Server" Grid.Row="0" Grid.Column="0" />
         <TextBlock Text="{Binding HubConnectionState}" Grid.Row="0" Grid.Column="1" />
 
-        <TextBlock Text="Flight Simulator" FontWeight="Bold" Grid.Row="2" Grid.ColumnSpan="2" />
+        <TabControl Grid.Row="1" Grid.ColumnSpan="2" VerticalAlignment="Stretch">
+            <TabItem Header="Flight Simulator">
+                <Grid Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="SimConnect" Grid.Row="1" Grid.Column="0" />
+                    <TextBlock Text="{Binding SimConnectionState}" Grid.Row="1" Grid.Column="1" />
+
+                    <TextBlock Text="Callsign" Grid.Row="2" Grid.Column="0" />
+                    <TextBox Text="{Binding Callsign, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                        IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}"
+                        Grid.Row="2" Grid.Column="1" MaxLength="10" />
+
+                    <TextBlock Text="Ident" Grid.Row="3" Grid.Column="0" />
+                    <CheckBox IsChecked="{Binding TransponderIdent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" />
+
+                    <Button x:Name="ButtonStartTrack" Content="Start Flight Tracking" Grid.Row="4" Grid.Column="1" Click="ButtonStartTrack_Click" />
+                    <Button x:Name="ButtonStopTrack" Content="Stop Flight Tracking" Grid.Row="4" Grid.Column="1" Click="ButtonStopTrack_Click" Visibility="Collapsed" />
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="ATC Radar">
+                <Grid Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Button x:Name="ButtonStartATC" Content="Start ATC Mode" Grid.Row="0" Grid.ColumnSpan="2" Click="ButtonStartATC_Click" IsEnabled="False" />
+                    <Button x:Name="ButtonStopATC" Content="Stop ATC Mode" Grid.Row="0" Grid.ColumnSpan="2" Click="ButtonStopATC_Click" Visibility="Collapsed" />
+                    
+                    <TextBlock Text="Callsign" Grid.Row="1" Grid.Column="0" />
+                    <TextBlock Text="{Binding AtcCallsign}" Grid.Row="1" Grid.Column="1" />
+
+                    
+                </Grid>
+            </TabItem>
+        </TabControl>
         
-        <TextBlock Text="SimConnect" Grid.Row="3" Grid.Column="0" />
-        <TextBlock Text="{Binding SimConnectionState}" Grid.Row="3" Grid.Column="1" />
-
-        <TextBlock Text="Callsign" Grid.Row="4" Grid.Column="0" />
-        <TextBox Text="{Binding Callsign, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                 IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}"
-                 Grid.Row="4" Grid.Column="1" MaxLength="10" />
-
-        <TextBlock Text="Ident" Grid.Row="5" Grid.Column="0" />
-        <CheckBox IsChecked="{Binding TransponderIdent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" />
-
-        <Button x:Name="ButtonStartTrack" Content="Start Flight Tracking" Grid.Row="6" Grid.Column="1" Click="ButtonStartTrack_Click" />
-        <Button x:Name="ButtonStopTrack" Content="Stop Flight Tracking" Grid.Row="6" Grid.Column="1" Click="ButtonStopTrack_Click" Visibility="Collapsed" />
-
-        <TextBlock Text="ATC Radar" FontWeight="Bold" Grid.Row="8" Grid.ColumnSpan="2" />
-        
-        <TextBlock Text="Callsign" Grid.Row="9" Grid.Column="0" />
-        <TextBox Text="{Binding AtcCallsign}" Grid.Row="9" Grid.Column="1" MaxLength="10" IsReadOnly="True" />
-        
-        <Button x:Name="ButtonStartATC" Content="Start ATC Mode" Grid.Row="10" Grid.Column="1" Click="ButtonStartATC_Click" IsEnabled="False" />
-        <Button x:Name="ButtonStopATC" Content="Stop ATC Mode" Grid.Row="10" Grid.Column="1" Click="ButtonStopATC_Click" Visibility="Collapsed" />
-
         <TextBlock x:Name="TextURL" Text="https://localhost" 
-                   TextDecorations="Underline" Foreground="Blue" Grid.ColumnSpan="2" Grid.Row="100" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                   TextDecorations="Underline" Foreground="Blue" 
+                   Grid.Row="2" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
                    MouseDown="TextURL_MouseDown"/>
 
         <tb:TaskbarIcon 
