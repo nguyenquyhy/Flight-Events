@@ -81,10 +81,11 @@ namespace FlightEvents.Client
 
             try
             {
+                this.Title = "Flight Events " + versionLogic.GetVersion();
                 var version = await versionLogic.GetUpdatedVersionAsync();
                 if (version != null)
                 {
-                    var result = MessageBox.Show($"A new version {version.ToString()} is available.\nDo you want to download it?", "Flight Events Update", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                    var result = MessageBox.Show(this, $"A new version {version.ToString()} is available.\nDo you want to download it?", "Flight Events Update", MessageBoxButton.YesNo, MessageBoxImage.Information);
                     if (result == MessageBoxResult.Yes)
                     {
                         Process.Start(new ProcessStartInfo
