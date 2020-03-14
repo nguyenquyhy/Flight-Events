@@ -74,7 +74,7 @@
             x:Name="myNotifyIcon"
             xmlns:tb="http://www.hardcodet.net/taskbar"
             Visibility="Collapsed"
-            ToolTipText="Honeycomb Connect"
+            ToolTipText="Flight Events"
             IconSource="/icon.ico"
             TrayLeftMouseDown="myNotifyIcon_TrayLeftMouseDown"
             />
