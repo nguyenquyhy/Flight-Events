@@ -9,6 +9,7 @@ namespace FlightEvents.Client.Logics
     public class UserPreferences
     {
         public string LastCallsign { get; set; }
+        public string ClientId { get; set; }
     }
 
     public class UserPreferencesLoader

@@ -1,6 +1,7 @@
 using FlightEvents.Data;
 using FlightEvents.Web.GraphQL;
 using FlightEvents.Web.Hubs;
+using FlightEvents.Web.Logics;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
@@ -29,6 +30,7 @@ namespace FlightEvents.Web
             services.AddSingleton<IFlightEventStorage>(sp => new JsonFileFlightEventStorage("events.json", sp.GetService<RandomStringGenerator>()));
             services.AddSingleton<IFlightPlanStorage, AzureBlobFlightPlanStorage>();
             services.AddSingleton<IAirportStorage, XmlFileAirportStorage>();
+            services.AddSingleton<IDiscordConnectionStorage, AzureTableDiscordConnectionStorage>();
 
             services.AddGraphQL(
                 SchemaBuilder.New()
@@ -52,6 +54,8 @@ namespace FlightEvents.Web
                 .AddAzureSignalR()
 #endif
                 .AddMessagePackProtocol();
+
+            services.AddHttpClient<DiscordLogic>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

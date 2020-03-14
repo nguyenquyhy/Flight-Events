@@ -8,3 +8,5 @@ This includes:
 - A server to handle 2-way communications. The web server also provides with a web interface to display all participating aircraft and upcoming events.
 - A client to communicate with flight simulators via SimConnect and send data to the server.
 - The same client can also serve as a simplified FSD server for ATC radar software such as Euroscope or AURORA.
+- A Discord bot to automatically move players between voice channels based on their COM1 frequency
+https://discordapp.com/api/oauth2/authorize?client_id={BOT_CLIENT_ID}&scope=bot&permissions=221249553

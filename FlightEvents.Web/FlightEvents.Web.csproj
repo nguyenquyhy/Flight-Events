@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="2.1.1" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="10.3.6" />
     <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.3.6" />
     <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="10.3.6" />
