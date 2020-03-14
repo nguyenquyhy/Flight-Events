@@ -64,22 +64,32 @@ jobs:
         run: dotnet publish --configuration Release --output publish-client --runtime win-x86 --self-contained false /p:PublishSingleFile=true /p:PublishReadyToRun=true FlightEvents.Client
       - name: Copy extra content
         run: copy FlightEvents.Client/appsettings.Release.json publish-client/appsettings.json & copy FlightEvents.Client/README.txt publish-client/README.txt & dir publish-client
-      - name: Collect artifact
+      - name: Collect build artifact
         uses: actions/upload-artifact@1.0.0
         with:
           name: FlightEvents.Client
-          path: publish-client
+          path: publish-client      
+      - name: Collect version artifact
+        uses: actions/upload-artifact@1.0.0
+        with:
+          name: versions.json
+          path: FlightEvents.Client/versions.json
   
   publish-client:
     runs-on: [ubuntu-latest]
     name: Publish Client
     needs: [package-client]
     steps:
-      - name: Download artifact
+      - name: Download build artifact
         uses: actions/download-artifact@1.0.0
         with:
           name: FlightEvents.Client
           path: publish-client/
+      - name: Download version artifact
+        uses: actions/download-artifact@1.0.0
+        with:
+          name: versions.json
+          path: .
       - name: Zip Release
         uses: TheDoctor0/zip-release@v0.2.1
         with:
@@ -89,7 +99,11 @@ jobs:
         uses: Azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - name: Upload via Azure CLI
+      - name: Upload FlightEvents.Client.zip via Azure CLI
         uses: Azure/cli@v1.0.0
         with:
           inlineScript: az storage blob upload --account-name flightevents --container-name downloads --file FlightEvents.Client.zip --name FlightEvents.Client.zip
+      - name: Upload versions.json via Azure CLI
+        uses: Azure/cli@v1.0.0
+        with:
+          inlineScript: az storage blob upload --account-name flightevents --container-name downloads --file versions.json --name versions.json
