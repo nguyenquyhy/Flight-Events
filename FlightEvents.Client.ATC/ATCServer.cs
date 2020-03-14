@@ -40,6 +40,24 @@ namespace FlightEvents.Client.ATC
         public string Message { get; }
     }
 
+    public class AtcLoggedInEventArgs : EventArgs
+    {
+        public AtcLoggedInEventArgs(string callsign, int frequency, int altitude, double latitude, double longitude)
+        {
+            Callsign = callsign;
+            Frequency = frequency;
+            Altitude = altitude;
+            Latitude = latitude;
+            Longitude = longitude;
+        }
+
+        public string Callsign { get; }
+        public int Frequency { get; }
+        public int Altitude { get; }
+        public double Latitude { get; }
+        public double Longitude { get; }
+    }
+
     public enum AtcTransponderMode
     {
         Standby,
@@ -65,6 +83,7 @@ namespace FlightEvents.Client.ATC
         public event EventHandler<ConnectedEventArgs> Connected;
         public event EventHandler<FlightPlanRequestedEventArgs> FlightPlanRequested;
         public event EventHandler<MessageSentEventArgs> MessageSent;
+        public event EventHandler<AtcLoggedInEventArgs> AtcLoggedIn;
 
         public ATCServer(ILogger<ATCServer> logger)
         {
@@ -154,6 +173,19 @@ namespace FlightEvents.Client.ATC
                     //    this.atc = true;
                     //    Console.WriteLine("Sent EuroScope Hello");
                     //}
+
+                    if (info.StartsWith("%" + callsign))
+                    {
+                        var tokens = info.Split(':');
+                        var freq = int.Parse("1" + tokens[1]);
+                        var alt = int.Parse(tokens[2]);
+                        //var protocol = tokens[3];
+                        //var rating = tokens[4];
+                        var lat = double.Parse(tokens[5]);
+                        var lng = double.Parse(tokens[6]);
+
+                        AtcLoggedIn?.Invoke(this, new AtcLoggedInEventArgs(callsign, freq, alt, lat, lng));
+                    }
 
                     if (info.StartsWith("#DA"))
                     {
