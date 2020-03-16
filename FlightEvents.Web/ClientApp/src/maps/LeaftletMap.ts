@@ -65,6 +65,12 @@ export default class LeafletMap implements IMap {
                     attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
                 }));
                 break;
+            case MapTileType.UsVfrSectional:
+                this.baseLayerGroup.addLayer(L.tileLayer('http://wms.chartbundle.com/tms/v1.0/sec/{z}/{x}/{y}.png?type=google', {
+                    maxZoom: 12,
+                    attribution: 'Map data: &copy; Federal Aviation Administration (FAA), <a href="http://chartbundle.com">ChartBundle.com</a>'
+                }));
+                break;
         }
     }
 

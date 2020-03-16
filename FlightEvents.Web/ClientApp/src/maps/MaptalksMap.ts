@@ -173,6 +173,12 @@ export default class MaptalksMap implements IMap {
                     attribution: '&copy; <a href="http://osm.org">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/">CARTO</a>'
                 }));
                 break;
+            case MapTileType.UsVfrSectional:
+                this.map.setBaseLayer(new maptalks.TileLayer('usvfrsection', {
+                    urlTemplate: 'http://wms.chartbundle.com/tms/v1.0/sec/{z}/{x}/{y}.png?type=google',
+                    attribution: 'Map data: &copy; Federal Aviation Administration (FAA), <a href="http://chartbundle.com">ChartBundle.com</a>'
+                }));
+                break;
         }
     }
 

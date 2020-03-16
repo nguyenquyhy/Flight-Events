@@ -18,5 +18,6 @@ export enum MapTileType {
     OpenTopoMap,
     EsriWorldImagery,
     EsriTopo,
-    Carto
+    Carto,
+    UsVfrSectional,
 }

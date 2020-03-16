@@ -49,6 +49,7 @@ export class Home extends React.Component<any, State> {
         this.handleOpenTopoMap = this.handleOpenTopoMap.bind(this);
         this.handleEsriWorldImagery = this.handleEsriWorldImagery.bind(this);
         this.handleEsriTopo = this.handleEsriTopo.bind(this);
+        this.handleUsVfrSectional = this.handleUsVfrSectional.bind(this);
         this.handleMeChanged = this.handleMeChanged.bind(this);
         this.handleFollowingChanged = this.handleFollowingChanged.bind(this);
         this.handleAirportsLoaded = this.handleAirportsLoaded.bind(this);
@@ -188,6 +189,13 @@ export class Home extends React.Component<any, State> {
         this.map.setTileLayer(MapTileType.EsriTopo);
     }
 
+    private handleUsVfrSectional() {
+        this.setState({
+            mapTileType: MapTileType.UsVfrSectional
+        })
+        this.map.setTileLayer(MapTileType.UsVfrSectional);
+    }
+
     private handleMeChanged(connectionId: string | null) {
         this.setState({ myConnectionId: connectionId });
 
@@ -232,6 +240,7 @@ export class Home extends React.Component<any, State> {
                 <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.OpenTopoMap} onClick={this.handleOpenTopoMap}>OpenTopoMap</Button>
                 <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.EsriWorldImagery} onClick={this.handleEsriWorldImagery}>Esri Imagery</Button>
                 <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.EsriTopo} onClick={this.handleEsriTopo}>Esri Topo</Button>
+                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.UsVfrSectional} onClick={this.handleUsVfrSectional}>US VFR</Button>
             </LayerWrapper>
             <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
                 onMeChanged={this.handleMeChanged} myConnectionId={this.state.myConnectionId}
