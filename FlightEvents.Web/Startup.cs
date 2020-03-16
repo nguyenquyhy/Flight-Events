@@ -39,6 +39,7 @@ namespace FlightEvents.Web
 
 
             services.AddControllersWithViews();
+            services.AddRazorPages();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -83,6 +84,7 @@ namespace FlightEvents.Web
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
+                endpoints.MapRazorPages();
 
                 endpoints.MapHub<FlightEventHub>("/FlightEventHub");
             });
