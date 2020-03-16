@@ -28,10 +28,24 @@
           crossorigin="" />
 
     <title>Flight Events</title>
+
+    <style>
+        #divUpdateMsg {
+            z-index: 900;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            font-size: 1.4em;
+            padding: 20px 10px;
+            background-color: rgba(255,255,255,0.5);
+            display: none;
+        }
+    </style>
 </head>
-  <body>
+<body>
     <noscript>
-      You need to enable JavaScript to run this app.
+        You need to enable JavaScript to run this app.
     </noscript>
     <div id="root"></div>
     <!--
@@ -44,5 +58,6 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
-  </body>
+    <div id="divUpdateMsg"></div>
+</body>
 </html>

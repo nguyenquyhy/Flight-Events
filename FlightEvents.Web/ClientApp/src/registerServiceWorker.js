@@ -56,7 +56,12 @@ function registerValidSW(swUrl) {
                             // the fresh content will have been added to the cache.
                             // It's the perfect time to display a "New content is
                             // available; please refresh." message in your web app.
+
                             console.log('New content is available; please refresh.');
+                            var element = document.getElementById('divUpdateMsg');
+                            element.innerHTML = 'An updated version of this website is available. Please reload the page.';
+                            element.style.display = 'block';
+
                             if (registration && registration.waiting) {
                                 // Skip waiting to remove the requirement to restart browser
                                 registration.waiting.postMessage({ type: 'SKIP_WAITING' });
