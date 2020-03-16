@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -83,36 +82,6 @@ namespace FlightEvents.Web.Logics
                 var guild = await botClient.GetGuildAsync(guildId);
                 await guild.AddGuildUserAsync(discordClient.CurrentUser.Id, tokens.access_token);
             }
-        }
-
-        public async Task ChangeChannelAsync(string clientId, int frequency)
-        {
-            ulong guildId = ulong.Parse(configuration["Discord:ServerId"]);
-            var userId = await discordConnectionStorage.GetUserIdAsync(clientId);
-            if (userId == null) return;
-
-            var channelName = (frequency / 1000d).ToString("N3");
-
-            var botClient = new DiscordRestClient();
-            await botClient.LoginAsync(TokenType.Bot, configuration["Discord:BotToken"]);
-            var guild = await botClient.GetGuildAsync(guildId);
-            var channels = await guild.GetVoiceChannelsAsync();
-            var guildUser = await botClient.GetGuildUserAsync(guildId, userId.Value);
-
-            var channel = channels.FirstOrDefault(c => c.Name == channelName);
-            if (channel == null)
-            {
-                channel = await guild.CreateVoiceChannelAsync(channelName, props =>
-                {
-                    props.CategoryId = ulong.Parse(configuration["Discord:ChannelCategoryId"]);
-                    props.Bitrate = int.Parse(configuration["Discord:ChannelBitrate"]);
-                });
-            }
-
-            await guildUser.ModifyAsync(props =>
-            {
-                props.ChannelId = channel.Id;
-            });
         }
 
         private string GenerateCode()

@@ -281,7 +281,7 @@ namespace FlightEvents.Client
                         var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
                         if (!string.IsNullOrEmpty(clientId))
                         {
-                            await hub.SendAsync("ChangeFrequency", clientId, e.AircraftStatus.FreqencyCom1);
+                            await hub.SendAsync("ChangeFrequency", clientId, lastFreqencyCom1, e.AircraftStatus.FreqencyCom1);
                             lastFreqencyCom1 = e.AircraftStatus.FreqencyCom1;
                         }
                     }
@@ -407,13 +407,17 @@ namespace FlightEvents.Client
             await hub.SendAsync("SendMessage", viewModel.AtcCallsign, e.To, e.Message);
         }
 
+
+        private int? lastAtcFrequency = null;
+
         private async void AtcServer_AtcLoggedIn(object sender, AtcLoggedInEventArgs e)
         {
             var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
 
-            if (!string.IsNullOrEmpty(clientId))
+            if (!string.IsNullOrEmpty(clientId) && lastAtcFrequency != e.Frequency)
             {
-                await hub.SendAsync("ChangeFrequency", clientId, e.Frequency);
+                await hub.SendAsync("ChangeFrequency", clientId, lastAtcFrequency, e.Frequency);
+                lastAtcFrequency = e.Frequency;
             }
         }
 

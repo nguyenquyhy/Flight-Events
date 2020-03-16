@@ -1,5 +1,4 @@
-﻿using FlightEvents.Web.Logics;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,13 +7,6 @@ namespace FlightEvents.Web.Hubs
 {
     public class FlightEventHub : Hub
     {
-        private readonly DiscordLogic discordLogic;
-
-        public FlightEventHub(DiscordLogic discordLogic)
-        {
-            this.discordLogic = discordLogic;
-        }
-
         public async Task UpdateAircraft(string connectionId, AircraftStatus status)
         {
             await Clients.Groups("Map", "ATC").SendAsync("UpdateAircraft", connectionId, status);
@@ -50,9 +42,9 @@ namespace FlightEvents.Web.Hubs
             await Clients.All.SendAsync("SendMessage", from, to, message);
         }
 
-        public async Task ChangeFrequency(string clientId, int frequency)
+        public async Task ChangeFrequency(string clientId, int? fromFrequency, int toFrequency)
         {
-            await discordLogic.ChangeChannelAsync(clientId, frequency);
+            await Clients.Groups("Bot").SendAsync("ChangeFrequency", clientId, fromFrequency, toFrequency);
         }
 
         public async Task Join(string group)
