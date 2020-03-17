@@ -28,6 +28,7 @@ namespace FlightEvents.Web.Logics
     {
         private readonly HttpClient httpClient;
         private readonly IConfiguration configuration;
+
         private readonly IDiscordConnectionStorage discordConnectionStorage;
         private static readonly Random random = new Random();
 
@@ -63,14 +64,14 @@ namespace FlightEvents.Web.Logics
             return new DiscordLoginResult(client.CurrentUser, confirmCode);
         }
 
-        public async Task ConfirmAsync(string clientId, string code)
+        public async Task<DiscordConnection> ConfirmAsync(string clientId, string code)
         {
             if (pendingConnections.TryGetValue(code, out var value))
             {
                 var user = value.Item2;
                 var tokens = value.Item3;
 
-                await discordConnectionStorage.StoreConnectionAsync(clientId, user.Id);
+                var connection = await discordConnectionStorage.StoreConnectionAsync(clientId, user.Id, user.Username, user.Discriminator);
 
                 var discordClient = new DiscordRestClient();
                 await discordClient.LoginAsync(TokenType.Bearer, tokens.access_token);
@@ -81,8 +82,15 @@ namespace FlightEvents.Web.Logics
                 await botClient.LoginAsync(TokenType.Bot, configuration["Discord:BotToken"]);
                 var guild = await botClient.GetGuildAsync(guildId);
                 await guild.AddGuildUserAsync(discordClient.CurrentUser.Id, tokens.access_token);
+
+                return connection;
             }
+
+            return null;
         }
+
+        public Task<DiscordConnection> GetConnectionAsync(string clientId)
+            => discordConnectionStorage.GetConnectionAsync(clientId);
 
         private string GenerateCode()
         {

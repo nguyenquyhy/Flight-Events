@@ -15,20 +15,35 @@ namespace FlightEvents.Data
             table = tableClient.GetTableReference(configuration["FlightPlan:AzureStorage:DiscordConnectionTable"]);
         }
 
-        public async Task<ulong?> GetUserIdAsync(string clientId)
+        public async Task<DiscordConnection> GetConnectionAsync(string clientId)
         {
             await table.CreateIfNotExistsAsync();
 
             var result = await table.ExecuteAsync(TableOperation.Retrieve<ConnectionEntity>("Discord", clientId));
             var entity = result.Result as ConnectionEntity;
 
-            return (ulong)entity.UserId;
+            if (entity == null) return null;
+
+            return new DiscordConnection
+            {
+                UserId = (ulong)entity.UserId,
+                Username = entity.Username,
+                Discriminator = entity.Discriminator
+            };
         }
 
-        public async Task StoreConnectionAsync(string clientId, ulong userId)
+        public async Task<DiscordConnection> StoreConnectionAsync(string clientId, ulong userId, string username, string discriminator)
         {
             await table.CreateIfNotExistsAsync();
-            var entity = await table.ExecuteAsync(TableOperation.InsertOrMerge(new ConnectionEntity(clientId, userId)));
+            var result = await table.ExecuteAsync(TableOperation.InsertOrMerge(new ConnectionEntity(clientId, userId, username, discriminator)));
+            var entity = result.Result as ConnectionEntity;
+
+            return new DiscordConnection
+            {
+                UserId = (ulong)entity.UserId,
+                Username = entity.Username,
+                Discriminator = entity.Discriminator
+            };
         }
     }
 
@@ -38,13 +53,17 @@ namespace FlightEvents.Data
         {
         }
 
-        public ConnectionEntity(string clientId, ulong userId)
+        public ConnectionEntity(string clientId, ulong userId, string username, string discriminator)
         {
             PartitionKey = "Discord";
             RowKey = clientId;
             UserId = (long)userId;
+            Username = username;
+            Discriminator = discriminator;
         }
 
         public long UserId { get; set; }
+        public string Username { get; set; }
+        public string Discriminator { get; set; }
     }
 }

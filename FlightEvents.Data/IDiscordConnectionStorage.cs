@@ -4,7 +4,7 @@ namespace FlightEvents.Data
 {
     public interface IDiscordConnectionStorage
     {
-        Task<ulong?> GetUserIdAsync(string clientId);
-        Task StoreConnectionAsync(string clientId, ulong userId);
+        Task<DiscordConnection> GetConnectionAsync(string clientId);
+        Task<DiscordConnection> StoreConnectionAsync(string clientId, ulong userId, string username, string discriminator);
     }
 }

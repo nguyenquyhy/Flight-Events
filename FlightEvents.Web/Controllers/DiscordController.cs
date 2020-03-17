@@ -1,6 +1,5 @@
 ﻿using FlightEvents.Web.Logics;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Threading.Tasks;
 
 namespace FlightEvents.Web.Controllers
@@ -20,10 +19,19 @@ namespace FlightEvents.Web.Controllers
             return View(confirm);
         }
 
-        [HttpPost]
-        public async Task Confirm(string clientId, string code)
+        [Route("Discord/Connection/{clientId}")]
+        public async Task<ActionResult<DiscordConnection>> Connection(string clientId)
         {
-            await discordLogic.ConfirmAsync(clientId, code);
+            var connection = await discordLogic.GetConnectionAsync(clientId);
+            if (connection == null) return NotFound();
+
+            return connection;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<DiscordConnection>> Confirm(string clientId, string code)
+        {
+            return await discordLogic.ConfirmAsync(clientId, code);
         }
     }
 

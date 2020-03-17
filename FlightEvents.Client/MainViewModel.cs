@@ -46,5 +46,8 @@ namespace FlightEvents.Client
 
         private bool isTracking;
         public bool IsTracking { get { return isTracking; } set { SetProperty(ref isTracking, value); } }
+
+        private DiscordConnection discordConnection;
+        public DiscordConnection DiscordConnection { get { return discordConnection; } set { SetProperty(ref discordConnection, value); } }
     }
 }

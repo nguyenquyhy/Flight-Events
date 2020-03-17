@@ -74,8 +74,8 @@ namespace FlightEvents.DiscordBot
 
         private async Task MoveVoiceChannelAsync(string clientId, int toFrequency)
         {
-            var userId = await discordConnectionStorage.GetUserIdAsync(clientId);
-            if (userId == null) return;
+            var connection = await discordConnectionStorage.GetConnectionAsync(clientId);
+            if (connection == null) return;
 
             ulong guildId = ulong.Parse(configuration["Discord:ServerId"]);
             ulong channelCategoryId = ulong.Parse(configuration["Discord:ChannelCategoryId"]);
@@ -100,7 +100,7 @@ namespace FlightEvents.DiscordBot
             }
             else
             {
-                var guildUser = guild.GetUser(userId.Value);
+                var guildUser = guild.GetUser(connection.UserId);
                 var oldChannel = guildUser.VoiceChannel;
 
                 await guildUser.ModifyAsync(props =>

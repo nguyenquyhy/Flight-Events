@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -75,9 +76,10 @@ namespace FlightEvents.Client
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            var pref = await userPreferencesLoader.LoadAsync();
+
             if (string.IsNullOrWhiteSpace(viewModel.Callsign))
             {
-                var pref = await userPreferencesLoader.LoadAsync();
                 viewModel.Callsign = string.IsNullOrWhiteSpace(pref.LastCallsign) ? GenerateCallSign() : pref.LastCallsign;
             }
 
@@ -101,6 +103,21 @@ namespace FlightEvents.Client
             catch (Exception ex)
             {
                 logger.LogError(ex, "Cannot check for update!");
+            }
+
+            if (!string.IsNullOrEmpty(pref.ClientId))
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    var response = await httpClient.GetAsync(appSettings.Value.WebServerUrl + "/Discord/Connection/" + pref.ClientId);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        using var stream = await response.Content.ReadAsStreamAsync();
+                        var connection = await JsonSerializer.DeserializeAsync<DiscordConnection>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        viewModel.DiscordConnection = connection;
+                    }
+                }
             }
 
             while (true)
@@ -295,10 +312,12 @@ namespace FlightEvents.Client
 
         #region Discord
 
-        private void ButtonDiscord_Click(object sender, RoutedEventArgs e)
+        private async void ButtonDiscord_Click(object sender, RoutedEventArgs e)
         {
             try
             {
+                ButtonDiscord.IsEnabled = false;
+                await Task.Delay(500);
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = $"https://discordapp.com/api/oauth2/authorize?client_id={appSettings.Value.BotClientId}&redirect_uri={Uri.EscapeDataString($"{appSettings.Value.WebServerUrl}/discord/auth")}&response_type=code&scope={Uri.EscapeDataString("identify guilds.join")}",
@@ -306,26 +325,55 @@ namespace FlightEvents.Client
                 });
             }
             catch { }
+            finally
+            {
+                ButtonDiscord.IsEnabled = true;
+            }
         }
 
         private async void ButtonDiscordConfirm_Click(object sender, RoutedEventArgs e)
         {
-            var userPref = await userPreferencesLoader.LoadAsync();
-            if (string.IsNullOrEmpty(userPref.ClientId))
+            try
             {
-                userPref = await userPreferencesLoader.UpdateAsync(userPref => userPref.ClientId = Guid.NewGuid().ToString("N"));
-            }
+                ButtonDiscordConfirm.IsEnabled = false;
 
-            using var httpClient = new HttpClient();
-            var response = await httpClient.PostAsync($"{appSettings.Value.WebServerUrl}/discord/confirm?clientId={userPref.ClientId}&code={TextDiscordConfirm.Text}", null);
+                var userPref = await userPreferencesLoader.LoadAsync();
+                if (string.IsNullOrEmpty(userPref.ClientId))
+                {
+                    userPref = await userPreferencesLoader.UpdateAsync(userPref => userPref.ClientId = Guid.NewGuid().ToString("N"));
+                }
 
-            if (response.IsSuccessStatusCode)
-            {
-                MessageBox.Show(this, "You have connected this client to your Discord account.", "Flight Events", MessageBoxButton.OK, MessageBoxImage.Information);
+                using var httpClient = new HttpClient();
+                var response = await httpClient.PostAsync($"{appSettings.Value.WebServerUrl}/discord/confirm?clientId={userPref.ClientId}&code={TextDiscordConfirm.Text}", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    using var stream = await response.Content.ReadAsStreamAsync();
+                    viewModel.DiscordConnection = await JsonSerializer.DeserializeAsync<DiscordConnection>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    MessageBox.Show(this, "You have connected this client to your Discord account.", "Flight Events", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show(this, "Cannot connect this client to your Discord account.\nPlease try again.", "Flight Events", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
             }
-            else
+            finally
             {
-                MessageBox.Show(this, "Cannot connect this client to your Discord account.\nPlease try again.", "Flight Events", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ButtonDiscordConfirm.IsEnabled = true;
+            }
+        }
+
+        private void ButtonDiscordDisconnect_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ButtonDiscordDisconnect.IsEnabled = false;
+
+
+            }
+            finally
+            {
+                ButtonDiscordDisconnect.IsEnabled = true;
             }
         }
 
