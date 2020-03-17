@@ -92,6 +92,9 @@ namespace FlightEvents.Web.Logics
         public Task<DiscordConnection> GetConnectionAsync(string clientId)
             => discordConnectionStorage.GetConnectionAsync(clientId);
 
+        public Task DeleteConnectionAsync(string clientId)
+            => discordConnectionStorage.DeleteConnectionAsync(clientId);
+
         private string GenerateCode()
         {
             var builder = new StringBuilder();

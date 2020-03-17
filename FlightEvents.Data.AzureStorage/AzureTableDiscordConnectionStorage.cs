@@ -20,16 +20,17 @@ namespace FlightEvents.Data
             await table.CreateIfNotExistsAsync();
 
             var result = await table.ExecuteAsync(TableOperation.Retrieve<ConnectionEntity>("Discord", clientId));
-            var entity = result.Result as ConnectionEntity;
 
-            if (entity == null) return null;
-
-            return new DiscordConnection
+            if (result.Result is ConnectionEntity entity)
             {
-                UserId = (ulong)entity.UserId,
-                Username = entity.Username,
-                Discriminator = entity.Discriminator
-            };
+                return new DiscordConnection
+                {
+                    UserId = (ulong)entity.UserId,
+                    Username = entity.Username,
+                    Discriminator = entity.Discriminator
+                };
+            }
+            return null;
         }
 
         public async Task<DiscordConnection> StoreConnectionAsync(string clientId, ulong userId, string username, string discriminator)
@@ -44,6 +45,17 @@ namespace FlightEvents.Data
                 Username = entity.Username,
                 Discriminator = entity.Discriminator
             };
+        }
+
+        public async Task DeleteConnectionAsync(string clientId)
+        {
+            await table.CreateIfNotExistsAsync();
+
+            var result = await table.ExecuteAsync(TableOperation.Retrieve<ConnectionEntity>("Discord", clientId));
+            if (result.Result is ConnectionEntity entity)
+            {
+                await table.ExecuteAsync(TableOperation.Delete(entity));
+            }
         }
     }
 

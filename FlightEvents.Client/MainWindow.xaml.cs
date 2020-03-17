@@ -363,13 +363,26 @@ namespace FlightEvents.Client
             }
         }
 
-        private void ButtonDiscordDisconnect_Click(object sender, RoutedEventArgs e)
+        private async void ButtonDiscordDisconnect_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 ButtonDiscordDisconnect.IsEnabled = false;
 
+                var result = MessageBox.Show(this, "Do you want to disconnect this client from your Discord account.", "Flight Events", MessageBoxButton.YesNo, MessageBoxImage.Information);
 
+                if (result == MessageBoxResult.Yes)
+                {
+                    var userPref = await userPreferencesLoader.LoadAsync();
+                    if (!string.IsNullOrEmpty(userPref.ClientId))
+                    {
+                        using (var httpClient = new HttpClient())
+                        {
+                            await httpClient.DeleteAsync(appSettings.Value.WebServerUrl + "/Discord/Connection/" + userPref.ClientId);
+                        }
+                    }
+                    viewModel.DiscordConnection = null;
+                }
             }
             finally
             {

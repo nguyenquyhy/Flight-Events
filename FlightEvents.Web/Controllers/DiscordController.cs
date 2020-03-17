@@ -33,6 +33,13 @@ namespace FlightEvents.Web.Controllers
         {
             return await discordLogic.ConfirmAsync(clientId, code);
         }
+
+        [HttpDelete]
+        [Route("Discord/Connection/{clientId}")]
+        public async Task Delete(string clientId)
+        {
+            await discordLogic.DeleteConnectionAsync(clientId);
+        }
     }
 
 }

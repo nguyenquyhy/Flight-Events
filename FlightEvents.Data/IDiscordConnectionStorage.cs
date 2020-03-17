@@ -6,5 +6,6 @@ namespace FlightEvents.Data
     {
         Task<DiscordConnection> GetConnectionAsync(string clientId);
         Task<DiscordConnection> StoreConnectionAsync(string clientId, ulong userId, string username, string discriminator);
+        Task DeleteConnectionAsync(string clientId);
     }
 }
