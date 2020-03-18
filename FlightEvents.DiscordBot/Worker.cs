@@ -28,15 +28,22 @@ namespace FlightEvents.DiscordBot
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+            logger.LogInformation("Bot running at: {time}", DateTimeOffset.Now);
+
+            var webServerUrl = configuration["WebServerUrl"];
+            logger.LogInformation("Connecting to server URL {serverUrl}", webServerUrl);
 
             var hub = new HubConnectionBuilder()
-                .WithUrl(configuration["WebServerUrl"] + "/FlightEventHub")
+                .WithUrl(webServerUrl + "/FlightEventHub")
                 .WithAutomaticReconnect()
                 .Build();
 
+            hub.Reconnecting += Hub_Reconnecting;
+            hub.Reconnected += Hub_Reconnected;
+
             hub.On<string, int?, int>("ChangeFrequency", async (clientId, from, to) =>
             {
+                logger.LogDebug("Got ChangeFrequency message from {clientId} to change from {fromFrequency} to {toFrequency}", clientId, from, to);
                 await MoveVoiceChannelAsync(clientId, to);
             });
 
@@ -66,9 +73,21 @@ namespace FlightEvents.DiscordBot
             }
         }
 
+        private Task Hub_Reconnecting(Exception arg)
+        {
+            logger.LogInformation("Reconnecting to SignalR");
+            return Task.CompletedTask;
+        }
+
+        private Task Hub_Reconnected(string arg)
+        {
+            logger.LogInformation("Reconnected to SignalR");
+            return Task.CompletedTask;
+        }
+
         private Task BotClient_GuildAvailable(SocketGuild guild)
         {
-            logger.LogInformation($"{guild.Name} is available.");
+            logger.LogInformation("{guildName} is available.", guild.Name);
             return Task.CompletedTask;
         }
 
@@ -94,7 +113,7 @@ namespace FlightEvents.DiscordBot
                     props.Bitrate = int.Parse(configuration["Discord:ChannelBitrate"]);
                 });
 
-                logger.LogInformation($"Created new channel {channelName}");
+                logger.LogInformation("Created new channel {channelName}", channelName);
 
                 await MoveVoiceChannelAsync(clientId, toFrequency);
             }
@@ -107,7 +126,7 @@ namespace FlightEvents.DiscordBot
                 {
                     props.ChannelId = channel.Id;
                 });
-                logger.LogInformation($"Moved user {guildUser.Username}#{guildUser.Discriminator} to channel {channelName}");
+                logger.LogInformation("Moved user {username}#{discriminator} to channel {channelName}", guildUser.Username, guildUser.Discriminator, channelName);
 
                 if (oldChannel?.CategoryId == channelCategoryId)
                 {
@@ -116,7 +135,7 @@ namespace FlightEvents.DiscordBot
                     if (!oldChannel.Users.Any())
                     {
                         await oldChannel.DeleteAsync();
-                        logger.LogInformation($"Removed empty channel {channelName}");
+                        logger.LogInformation("Removed empty channel {channelName}", channelName);
                     }
                 }
             }
