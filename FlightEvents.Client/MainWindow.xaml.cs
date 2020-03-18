@@ -320,7 +320,7 @@ namespace FlightEvents.Client
                 await Task.Delay(500);
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = $"https://discordapp.com/api/oauth2/authorize?client_id={appSettings.Value.BotClientId}&redirect_uri={Uri.EscapeDataString($"{appSettings.Value.WebServerUrl}/discord/auth")}&response_type=code&scope={Uri.EscapeDataString("identify guilds.join")}",
+                    FileName = $"{appSettings.Value.WebServerUrl}/Discord/Connect",
                     UseShellExecute = true
                 });
             }
