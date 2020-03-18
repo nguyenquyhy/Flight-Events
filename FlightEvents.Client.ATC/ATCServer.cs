@@ -58,6 +58,16 @@ namespace FlightEvents.Client.ATC
         public double Longitude { get; }
     }
 
+    public class AtcLoggedOffEventArgs : EventArgs
+    {
+        public AtcLoggedOffEventArgs(string callsign)
+        {
+            Callsign = callsign;
+        }
+
+        public string Callsign { get; }
+    }
+
     public enum AtcTransponderMode
     {
         Standby,
@@ -84,6 +94,7 @@ namespace FlightEvents.Client.ATC
         public event EventHandler<FlightPlanRequestedEventArgs> FlightPlanRequested;
         public event EventHandler<MessageSentEventArgs> MessageSent;
         public event EventHandler<AtcLoggedInEventArgs> AtcLoggedIn;
+        public event EventHandler<AtcLoggedOffEventArgs> AtcLoggedOff;
 
         public ATCServer(ILogger<ATCServer> logger)
         {
@@ -187,10 +198,14 @@ namespace FlightEvents.Client.ATC
                         AtcLoggedIn?.Invoke(this, new AtcLoggedInEventArgs(callsign, freq, alt, lat, lng));
                     }
 
-                    if (info.StartsWith("#DA"))
+                    if (info.StartsWith($"#DA{callsign}:SERVER"))
                     {
+                        // #DAEDDM_TWR:SERVER
                         logger.LogInformation("Client is disconnected");
                         writer = null;
+
+                        AtcLoggedOff?.Invoke(this, new AtcLoggedOffEventArgs(callsign));
+
                         break;
                     }
 
