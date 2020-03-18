@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:FlightEvents.Client"
         xmlns:converters="clr-namespace:FlightEvents.Client.Converters"
         mc:Ignorable="d" Loaded="Window_Loaded" StateChanged="Window_StateChanged"
-        Title="Flight Events" Height="240" Width="300" ResizeMode="CanMinimize">
+        Title="Flight Events" Height="270" Width="300" ResizeMode="CanMinimize">
 
     <Window.Resources>
         <converters:BoolReversedConverter x:Key="BoolReversedConverter" />
@@ -18,6 +18,9 @@
         <Grid.Resources>
             <Style TargetType="TextBlock">
                 <Setter Property="Margin" Value="0,5,5,5" />
+            </Style>
+            <Style TargetType="CheckBox">
+                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
         </Grid.Resources>
 
@@ -48,6 +51,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
                     <TextBlock Text="SimConnect" Grid.Row="1" Grid.Column="0" />
@@ -59,10 +64,15 @@
                         Grid.Row="2" Grid.Column="1" MaxLength="12" />
 
                     <TextBlock Text="Ident" Grid.Row="3" Grid.Column="0" />
-                    <CheckBox IsChecked="{Binding TransponderIdent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" />
+                    <CheckBox IsChecked="{Binding TransponderIdent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="3" Grid.Column="1" />
 
                     <Button x:Name="ButtonStartTrack" Content="Start Flight Tracking" Grid.Row="4" Grid.Column="1" Click="ButtonStartTrack_Click" />
                     <Button x:Name="ButtonStopTrack" Content="Stop Flight Tracking" Grid.Row="4" Grid.Column="1" Click="ButtonStopTrack_Click" Visibility="Collapsed" />
+
+                    <TextBlock Text="Switch Discord Channel" TextWrapping="Wrap" Width="80" Grid.Row="5" 
+                               Visibility="{Binding DiscordConnection, Converter={StaticResource NullToCollapsedConverter}}" />
+                    <CheckBox IsChecked="{Binding AutoSwitchChannel}" Grid.Row="5" Grid.Column="1"
+                              Visibility="{Binding DiscordConnection, Converter={StaticResource NullToCollapsedConverter}}"/>
                 </Grid>
             </TabItem>
 
@@ -94,13 +104,16 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <TextBlock Text="Connected as:" />
                         <TextBlock Text="{Binding DiscordConnection.DisplayName}" Grid.Row="0" Grid.Column="1" />
+                        
+                        <TextBlock Text="Switch Discord Channel" TextWrapping="Wrap" Width="80" Grid.Row="1" />
+                        <CheckBox IsChecked="{Binding AutoSwitchChannel}" Grid.Row="1" Grid.Column="1" />
 
-                        <Button x:Name="ButtonDiscordDisconnect" Content="Disconnect" Click="ButtonDiscordDisconnect_Click" Grid.Row="1" Grid.ColumnSpan="2" />
-
+                        <Button x:Name="ButtonDiscordDisconnect" Content="Disconnect" Click="ButtonDiscordDisconnect_Click" Grid.Row="2" Grid.ColumnSpan="2" />
                     </Grid>
                 </Grid>
             </TabItem>
@@ -123,7 +136,10 @@
                     <TextBlock Text="Callsign" Grid.Row="1" Grid.Column="0" />
                     <TextBlock Text="{Binding AtcCallsign}" Grid.Row="1" Grid.Column="1" />
 
-
+                    <TextBlock Text="Switch Discord Channel" TextWrapping="Wrap" Width="80" Grid.Row="2" 
+                               Visibility="{Binding DiscordConnection, Converter={StaticResource NullToCollapsedConverter}}" />
+                    <CheckBox IsChecked="{Binding AutoSwitchChannel}" Grid.Row="2" Grid.Column="1"
+                              Visibility="{Binding DiscordConnection, Converter={StaticResource NullToCollapsedConverter}}"/>
                 </Grid>
             </TabItem>
         </TabControl>

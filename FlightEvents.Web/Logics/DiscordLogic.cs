@@ -2,6 +2,7 @@
 using Discord.Rest;
 using FlightEvents.Data;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -26,6 +27,7 @@ namespace FlightEvents.Web.Logics
 
     public class DiscordLogic
     {
+        private readonly ILogger<DiscordLogic> logger;
         private readonly HttpClient httpClient;
         private readonly IConfiguration configuration;
 
@@ -34,8 +36,9 @@ namespace FlightEvents.Web.Logics
 
         private static readonly ConcurrentDictionary<string, (DateTimeOffset, RestSelfUser, Tokens)> pendingConnections = new ConcurrentDictionary<string, (DateTimeOffset, RestSelfUser, Tokens)>();
 
-        public DiscordLogic(HttpClient httpClient, IConfiguration configuration, IDiscordConnectionStorage discordConnectionStorage)
+        public DiscordLogic(ILogger<DiscordLogic> logger, HttpClient httpClient, IConfiguration configuration, IDiscordConnectionStorage discordConnectionStorage)
         {
+            this.logger = logger;
             this.httpClient = httpClient;
             this.configuration = configuration;
             this.discordConnectionStorage = discordConnectionStorage;
@@ -78,10 +81,18 @@ namespace FlightEvents.Web.Logics
 
                 ulong guildId = ulong.Parse(configuration["Discord:ServerId"]);
 
-                var botClient = new DiscordRestClient();
-                await botClient.LoginAsync(TokenType.Bot, configuration["Discord:BotToken"]);
-                var guild = await botClient.GetGuildAsync(guildId);
-                await guild.AddGuildUserAsync(discordClient.CurrentUser.Id, tokens.access_token);
+                try
+                {
+                    var botClient = new DiscordRestClient();
+                    await botClient.LoginAsync(TokenType.Bot, configuration["Discord:BotToken"]);
+                    var guild = await botClient.GetGuildAsync(guildId);
+                    await guild.AddGuildUserAsync(discordClient.CurrentUser.Id, tokens.access_token);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cannot add user {userId} {username}#{userDiscriminator} to server {guildId}!",
+                        user.Id, user.Username, user.Discriminator, guildId);
+                }
 
                 return connection;
             }
