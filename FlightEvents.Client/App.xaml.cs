@@ -6,8 +6,10 @@ using Microsoft.AppCenter.Analytics;
 using Microsoft.AppCenter.Crashes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -44,22 +46,10 @@ namespace FlightEvents.Client
             ConfigureServices(serviceCollection);
 
             ServiceProvider = serviceCollection.BuildServiceProvider();
-            try
-            {
-                mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
-                mainWindow.Loaded += MainWindow_Loaded;
-                mainWindow.Show();
-            }
-            catch (BadImageFormatException)
-            {
-                MessageBox.Show("SimConnect not found. This component is needed to connect to Flight Simulator.\n" +
-                    "Please download SimConnect from\n\nhttps://events-storage.flighttracker.tech/downloads/SimConnect.zip\n\n" +
-                    "follow the ReadMe.txt in the zip file and try to start again.\n\nThis program will now exit.",
-                    "Needed component is missing",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-                Shutdown(-1);
-            }
+
+            mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+            mainWindow.Loaded += MainWindow_Loaded;
+            mainWindow.Show();
         }
 
         private void ConfigureServices(ServiceCollection services)
@@ -101,7 +91,37 @@ namespace FlightEvents.Client
                 HandleSource.AddHook(simConnect.HandleSimConnectEvents);
 
                 var viewModel = ServiceProvider.GetService<MainViewModel>();
-                await InitializeSimConnectAsync(simConnect, viewModel).ConfigureAwait(true);
+
+                try
+                {
+                    await InitializeSimConnectAsync(simConnect, viewModel).ConfigureAwait(true);
+                }
+                catch (BadImageFormatException ex)
+                {
+                    ServiceProvider.GetService<ILogger<MainWindow>>().LogError(ex, "Cannot initialize SimConnect!");
+
+                    var result = MessageBox.Show(mainWindow, "SimConnect not found. This component is needed to connect to Flight Simulator.\n" +
+                        "Please download SimConnect from\n\nhttps://events-storage.flighttracker.tech/downloads/SimConnect.zip\n\n" +
+                        "follow the ReadMe.txt in the zip file and try to start again.\n\nThis program will now exit.\n\nDo you want to open the SimConnect link above?",
+                        "Needed component is missing",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Error);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        try
+                        {
+                            Process.Start(new ProcessStartInfo
+                            {
+                                FileName = "https://events-storage.flighttracker.tech/downloads/SimConnect.zip",
+                                UseShellExecute = true
+                            });
+                        }
+                        catch { }
+                    }
+
+                    Shutdown(-1);
+                }
             }
         }
 
