@@ -2,27 +2,51 @@ using Discord;
 using Discord.WebSocket;
 using FlightEvents.Data;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace FlightEvents.DiscordBot
 {
+    public class AppOptions
+    {
+        [Required]
+        public string WebServerUrl { get; set; }
+    }
+
+    public class DiscordOptions
+    {
+        [Required]
+        public string BotToken { get; set; }
+        [Required]
+        public ulong ServerId { get; set; }
+        [Required]
+        public ulong ChannelCategoryId { get; set; }
+        [Required]
+        public int ChannelBitrate { get; set; }
+    }
+
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> logger;
-        private readonly IConfiguration configuration;
+        private readonly AppOptions appOptions;
+        private readonly DiscordOptions discordOptions;
         private readonly IDiscordConnectionStorage discordConnectionStorage;
         private DiscordSocketClient botClient;
 
-        public Worker(ILogger<Worker> logger, IConfiguration configuration, IDiscordConnectionStorage discordConnectionStorage)
+        public Worker(ILogger<Worker> logger,
+            IOptionsMonitor<AppOptions> appOptionsAccessor,
+            IOptionsMonitor<DiscordOptions> discordOptionsAccessor,
+            IDiscordConnectionStorage discordConnectionStorage)
         {
             this.logger = logger;
-            this.configuration = configuration;
+            this.appOptions = appOptionsAccessor.CurrentValue;
+            this.discordOptions = discordOptionsAccessor.CurrentValue;
             this.discordConnectionStorage = discordConnectionStorage;
         }
 
@@ -30,7 +54,7 @@ namespace FlightEvents.DiscordBot
         {
             logger.LogInformation("Bot running at: {time}", DateTimeOffset.Now);
 
-            var webServerUrl = configuration["WebServerUrl"];
+            var webServerUrl = appOptions.WebServerUrl;
             logger.LogInformation("Connecting to server URL {serverUrl}", webServerUrl);
 
             var hub = new HubConnectionBuilder()
@@ -54,7 +78,7 @@ namespace FlightEvents.DiscordBot
             {
                 botClient = new DiscordSocketClient();
                 botClient.GuildAvailable += BotClient_GuildAvailable;
-                await botClient.LoginAsync(TokenType.Bot, configuration["Discord:BotToken"]);
+                await botClient.LoginAsync(TokenType.Bot, discordOptions.BotToken);
                 await botClient.StartAsync();
                 logger.LogInformation("Connected to Discord");
 
@@ -96,8 +120,8 @@ namespace FlightEvents.DiscordBot
             var connection = await discordConnectionStorage.GetConnectionAsync(clientId);
             if (connection == null) return;
 
-            ulong guildId = ulong.Parse(configuration["Discord:ServerId"]);
-            ulong channelCategoryId = ulong.Parse(configuration["Discord:ChannelCategoryId"]);
+            ulong guildId = discordOptions.ServerId;
+            ulong channelCategoryId = discordOptions.ChannelCategoryId;
 
             var channelName = (toFrequency / 1000d).ToString("N3");
 
@@ -110,7 +134,7 @@ namespace FlightEvents.DiscordBot
                 await guild.CreateVoiceChannelAsync(channelName, props =>
                 {
                     props.CategoryId = channelCategoryId;
-                    props.Bitrate = int.Parse(configuration["Discord:ChannelBitrate"]);
+                    props.Bitrate = discordOptions.ChannelBitrate;
                 });
 
                 logger.LogInformation("Created new channel {channelName}", channelName);

@@ -36,6 +36,10 @@ namespace FlightEvents.DiscordBot
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
+                    services.AddOptions<AppOptions>().Bind(hostContext.Configuration).ValidateDataAnnotations();
+                    services.AddOptions<DiscordOptions>().Bind(hostContext.Configuration.GetSection("Discord")).ValidateDataAnnotations();
+                    services.AddOptions<AzureTableOptions>().Bind(hostContext.Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();
+
                     services.AddTransient<IDiscordConnectionStorage, AzureTableDiscordConnectionStorage>();
                     services.AddHostedService<Worker>();
                 });

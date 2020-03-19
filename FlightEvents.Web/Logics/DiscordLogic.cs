@@ -1,11 +1,12 @@
 ﻿using Discord;
 using Discord.Rest;
 using FlightEvents.Data;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -13,6 +14,20 @@ using System.Threading.Tasks;
 
 namespace FlightEvents.Web.Logics
 {
+    public class DiscordOptions
+    {
+        [Required]
+        public string ClientId { get; set; }
+        [Required]
+        public string ClientSecret { get; set; }
+        [Required]
+        public string RedirectUri { get; set; }
+        [Required]
+        public ulong ServerId { get; set; }
+        [Required]
+        public string BotToken { get; set; }
+    }
+
     public class DiscordLoginResult
     {
         public DiscordLoginResult(IUser user, string confirmCode)
@@ -29,18 +44,18 @@ namespace FlightEvents.Web.Logics
     {
         private readonly ILogger<DiscordLogic> logger;
         private readonly HttpClient httpClient;
-        private readonly IConfiguration configuration;
+        private readonly DiscordOptions options;
 
         private readonly IDiscordConnectionStorage discordConnectionStorage;
         private static readonly Random random = new Random();
 
         private static readonly ConcurrentDictionary<string, (DateTimeOffset, RestSelfUser, Tokens)> pendingConnections = new ConcurrentDictionary<string, (DateTimeOffset, RestSelfUser, Tokens)>();
 
-        public DiscordLogic(ILogger<DiscordLogic> logger, HttpClient httpClient, IConfiguration configuration, IDiscordConnectionStorage discordConnectionStorage)
+        public DiscordLogic(ILogger<DiscordLogic> logger, HttpClient httpClient, IOptionsMonitor<DiscordOptions> optionsAccessor, IDiscordConnectionStorage discordConnectionStorage)
         {
             this.logger = logger;
             this.httpClient = httpClient;
-            this.configuration = configuration;
+            this.options = optionsAccessor.CurrentValue;
             this.discordConnectionStorage = discordConnectionStorage;
         }
 
@@ -48,9 +63,9 @@ namespace FlightEvents.Web.Logics
         {
             var response = await httpClient.PostAsync("https://discordapp.com/api/oauth2/token", new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["client_id"] = configuration["Discord:ClientId"],
-                ["client_secret"] = configuration["Discord:ClientSecret"],
-                ["redirect_uri"] = configuration["Discord:RedirectUri"],
+                ["client_id"] = options.ClientId,
+                ["client_secret"] = options.ClientSecret,
+                ["redirect_uri"] = options.RedirectUri,
                 ["grant_type"] = "authorization_code",
                 ["scope"] = "identify guilds.join",
                 ["code"] = authCode
@@ -79,12 +94,12 @@ namespace FlightEvents.Web.Logics
                 var discordClient = new DiscordRestClient();
                 await discordClient.LoginAsync(TokenType.Bearer, tokens.access_token);
 
-                ulong guildId = ulong.Parse(configuration["Discord:ServerId"]);
+                ulong guildId = options.ServerId;
 
                 try
                 {
                     var botClient = new DiscordRestClient();
-                    await botClient.LoginAsync(TokenType.Bot, configuration["Discord:BotToken"]);
+                    await botClient.LoginAsync(TokenType.Bot, options.BotToken);
                     var guild = await botClient.GetGuildAsync(guildId);
                     await guild.AddGuildUserAsync(discordClient.CurrentUser.Id, tokens.access_token);
                 }

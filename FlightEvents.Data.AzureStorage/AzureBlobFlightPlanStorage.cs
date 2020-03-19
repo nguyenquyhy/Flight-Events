@@ -1,21 +1,31 @@
 ﻿using Azure.Storage.Blobs;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace FlightEvents.Data
 {
+    public class AzureBlobOptions
+    {
+        [Required]
+        public string ConnectionString { get; set; }
+        [Required]
+        public string ContainerName { get; set; }
+        public string CustomDomain { get; set; }
+    }
+
     public class AzureBlobFlightPlanStorage : IFlightPlanStorage
     {
         private readonly BlobContainerClient containerClient;
         private readonly string customDomain;
         private readonly XmlSerializer serializer;
 
-        public AzureBlobFlightPlanStorage(IConfiguration configuration)
+        public AzureBlobFlightPlanStorage(IOptionsMonitor<AzureBlobOptions> options)
         {
-            var serviceClient = new BlobServiceClient(configuration["FlightPlan:AzureStorage:ConnectionString"]);
-            containerClient = serviceClient.GetBlobContainerClient(configuration["FlightPlan:AzureStorage:ContainerName"]);
-            customDomain = configuration["FlightPlan:AzureStorage:CustomDomain"];
+            var serviceClient = new BlobServiceClient(options.CurrentValue.ConnectionString);
+            containerClient = serviceClient.GetBlobContainerClient(options.CurrentValue.ContainerName);
+            customDomain = options.CurrentValue.CustomDomain;
             serializer = new XmlSerializer(typeof(FlightPlanDocumentXml));
         }
 

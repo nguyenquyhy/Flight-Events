@@ -61,8 +61,8 @@ namespace FlightEvents.Client
                 .WriteTo.File("flightevents.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3)
                 .CreateLogger();
 
-            services.AddOptions();
-            services.Configure<AppSettings>(Configuration);
+            services.AddOptions<AppSettings>().Bind(Configuration).ValidateDataAnnotations();
+
             services.AddLogging(configure =>
             {
                 configure.AddSerilog();

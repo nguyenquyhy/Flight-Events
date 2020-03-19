@@ -1,18 +1,27 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 namespace FlightEvents.Data
 {
+    public class AzureTableOptions
+    {
+        [Required]
+        public string ConnectionString { get; set; }
+        [Required]
+        public string DiscordConnectionTable { get; set; }
+    }
+
     public class AzureTableDiscordConnectionStorage : IDiscordConnectionStorage
     {
         private readonly CloudTable table;
 
-        public AzureTableDiscordConnectionStorage(IConfiguration configuration)
+        public AzureTableDiscordConnectionStorage(IOptionsMonitor<AzureTableOptions> options)
         {
-            var account = CloudStorageAccount.Parse(configuration["FlightPlan:AzureStorage:ConnectionString"]);
+            var account = CloudStorageAccount.Parse(options.CurrentValue.ConnectionString);
             var tableClient = account.CreateCloudTableClient();
-            table = tableClient.GetTableReference(configuration["FlightPlan:AzureStorage:DiscordConnectionTable"]);
+            table = tableClient.GetTableReference(options.CurrentValue.DiscordConnectionTable);
         }
 
         public async Task<DiscordConnection> GetConnectionAsync(string clientId)

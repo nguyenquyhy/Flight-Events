@@ -24,7 +24,7 @@ namespace FlightEvents.Client
         private readonly Random random = new Random();
 
         private readonly MainViewModel viewModel;
-        private readonly IOptions<AppSettings> appSettings;
+        private readonly AppSettings appSettings;
         private readonly ATCServer atcServer;
         private readonly UserPreferencesLoader userPreferencesLoader;
         private readonly VersionLogic versionLogic;
@@ -34,24 +34,27 @@ namespace FlightEvents.Client
 
         private AircraftData aircraftData;
 
-        public MainWindow(ILogger<MainWindow> logger, IFlightConnector flightConnector, MainViewModel viewModel, IOptions<AppSettings> appSettings,
+        public MainWindow(ILogger<MainWindow> logger, IFlightConnector flightConnector, MainViewModel viewModel, 
+            IOptionsMonitor<AppSettings> appSettings,
             ATCServer atcServer, UserPreferencesLoader userPreferencesLoader, VersionLogic versionLogic)
         {
             InitializeComponent();
+
             this.logger = logger;
             this.flightConnector = flightConnector;
             this.atcServer = atcServer;
             this.userPreferencesLoader = userPreferencesLoader;
             this.versionLogic = versionLogic;
             this.viewModel = viewModel;
-            this.appSettings = appSettings;
+            this.appSettings = appSettings.CurrentValue;
+
             flightConnector.AircraftDataUpdated += FlightConnector_AircraftDataUpdated;
             flightConnector.AircraftStatusUpdated += FlightConnector_AircraftStatusUpdated;
 
             DataContext = viewModel;
 
             hub = new HubConnectionBuilder()
-                .WithUrl(appSettings.Value.WebServerUrl + "/FlightEventHub")
+                .WithUrl(this.appSettings.WebServerUrl + "/FlightEventHub")
                 .WithAutomaticReconnect()
                 .AddMessagePackProtocol()
                 .Build();
@@ -64,7 +67,7 @@ namespace FlightEvents.Client
             hub.On<string>("RequestFlightPlanDetails", Hub_OnRequestFlightPlanDetails);
             hub.On<string, string, string>("SendMessage", Hub_OnMessageSent);
 
-            TextURL.Text = appSettings.Value.WebServerUrl;
+            TextURL.Text = this.appSettings.WebServerUrl;
 
             atcServer.FlightPlanRequested += AtcServer_FlightPlanRequested;
             atcServer.Connected += AtcServer_Connected;
@@ -109,7 +112,7 @@ namespace FlightEvents.Client
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync(appSettings.Value.WebServerUrl + "/Discord/Connection/" + pref.ClientId);
+                    var response = await httpClient.GetAsync(appSettings.WebServerUrl + "/Discord/Connection/" + pref.ClientId);
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -320,7 +323,7 @@ namespace FlightEvents.Client
                 await Task.Delay(500);
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = $"{appSettings.Value.WebServerUrl}/Discord/Connect",
+                    FileName = $"{appSettings.WebServerUrl}/Discord/Connect",
                     UseShellExecute = true
                 });
             }
@@ -344,7 +347,7 @@ namespace FlightEvents.Client
                 }
 
                 using var httpClient = new HttpClient();
-                var response = await httpClient.PostAsync($"{appSettings.Value.WebServerUrl}/discord/confirm?clientId={userPref.ClientId}&code={TextDiscordConfirm.Text}", null);
+                var response = await httpClient.PostAsync($"{appSettings.WebServerUrl}/discord/confirm?clientId={userPref.ClientId}&code={TextDiscordConfirm.Text}", null);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -378,7 +381,7 @@ namespace FlightEvents.Client
                     {
                         using (var httpClient = new HttpClient())
                         {
-                            await httpClient.DeleteAsync(appSettings.Value.WebServerUrl + "/Discord/Connection/" + userPref.ClientId);
+                            await httpClient.DeleteAsync(appSettings.WebServerUrl + "/Discord/Connection/" + userPref.ClientId);
                         }
                     }
                     viewModel.DiscordConnection = null;
