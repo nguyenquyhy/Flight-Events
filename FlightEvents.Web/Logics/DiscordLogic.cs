@@ -25,6 +25,8 @@ namespace FlightEvents.Web.Logics
         [Required]
         public ulong ServerId { get; set; }
         [Required]
+        public bool AddUserToServer { get; set; }
+        [Required]
         public string BotToken { get; set; }
     }
 
@@ -96,17 +98,20 @@ namespace FlightEvents.Web.Logics
 
                 ulong guildId = options.ServerId;
 
-                try
+                if (options.AddUserToServer)
                 {
-                    var botClient = new DiscordRestClient();
-                    await botClient.LoginAsync(TokenType.Bot, options.BotToken);
-                    var guild = await botClient.GetGuildAsync(guildId);
-                    await guild.AddGuildUserAsync(discordClient.CurrentUser.Id, tokens.access_token);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Cannot add user {userId} {username}#{userDiscriminator} to server {guildId}!",
-                        user.Id, user.Username, user.Discriminator, guildId);
+                    try
+                    {
+                        var botClient = new DiscordRestClient();
+                        await botClient.LoginAsync(TokenType.Bot, options.BotToken);
+                        var guild = await botClient.GetGuildAsync(guildId);
+                        await guild.AddGuildUserAsync(discordClient.CurrentUser.Id, tokens.access_token);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Cannot add user {userId} {username}#{userDiscriminator} to server {guildId}!",
+                            user.Id, user.Username, user.Discriminator, guildId);
+                    }
                 }
 
                 return connection;
