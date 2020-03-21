@@ -37,6 +37,7 @@ namespace FlightEvents.DiscordBot
         private readonly AppOptions appOptions;
         private readonly DiscordOptions discordOptions;
         private readonly IDiscordConnectionStorage discordConnectionStorage;
+        private readonly HubConnection hub;
         private DiscordSocketClient botClient;
 
         public Worker(ILogger<Worker> logger,
@@ -48,17 +49,9 @@ namespace FlightEvents.DiscordBot
             this.appOptions = appOptionsAccessor.CurrentValue;
             this.discordOptions = discordOptionsAccessor.CurrentValue;
             this.discordConnectionStorage = discordConnectionStorage;
-        }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            logger.LogInformation("Bot running at: {time}", DateTimeOffset.Now);
-
-            var webServerUrl = appOptions.WebServerUrl;
-            logger.LogInformation("Connecting to server URL {serverUrl}", webServerUrl);
-
-            var hub = new HubConnectionBuilder()
-                .WithUrl(webServerUrl + "/FlightEventHub")
+            this.hub = new HubConnectionBuilder()
+                .WithUrl(appOptions.WebServerUrl + "/FlightEventHub")
                 .WithAutomaticReconnect()
                 .Build();
 
@@ -70,7 +63,13 @@ namespace FlightEvents.DiscordBot
                 logger.LogDebug("Got ChangeFrequency message from {clientId} to change from {fromFrequency} to {toFrequency}", clientId, from, to);
                 await MoveVoiceChannelAsync(clientId, to);
             });
+        }
 
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            logger.LogInformation("Bot running at: {time}", DateTimeOffset.Now);
+
+            logger.LogInformation("Connecting to server URL {serverUrl}", appOptions.WebServerUrl);
             await hub.StartAsync();
             logger.LogInformation("Connected to SignalR server");
 
@@ -103,10 +102,12 @@ namespace FlightEvents.DiscordBot
             return Task.CompletedTask;
         }
 
-        private Task Hub_Reconnected(string arg)
+        private async Task Hub_Reconnected(string arg)
         {
             logger.LogInformation("Reconnected to SignalR");
-            return Task.CompletedTask;
+            
+            await hub.SendAsync("Join", "Bot");
+            logger.LogInformation("Joined Bot group");
         }
 
         private Task BotClient_GuildAvailable(SocketGuild guild)
