@@ -141,9 +141,10 @@ export default class MaptalksMap implements IMap {
         switch (type) {
             case MapTileType.OpenStreetMap:
                 this.map.setBaseLayer(new maptalks.TileLayer('openstreetmap', {
-                    urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' + MAPBOX_API_KEY,//{ accessToken }',
-                    maxZoom: 18,
-                    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                    urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    subdomains: ['a', 'b', 'c'],
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
                 }));
                 break;
             case MapTileType.OpenTopoMap:
