@@ -68,6 +68,7 @@ namespace FlightEvents.Client
             atcServer.FlightPlanRequested += AtcServer_FlightPlanRequested;
             atcServer.Connected += AtcServer_Connected;
             atcServer.MessageSent += AtcServer_MessageSent;
+            atcServer.AtcLoggedIn += AtcServer_AtcLoggedIn;
         }
 
         #region Interaction
@@ -275,7 +276,7 @@ namespace FlightEvents.Client
 
                     if (viewModel.TransponderIdent) viewModel.TransponderIdent = false;
 
-                    if (lastFreqencyCom1 != e.AircraftStatus.FreqencyCom1)
+                    if (lastFreqencyCom1 != e.AircraftStatus.FreqencyCom1 && viewModel.AtcCallsign == null)
                     {
                         var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
                         if (!string.IsNullOrEmpty(clientId))
@@ -404,6 +405,16 @@ namespace FlightEvents.Client
         private async void AtcServer_MessageSent(object sender, MessageSentEventArgs e)
         {
             await hub.SendAsync("SendMessage", viewModel.AtcCallsign, e.To, e.Message);
+        }
+
+        private async void AtcServer_AtcLoggedIn(object sender, AtcLoggedInEventArgs e)
+        {
+            var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
+
+            if (!string.IsNullOrEmpty(clientId))
+            {
+                await hub.SendAsync("ChangeFrequency", clientId, e.Frequency);
+            }
         }
 
         #endregion
