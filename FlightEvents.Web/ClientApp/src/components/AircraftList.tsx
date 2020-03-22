@@ -1,5 +1,5 @@
 ﻿import * as React from 'react';
-import { UncontrolledTooltip } from 'reactstrap';
+import { UncontrolledTooltip, Button, Modal, ModalHeader, ModalBody } from 'reactstrap';
 import styled from 'styled-components';
 import { AircraftStatus } from '../Models';
 import Panel from './Controls/Panel';
@@ -61,11 +61,12 @@ export default class AircraftList extends React.Component<Props> {
                     </td>
                     <td><Checkbox type="checkbox" checked={this.props.myConnectionId === connectionId} onChange={() => this.handleMeChanged(connectionId)} /></td>
                     <td><Checkbox type="checkbox" checked={this.props.followingConnectionId === connectionId} onChange={() => this.handleFollowChanged(connectionId)} /></td>
-                    <td><Checkbox type="checkbox" checked={this.props.moreInfoConnectionIds.includes(connectionId)} onChange = {() => this.handleMoreInfoChanged(connectionId)} /></td>
+                    <td><Checkbox type="checkbox" checked={this.props.moreInfoConnectionIds.includes(connectionId)} onChange={() => this.handleMoreInfoChanged(connectionId)} /></td>
                 </ListItem>
             ));
 
         return <Wrapper>
+            <Join />
             <List>
                 <thead>
                     <tr>
@@ -89,6 +90,49 @@ export default class AircraftList extends React.Component<Props> {
                 </tbody>
             </List>
         </Wrapper>
+    }
+}
+
+interface JoinState {
+    modal: boolean;
+}
+
+class Join extends React.Component<any, JoinState> {
+    constructor(props: any) {
+        super(props);
+
+        this.state = {
+            modal: false
+        }
+
+        this.toggle = this.toggle.bind(this);
+    }
+
+    toggle() {
+        this.setState({
+            modal: !this.state.modal
+        });
+    }
+
+    public render() {
+        return <>
+            <Button color="primary" onClick={this.toggle} style={{ width: '100%' }}>Join</Button>
+            <Modal isOpen={this.state.modal} toggle={this.toggle}>
+                <ModalHeader toggle={this.toggle}>Flight Events Client</ModalHeader>
+                <ModalBody>
+                    <p>In order to connect your flight simulator to this map, you have to run a small client software on your computer.</p>
+
+                    <a className="btn btn-primary" href="https://events-storage.flighttracker.tech/downloads/FlightEvents.Client.zip" target="_blank">Download Client</a>
+
+                    <hr />
+                    <p>When you start the client, it might also ask you to install the following prerequisites:</p>
+                    <ul>
+                        <li><a href="https://dotnet.microsoft.com/download/dotnet-core/thank-you/runtime-desktop-3.1.2-windows-x86-installer" target="_blank">.NET Core Windows Runtime (x86)</a></li>
+                        <li><a href="https://events-storage.flighttracker.tech/downloads/SimConnect.zip" target="_blank">SimConnect</a></li>
+                    </ul>
+                </ModalBody>
+            </Modal>
+        </>
     }
 }
 
