@@ -7,7 +7,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>icon.ico</ApplicationIcon>
-    <Version>1.2.2</Version>
+    <Version>1.3.0</Version>
     <Authors>Nguyen Quy Hy</Authors>
     <Product>Client for Flight Events</Product>
     <PackageProjectUrl>https://github.com/nguyenquyhy/Flight-Events</PackageProjectUrl>
@@ -48,6 +48,9 @@
 
   <ItemGroup>
     <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="FlightEvents.Client.exe.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="icon.png">

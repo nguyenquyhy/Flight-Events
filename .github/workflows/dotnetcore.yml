@@ -65,6 +65,7 @@ jobs:
       - name: Copy extra content
         run: |
           copy FlightEvents.Client/appsettings.Release.json publish-client/appsettings.json
+          copy FlightEvents.Client/FlightEvents.Client.exe.config publish-client/FlightEvents.Client.exe.config
           copy FlightEvents.Client/README.txt publish-client/README.txt
           dir publish-client
       - name: Collect build artifact
