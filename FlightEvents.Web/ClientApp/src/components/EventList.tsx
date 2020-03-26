@@ -4,6 +4,8 @@ import Panel from './Controls/Panel';
 import { FlightEvent, Airport, FlightPlan } from '../Models';
 import EventItem from './EventItem';
 import Api from '../Api';
+import parseJSON from 'date-fns/parseJSON';
+import compareDesc from 'date-fns/compareDesc';
 
 interface Props {
     onAirportsLoaded: (airports: Airport[]) => void;
@@ -38,7 +40,9 @@ export default class EventList extends React.Component<Props, State> {
     public render() {
         const list = this.state.flightEvents.length === 0 ?
             <NoneText>None</NoneText> :
-            this.state.flightEvents.map(flightEvent => <EventItem key={flightEvent.id} flightEvent={flightEvent} onAirportsLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />)
+            this.state.flightEvents
+                .sort((a, b) => compareDesc(parseJSON(a.startDateTime), parseJSON(b.startDateTime)))
+                .map(flightEvent => <EventItem key={flightEvent.id} flightEvent={flightEvent} onAirportsLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />)
 
         return <Wrapper>
             <Title>Events</Title>

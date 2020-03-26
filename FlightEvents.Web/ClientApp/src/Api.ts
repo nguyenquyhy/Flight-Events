@@ -6,6 +6,7 @@ class Api {
     flightEvents {
         id
         name
+        startDateTime
     }
 }`;
         const data = await this.graphQLQueryAsync(query);

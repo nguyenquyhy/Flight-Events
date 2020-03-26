@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { FlightEvent, Airport, FlightPlan } from '../Models';
 import Api from '../Api';
-import parseISO from 'date-fns/parseISO';
+import parseJSON from 'date-fns/parseJSON';
 import ReactMarkdown from 'react-markdown';
 
 interface Props {
@@ -68,7 +68,7 @@ export default class EventModal extends React.Component<Props, State> {
     public render() {
         const details = this.state.flightEvent ?
             <>
-                <div><StyledTime>{parseISO(this.state.flightEvent.startDateTime).toLocaleString()}</StyledTime></div>
+                <div><StyledTime>{parseJSON(this.state.flightEvent.startDateTime).toLocaleString()}</StyledTime></div>
                 <div><ReactMarkdown>{this.state.flightEvent.description}</ReactMarkdown></div>
                 {!!this.state.flightEvent.url && <div>URL: <a href={this.state.flightEvent.url} target="_blank" rel="noopener noreferrer">{this.state.flightEvent.url}</a></div>}
 
