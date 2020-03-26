@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@craco/craco": "^5.6.4",
     "@microsoft/signalr": "^3.1.2",
     "@microsoft/signalr-protocol-msgpack": "^3.1.2",
     "babel-eslint": "10.0.3",
     "bootstrap": "^4.4.1",
+    "craco-workbox": "^0.1.0",
     "date-fns": "^2.10.0",
     "jquery": "^3.4.1",
     "leaflet": "^1.6.0",
@@ -41,9 +43,9 @@
     "extends": "react-app"
   },
   "scripts": {
-    "start": "rimraf ./build && react-scripts start",
-    "build": "react-scripts build",
-    "test": "cross-env CI=true react-scripts test --env=jsdom",
+    "start": "rimraf ./build && craco start",
+    "build": "craco build",
+    "test": "cross-env CI=true craco test --env=jsdom",
     "eject": "react-scripts eject",
     "lint": "eslint ./src/"
   },
