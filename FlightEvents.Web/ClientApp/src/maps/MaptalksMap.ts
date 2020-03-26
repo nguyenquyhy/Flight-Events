@@ -1,7 +1,6 @@
-﻿import { IMap, MapTileType } from './IMap';
+﻿import { IMap, MapTileType, OnViewChangedFn, View } from './IMap';
 import * as maptalks from 'maptalks';
 import { AircraftStatus, Airport, FlightPlan } from '../Models';
-import { MAPBOX_API_KEY } from '../Constants';
 
 interface Markers {
     aircraft: Sector
@@ -25,6 +24,7 @@ interface Map {
     setBaseLayer: (layer: any) => void;
     remove: () => void;
     on: (events: string, handler: () => void) => void;
+    getCenter: () => Coordinate;
     setCenter: (coordinate: Coordinate) => void;
     getZoom: () => number;
     setZoom: (zoom: number) => void;
@@ -79,6 +79,8 @@ export default class MaptalksMap implements IMap {
     map: Map | undefined;
     markers: { [connectionId: string]: Markers } = {};
 
+    onViewChangedHandler: OnViewChangedFn | null = null;
+
     visibleCircle: Circle = new maptalks.Circle([0, 0], 3048, {
         symbol: {
             lineColor: '#000000',
@@ -100,14 +102,21 @@ export default class MaptalksMap implements IMap {
         }
     });
 
-    initialize(divId: string) {
-        const map = new maptalks.Map(divId, {
-            center: [-0.09, 51.505],
-            zoom: 13,
+    initialize(divId: string, view?: View) {
+        const map: Map = new maptalks.Map(divId, {
+            center: view ? [view.longitude, view.latitude] : [-0.09, 51.505],
+            zoom: view ? view.zoom : 13,
             pitch: 30
         });
 
         map.on('zoomend', () => this.handleZoom());
+        map.on('moveend', () => {
+            const zoom = map.getZoom();
+            const center = map.getCenter();
+            if (this.onViewChangedHandler) {
+                this.onViewChangedHandler({ latitude: center.y, longitude: center.x, zoom: zoom });
+            }
+        });
 
         const aircraftLayer = new maptalks.VectorLayer('aircraft', {
             enableAltitude: true,
@@ -130,6 +139,7 @@ export default class MaptalksMap implements IMap {
     }
 
     deinitialize() {
+        this.onViewChangedHandler = null;
         if (this.map) {
             this.map.remove();
         }
@@ -403,6 +413,10 @@ export default class MaptalksMap implements IMap {
 
     removeRangeCircle() {
         this.visibleCircle.hide();
+    }
+
+    public onViewChanged(handler: OnViewChangedFn) {
+        this.onViewChangedHandler = handler;
     }
 
     private fitExtent(c1: Coordinate, c2: Coordinate) {

@@ -1,7 +1,6 @@
-﻿import { IMap, MapTileType } from './IMap';
+﻿import { IMap, MapTileType, OnViewChangedFn, View } from './IMap';
 import * as L from 'leaflet';
 import 'leaflet-rotatedmarker';
-import { MAPBOX_API_KEY } from '../Constants';
 import { AircraftStatus, Airport, FlightPlan } from '../Models';
 
 
@@ -22,8 +21,17 @@ export default class LeafletMap implements IMap {
 
     circleMarker: L.Circle;
 
-    public initialize(divId: string) {
-        this.mymap = L.map(divId).setView([51.505, -0.09], 13);
+    onViewChangedHandler: OnViewChangedFn | null = null;
+
+    public initialize(divId: string, view?: View) {
+        this.mymap = L.map(divId).setView(view ? [view.latitude, view.longitude] : [51.505, -0.09], view ? view.zoom : 13);
+        this.mymap.on('moveend', (e) => {
+            const zoom = this.mymap.getZoom();
+            const center = this.mymap.getCenter();
+            if (this.onViewChangedHandler) {
+                this.onViewChangedHandler({ latitude: center.lat, longitude: center.lng, zoom: zoom });
+            }
+        });
 
         this.baseLayerGroup = L.layerGroup().addTo(this.mymap);
         this.airportLayerGroup = L.layerGroup().addTo(this.mymap);
@@ -33,6 +41,7 @@ export default class LeafletMap implements IMap {
     }
 
     public deinitialize() {
+        this.onViewChangedHandler = null;
         this.mymap.remove();
     }
 
@@ -268,5 +277,9 @@ export default class LeafletMap implements IMap {
             this.circleMarker.removeFrom(this.mymap);
             this.circleMarker = null;
         }
+    }
+
+    public onViewChanged(handler: OnViewChangedFn) {
+        this.onViewChangedHandler = handler;
     }
 }

@@ -1,7 +1,7 @@
 ﻿import { AircraftStatus, Airport, FlightPlan } from '../Models';
 
 export interface IMap {
-    initialize(divId: string)
+    initialize(divId: string, view?: View)
     deinitialize();
     moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isMoreInfo: boolean)
     drawAirports(airports: Airport[])
@@ -11,6 +11,16 @@ export interface IMap {
     addRangeCircle()
     removeRangeCircle()
     setTileLayer(type: MapTileType)
+
+    onViewChanged(handler: OnViewChangedFn);
+}
+
+export type OnViewChangedFn = (view: View) => void;
+
+export interface View {
+    latitude: number
+    longitude: number
+    zoom: number
 }
 
 export enum MapTileType {

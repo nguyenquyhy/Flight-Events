@@ -7,7 +7,7 @@ import * as protocol from '@microsoft/signalr-protocol-msgpack';
 import { AircraftStatus, Airport, FlightPlan } from '../Models';
 import AircraftList from './AircraftList';
 import EventList from './EventList';
-import { IMap, MapTileType } from '../maps/IMap';
+import { IMap, MapTileType, View } from '../maps/IMap';
 import LeafletMap from '../maps/LeaftletMap';
 import MaptalksMap from '../maps/MaptalksMap';
 
@@ -24,7 +24,8 @@ interface State {
 export class Home extends React.Component<any, State> {
     static displayName = Home.name;
 
-    private map: IMap = new LeafletMap();
+    private map: IMap;
+    private currentView?: View;
 
     private aircrafts: { [connectionId: string]: { aircraftStatus: AircraftStatus, lastUpdated: Date } } = {};
 
@@ -39,6 +40,11 @@ export class Home extends React.Component<any, State> {
             map3D: false,
             mapTileType: MapTileType.OpenStreetMap,
         }
+
+        this.map = new LeafletMap();
+        this.map.onViewChanged(view => {
+            this.currentView = view;
+        });
 
         this.handleAircraftClick = this.handleAircraftClick.bind(this);
 
@@ -101,7 +107,7 @@ export class Home extends React.Component<any, State> {
     }
 
     private initializeMap() {
-        this.map.initialize('mapid');
+        this.map.initialize('mapid', this.currentView);
         this.map.setTileLayer(this.state.mapTileType);
     }
 
@@ -146,8 +152,11 @@ export class Home extends React.Component<any, State> {
             map3D: false
         });
 
-        this.map.deinitialize();
+        this.map?.deinitialize();
         this.map = new LeafletMap();
+        this.map.onViewChanged(view => {
+            this.currentView = view;
+        });
         this.initializeMap();
     }
 
@@ -156,8 +165,11 @@ export class Home extends React.Component<any, State> {
             map3D: true
         });
 
-        this.map.deinitialize();
+        this.map?.deinitialize();
         this.map = new MaptalksMap();
+        this.map.onViewChanged(view => {
+            this.currentView = view;
+        });
         this.initializeMap();
     }
 
