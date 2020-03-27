@@ -10,6 +10,7 @@
         // a route with query params (e.g. auth callbacks).
         new RegExp('/[^/?]+\\.[^/]+$'),
         new RegExp('^/graphql'),
+        new RegExp('^/Error'),
     ]
     return options;
 };
