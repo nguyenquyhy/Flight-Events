@@ -11,6 +11,7 @@
         new RegExp('/[^/?]+\\.[^/]+$'),
         new RegExp('^/graphql'),
         new RegExp('^/Error'),
+        new RegExp('^/Discord'),
     ]
     return options;
 };
