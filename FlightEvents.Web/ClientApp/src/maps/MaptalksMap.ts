@@ -1,6 +1,6 @@
 ﻿import { IMap, MapTileType, OnViewChangedFn, View } from './IMap';
 import * as maptalks from 'maptalks';
-import { AircraftStatus, Airport, FlightPlan } from '../Models';
+import { AircraftStatus, Airport, FlightPlanData } from '../Models';
 
 interface Markers {
     aircraft: Sector
@@ -343,7 +343,7 @@ export default class MaptalksMap implements IMap {
         }
     }
 
-    drawFlightPlans(flightPlans: FlightPlan[]) {
+    drawFlightPlans(flightPlans: FlightPlanData[]) {
         if (this.map) {
             this.flightPlanLayer.clear();
 
@@ -351,12 +351,12 @@ export default class MaptalksMap implements IMap {
             const colors = ['red', 'blue'];
 
             for (var flightPlan of flightPlans) {
-                const latlngs = flightPlan.data.waypoints.reduce((prev: Coordinate[], curr) =>
+                const latlngs = flightPlan.waypoints.reduce((prev: Coordinate[], curr) =>
                     prev.concat(new maptalks.Coordinate([curr.longitude, curr.latitude])),
                     [])
 
-                const altitudes = flightPlan.data.waypoints.reduce((prev: number[], curr, index) =>
-                    prev.concat(index === 0 || index === flightPlan.data.waypoints.length - 1 ? 0 : flightPlan.data.cruisingAltitude * MaptalksMap.FEET_TO_METER),
+                const altitudes = flightPlan.waypoints.reduce((prev: number[], curr, index) =>
+                    prev.concat(index === 0 || index === flightPlan.waypoints.length - 1 ? 0 : flightPlan.cruisingAltitude * MaptalksMap.FEET_TO_METER),
                     [])
 
                 new maptalks.LineString(latlngs, {
@@ -369,8 +369,8 @@ export default class MaptalksMap implements IMap {
                     }
                 }).addTo(this.flightPlanLayer);
 
-                for (let i = 0; i < flightPlan.data.waypoints.length; i++) {
-                    const waypoint = flightPlan.data.waypoints[i];
+                for (let i = 0; i < flightPlan.waypoints.length; i++) {
+                    const waypoint = flightPlan.waypoints[i];
                     new maptalks.Marker(new maptalks.Coordinate([waypoint.longitude, waypoint.latitude]), {
                         properties: {
                             name: waypoint.id,

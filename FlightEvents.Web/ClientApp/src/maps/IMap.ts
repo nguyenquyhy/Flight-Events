@@ -1,11 +1,11 @@
-﻿import { AircraftStatus, Airport, FlightPlan } from '../Models';
+﻿import { AircraftStatus, Airport, FlightPlanData } from '../Models';
 
 export interface IMap {
     initialize(divId: string, view?: View)
     deinitialize();
     moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isMoreInfo: boolean)
     drawAirports(airports: Airport[])
-    drawFlightPlans(flightPlans: FlightPlan[])
+    drawFlightPlans(flightPlans: FlightPlanData[])
     focusAircraft(aircraftStatus: AircraftStatus)
     cleanUp(connectionId: string, isMe: boolean)
     addRangeCircle()

@@ -45,7 +45,6 @@ namespace FlightEvents.Client
 
             flightConnector.AircraftDataUpdated += FlightConnector_AircraftDataUpdated;
             flightConnector.AircraftStatusUpdated += FlightConnector_AircraftStatusUpdated;
-            flightConnector.FlightPlanUpdated += FlightConnector_FlightPlanUpdated;
 
             DataContext = viewModel;
 
@@ -60,6 +59,7 @@ namespace FlightEvents.Client
             hub.Reconnected += Hub_Reconnected;
 
             hub.On<string, string>("RequestFlightPlan", Hub_OnRequestFlightPlan);
+            hub.On<string>("RequestFlightPlanDetails", Hub_OnRequestFlightPlanDetails);
             hub.On<string, string, string>("SendMessage", Hub_OnMessageSent);
 
             TextURL.Text = appSettings.Value.WebServerUrl;
@@ -198,12 +198,29 @@ namespace FlightEvents.Client
             return Task.CompletedTask;
         }
 
-        private void Hub_OnRequestFlightPlan(string atcConnectionId, string callsign)
+        /// <summary>
+        /// Flight plan is requested from a broadcast by ATC client
+        /// </summary>
+        private async void Hub_OnRequestFlightPlan(string atcConnectionId, string callsign)
         {
             if (viewModel.Callsign == callsign)
             {
-                flightConnector.RequestFlightPlan(atcConnectionId);
+                var data = await flightConnector.RequestFlightPlanAsync();
+                if (data != null)
+                {
+                    var flightPlan = new FlightPlanCompact(data, viewModel.Callsign, aircraftData.Model, (int)aircraftData.EstimatedCruiseSpeed);
+                    await hub.SendAsync("ReturnFlightPlan", hub.ConnectionId, flightPlan, new string[] { atcConnectionId });
+                }
             }
+        }
+
+        /// <summary>
+        /// Flight plan is requested from web client
+        /// </summary>
+        private async void Hub_OnRequestFlightPlanDetails(string webConnectionId)
+        {
+            var data = await flightConnector.RequestFlightPlanAsync();
+            await hub.SendAsync("ReturnFlightPlanDetails", hub.ConnectionId, data, webConnectionId);
         }
 
         private void Hub_OnMessageSent(string from, string toRaw, string message)
@@ -261,12 +278,6 @@ namespace FlightEvents.Client
             }
         }
 
-        private async void FlightConnector_FlightPlanUpdated(object sender, FlightPlanUpdatedEventArgs e)
-        {
-            var flightPlan = new FlightPlanCompact(e.FlightPlan, viewModel.Callsign, aircraftData.Model, (int)aircraftData.EstimatedCruiseSpeed);
-            await hub.SendAsync("ReturnFlightPlan", hub.ConnectionId, flightPlan, e.AtcConnectionIds);
-        }
-
         #endregion
 
         #region ATC
@@ -275,6 +286,7 @@ namespace FlightEvents.Client
         {
             viewModel.AtcCallsign = e.Callsign;
 
+            // ATC specific events
             hub.On<string, AircraftStatus>("UpdateAircraft", async (connectionId, aircraftStatus) =>
             {
                 await atcServer.SendPositionAsync(aircraftStatus.Callsign, aircraftStatus.Transponder,

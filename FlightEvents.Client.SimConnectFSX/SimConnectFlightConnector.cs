@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.FlightSimulator.SimConnect;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -17,7 +16,7 @@ namespace FlightEvents.Client.SimConnectFSX
         public event EventHandler<AircraftStatusUpdatedEventArgs> AircraftStatusUpdated;
         public event EventHandler<FlightPlanUpdatedEventArgs> FlightPlanUpdated;
 
-        private List<string> atcConnectionIds = new List<string>();
+        private TaskCompletionSource<FlightPlanData> requestFlightPlanTcs = null;
 
         private const int StatusDelayMilliseconds = 500;
 
@@ -416,16 +415,19 @@ namespace FlightEvents.Client.SimConnectFSX
                                     }
                                 }
 
-                                var connectionIds = atcConnectionIds;
-                                atcConnectionIds = new List<string>();
-                                if (connectionIds != null && connectionIds.Count > 0)
-                                {
-                                    FlightPlanUpdated?.Invoke(this, new FlightPlanUpdatedEventArgs(flightPlan.FlightPlan.ToData(), connectionIds));
-                                }
+                                var flightPlanData = flightPlan.FlightPlan.ToData();
+                                FlightPlanUpdated?.Invoke(this, new FlightPlanUpdatedEventArgs(flightPlanData));
+
+                                requestFlightPlanTcs?.TrySetResult(flightPlanData);
+                                requestFlightPlanTcs = null;
                             }
                             else
                             {
                                 logger.LogWarning($"{planName} does not exist!");
+
+                                FlightPlanUpdated?.Invoke(this, new FlightPlanUpdatedEventArgs(null));
+                                requestFlightPlanTcs?.TrySetResult(null);
+                                requestFlightPlanTcs = null;
                             }
                         }
                     }
@@ -482,10 +484,13 @@ namespace FlightEvents.Client.SimConnectFSX
             //}
         }
 
-        public void RequestFlightPlan(string connectionId)
+        public Task<FlightPlanData> RequestFlightPlanAsync()
         {
-            atcConnectionIds.Add(connectionId);
+            if (requestFlightPlanTcs != null) return requestFlightPlanTcs.Task;
+
+            requestFlightPlanTcs = new TaskCompletionSource<FlightPlanData>();
             simconnect.RequestDataOnSimObjectType(DATA_REQUESTS.AIRCRAFT_DATA, DEFINITIONS.AircraftData, 0, SIMCONNECT_SIMOBJECT_TYPE.USER);
+            return requestFlightPlanTcs.Task;
         }
     }
 }

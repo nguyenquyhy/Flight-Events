@@ -1,7 +1,7 @@
 ﻿import { IMap, MapTileType, OnViewChangedFn, View } from './IMap';
 import * as L from 'leaflet';
 import 'leaflet-rotatedmarker';
-import { AircraftStatus, Airport, FlightPlan } from '../Models';
+import { AircraftStatus, Airport, FlightPlanData } from '../Models';
 
 
 interface Markers {
@@ -206,7 +206,7 @@ export default class LeafletMap implements IMap {
         }
     }
 
-    public drawFlightPlans(flightPlans: FlightPlan[]) {
+    public drawFlightPlans(flightPlans: FlightPlanData[]) {
         if (this.mymap) {
             this.flightPlanLayerGroup.clearLayers();
 
@@ -214,14 +214,14 @@ export default class LeafletMap implements IMap {
             const colors = ['red', 'blue'];
 
             for (var flightPlan of flightPlans) {
-                const latlngs = flightPlan.data.waypoints.reduce((prev: L.LatLngTuple[], curr) =>
+                const latlngs = flightPlan.waypoints.reduce((prev: L.LatLngTuple[], curr) =>
                     prev.concat([[curr.latitude, curr.longitude]]),
                     [])
 
                 const polyline = L.polyline(latlngs, { color: colors[(index++ % colors.length)] });
                 this.flightPlanLayerGroup.addLayer(polyline);
 
-                for (let waypoint of flightPlan.data.waypoints) {
+                for (let waypoint of flightPlan.waypoints) {
                     const marker = L.marker([waypoint.latitude, waypoint.longitude], {
                         title: waypoint.id,
                         icon: L.divIcon({

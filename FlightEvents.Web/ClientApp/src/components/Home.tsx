@@ -4,7 +4,7 @@ import { ButtonGroup, Button } from 'reactstrap';
 import * as signalr from '@microsoft/signalr';
 import 'msgpack5';
 import * as protocol from '@microsoft/signalr-protocol-msgpack';
-import { AircraftStatus, Airport, FlightPlan } from '../Models';
+import { AircraftStatus, Airport, FlightPlan, FlightPlanData } from '../Models';
 import AircraftList from './AircraftList';
 import EventList from './EventList';
 import { IMap, MapTileType, View } from '../maps/IMap';
@@ -25,6 +25,7 @@ interface State {
 export class Home extends React.Component<any, State> {
     static displayName = Home.name;
 
+    private hub: signalr.HubConnection;
     private map: IMap;
     private currentView?: View;
 
@@ -47,6 +48,12 @@ export class Home extends React.Component<any, State> {
         this.map.onViewChanged(view => {
             this.currentView = view;
         });
+
+        this.hub = new signalr.HubConnectionBuilder()
+            .withUrl('/FlightEventHub')
+            .withAutomaticReconnect()
+            //.withHubProtocol(new protocol.MessagePackHubProtocol())
+            .build();
 
         this.handleAircraftClick = this.handleAircraftClick.bind(this);
 
@@ -72,11 +79,7 @@ export class Home extends React.Component<any, State> {
     async componentDidMount() {
         this.initializeMap();
 
-        let hub = new signalr.HubConnectionBuilder()
-            .withUrl('/FlightEventHub')
-            .withAutomaticReconnect()
-            //.withHubProtocol(new protocol.MessagePackHubProtocol())
-            .build();
+        const hub = this.hub;
 
         hub.onreconnected(async connectionId => {
             console.log('Connected to SignalR with connection ID ' + connectionId);
@@ -103,6 +106,12 @@ export class Home extends React.Component<any, State> {
                 console.error(e);
             }
         });
+
+        hub.on("ReturnFlightPlanDetails", (connectionId, flightPlan: FlightPlanData | null) => {
+            if (flightPlan) {
+                this.map.drawFlightPlans([flightPlan]);
+            }
+        })
 
         await hub.start();
 
@@ -238,9 +247,11 @@ export class Home extends React.Component<any, State> {
     private handleFlightPlanChanged(connectionId: string | null) {
         this.setState({ flightPlanConnectionId: connectionId }, () => {
             if (connectionId == null) {
-                // TODO: Hide plan
+                // Clear map
+                this.map.drawFlightPlans([]);
             } else {
                 // Request plan
+                this.hub.send('RequestFlightPlanDetails', connectionId);
             }
         });
     }
@@ -250,7 +261,7 @@ export class Home extends React.Component<any, State> {
     }
 
     public handleFlightPlansLoaded(flightPlans: FlightPlan[]) {
-        this.map.drawFlightPlans(flightPlans);
+        this.map.drawFlightPlans(flightPlans.map(o => o.data));
     }
 
     render() {

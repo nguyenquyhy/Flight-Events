@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace FlightEvents.Client.Logics
 {
@@ -8,7 +9,7 @@ namespace FlightEvents.Client.Logics
         event EventHandler<AircraftStatusUpdatedEventArgs> AircraftStatusUpdated;
         event EventHandler<FlightPlanUpdatedEventArgs> FlightPlanUpdated;
 
-        void RequestFlightPlan(string atcConnectionId);
+        Task<FlightPlanData> RequestFlightPlanAsync();
         void Send(string message);
     }
 }

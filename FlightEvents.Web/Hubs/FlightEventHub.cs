@@ -27,6 +27,16 @@ namespace FlightEvents.Web.Hubs
             await Clients.Clients(atcConnectionIds).SendAsync("ReturnFlightPlan", connectionId, flightPlan);
         }
 
+        public async Task RequestFlightPlanDetails(string connectionId)
+        {
+            await Clients.Clients(connectionId).SendAsync("RequestFlightPlanDetails", Context.ConnectionId);
+        }
+
+        public async Task ReturnFlightPlanDetails(string connectionId, FlightPlanData flightPlan, string webConnectionId)
+        {
+            await Clients.Clients(webConnectionId).SendAsync("ReturnFlightPlanDetails", connectionId, flightPlan);
+        }
+
         public async Task SendMessage(string from, string to, string message)
         {
             await Clients.All.SendAsync("SendMessage", from, to, message);
