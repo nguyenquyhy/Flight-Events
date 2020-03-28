@@ -16,6 +16,7 @@ interface State {
     myConnectionId: string | null;
     followingConnectionId: string | null;
     moreInfoConnectionIds: string[];
+    flightPlanConnectionId: string | null;
 
     map3D: boolean;
     mapTileType: MapTileType;
@@ -37,6 +38,7 @@ export class Home extends React.Component<any, State> {
             myConnectionId: null,
             followingConnectionId: null,
             moreInfoConnectionIds: [],
+            flightPlanConnectionId: null,
             map3D: false,
             mapTileType: MapTileType.OpenStreetMap,
         }
@@ -56,10 +58,13 @@ export class Home extends React.Component<any, State> {
         this.handleEsriWorldImagery = this.handleEsriWorldImagery.bind(this);
         this.handleEsriTopo = this.handleEsriTopo.bind(this);
         this.handleUsVfrSectional = this.handleUsVfrSectional.bind(this);
+
         this.handleMeChanged = this.handleMeChanged.bind(this);
         this.handleFollowingChanged = this.handleFollowingChanged.bind(this);
-        this.handleAirportsLoaded = this.handleAirportsLoaded.bind(this);
         this.handleMoreInfoChanged = this.handleMoreInfoChanged.bind(this);
+        this.handleFlightPlanChanged = this.handleFlightPlanChanged.bind(this);
+
+        this.handleAirportsLoaded = this.handleAirportsLoaded.bind(this);
         this.handleFlightPlansLoaded = this.handleFlightPlansLoaded.bind(this);
         this.cleanUp = this.cleanUp.bind(this);
     }
@@ -141,9 +146,9 @@ export class Home extends React.Component<any, State> {
         }
     }
 
-    private handleAircraftClick(connectionId: string, aircraftStatus: AircraftStatus) {
+    private handleAircraftClick(connectionId: string) {
         if (this.map) {
-            this.map.focusAircraft(aircraftStatus);
+            this.map.focusAircraft(this.aircrafts[connectionId].aircraftStatus);
         }
     }
 
@@ -230,6 +235,16 @@ export class Home extends React.Component<any, State> {
         }
     }
 
+    private handleFlightPlanChanged(connectionId: string | null) {
+        this.setState({ flightPlanConnectionId: connectionId }, () => {
+            if (connectionId == null) {
+                // TODO: Hide plan
+            } else {
+                // Request plan
+            }
+        });
+    }
+
     public handleAirportsLoaded(airports: Airport[]) {
         this.map.drawAirports(airports);
     }
@@ -258,6 +273,7 @@ export class Home extends React.Component<any, State> {
                 onMeChanged={this.handleMeChanged} myConnectionId={this.state.myConnectionId}
                 onFollowingChanged={this.handleFollowingChanged} followingConnectionId={this.state.followingConnectionId}
                 onMoreInfoChanged={this.handleMoreInfoChanged} moreInfoConnectionIds={this.state.moreInfoConnectionIds}
+                onFlightPlanChanged={this.handleFlightPlanChanged} flightPlanConnectionId={this.state.flightPlanConnectionId}
             />
             <EventList onAirportsLoaded={this.handleAirportsLoaded} onFlightPlansLoaded={this.handleFlightPlansLoaded} />
         </>;

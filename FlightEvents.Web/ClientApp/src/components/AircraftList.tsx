@@ -3,42 +3,27 @@ import { UncontrolledTooltip, Button, Modal, ModalHeader, ModalBody } from 'reac
 import styled from 'styled-components';
 import { AircraftStatus } from '../Models';
 import Panel from './Controls/Panel';
+import AircraftListItem from './AircraftListItem';
 
 interface Props {
     aircrafts: { [connectionId: string]: AircraftStatus };
-    onAircraftClick: (connectionId: string, aircraft: AircraftStatus) => void;
+    onAircraftClick: (connectionId: string) => void;
 
     myConnectionId: string | null;
     onMeChanged: (connectionId: string | null) => void;
+
     followingConnectionId: string | null;
     onFollowingChanged: (connectionId: string | null) => void;
 
     moreInfoConnectionIds: string[];
     onMoreInfoChanged: (connectionId: string) => void;
+
+    flightPlanConnectionId: string | null;
+    onFlightPlanChanged: (connectionId: string | null) => void;
 }
 
 export default class AircraftList extends React.Component<Props> {
     static displayName = AircraftList.name;
-
-    handleFollowChanged(connectionId: string) {
-        if (this.props.followingConnectionId === connectionId) {
-            this.props.onFollowingChanged(null);
-        } else {
-            this.props.onFollowingChanged(connectionId);
-        }
-    }
-
-    handleMeChanged(connectionId: string) {
-        if (this.props.myConnectionId === connectionId) {
-            this.props.onMeChanged(null);
-        } else {
-            this.props.onMeChanged(connectionId);
-        }
-    }
-
-    handleMoreInfoChanged(connectionId: string) {
-        this.props.onMoreInfoChanged(connectionId);
-    }
 
     public render() {
         let connectionIds = Object
@@ -53,17 +38,21 @@ export default class AircraftList extends React.Component<Props> {
         const list = connectionIds.length === 0 ?
             <tr><td colSpan={4}><NoneText>None</NoneText></td></tr> :
             connectionIds.map(connectionId => (
-                <ListItem key={connectionId}>
-                    <td>
-                        <button className="btn btn-link" onClick={() => this.props.onAircraftClick(connectionId, this.props.aircrafts[connectionId])}>
-                            {this.props.aircrafts[connectionId].callsign || connectionId.substring(5)}
-                        </button>
-                    </td>
-                    <td><Checkbox type="checkbox" checked={this.props.myConnectionId === connectionId} onChange={() => this.handleMeChanged(connectionId)} /></td>
-                    <td><Checkbox type="checkbox" checked={this.props.followingConnectionId === connectionId} onChange={() => this.handleFollowChanged(connectionId)} /></td>
-                    <td><Checkbox type="checkbox" checked={this.props.moreInfoConnectionIds.includes(connectionId)} onChange={() => this.handleMoreInfoChanged(connectionId)} /></td>
-                </ListItem>
-            ));
+                <AircraftListItem key={connectionId}
+                    connectionId={connectionId}
+
+                    callsign={this.props.aircrafts[connectionId].callsign || connectionId.substring(5)}
+                    onAircraftClick={this.props.onAircraftClick}
+
+                    isMe={this.props.myConnectionId === connectionId}
+                    onMeChanged={this.props.onMeChanged}
+                    isFollowing={this.props.followingConnectionId === connectionId}
+                    onFollowingChanged={this.props.onFollowingChanged}
+                    isMoreInfo={this.props.moreInfoConnectionIds.includes(connectionId)}
+                    onMoreInfoChanged={this.props.onMoreInfoChanged}
+                    isFlightPlan={this.props.flightPlanConnectionId === connectionId}
+                    onFlightPlanChanged={this.props.onFlightPlanChanged}
+                />));
 
         return <Wrapper>
             <Join />
@@ -82,6 +71,10 @@ export default class AircraftList extends React.Component<Props> {
                         <th>
                             <div id="txtMore">Nfo</div>
                             <UncontrolledTooltip placement="right" target="txtMore">Show more info</UncontrolledTooltip>
+                        </th>
+                        <th>
+                            <div id="txtMore">Pln</div>
+                            <UncontrolledTooltip placement="right" target="txtMore">Show flight plan</UncontrolledTooltip>
                         </th>
                     </tr>
                 </thead>
@@ -167,19 +160,4 @@ th div {
 min-width: 20px;
 text-align: center;
 }
-`
-
-const ListItem = styled.tr`
-button {
-display: block;
-font-weight: bold;
-width: 100%;
-}
-td {
-text-align: center;
-}
-`
-
-const Checkbox = styled.input`
-text-align: center;
 `
