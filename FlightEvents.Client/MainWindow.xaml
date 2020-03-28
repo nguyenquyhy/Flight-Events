@@ -54,7 +54,7 @@
                     <TextBlock Text="Callsign" Grid.Row="2" Grid.Column="0" />
                     <TextBox Text="{Binding Callsign, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                         IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}"
-                        Grid.Row="2" Grid.Column="1" MaxLength="10" />
+                        Grid.Row="2" Grid.Column="1" MaxLength="12" />
 
                     <TextBlock Text="Ident" Grid.Row="3" Grid.Column="0" />
                     <CheckBox IsChecked="{Binding TransponderIdent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" />
