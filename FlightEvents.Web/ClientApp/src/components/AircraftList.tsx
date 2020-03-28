@@ -59,7 +59,7 @@ export default class AircraftList extends React.Component<Props> {
             <List>
                 <thead>
                     <tr>
-                        <th><Title>Aircraft</Title></th>
+                        <th><Title>Aircraft {(connectionIds.length === 0 ? "" : `(${connectionIds.length})`)}</Title></th>
                         <th>
                             <div id="txtMe">Own</div>
                             <UncontrolledTooltip placement="right" target="txtMe">Own aircraft. Will display the visible range circle for multiplayer</UncontrolledTooltip>
