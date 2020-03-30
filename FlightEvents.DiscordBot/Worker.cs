@@ -24,9 +24,17 @@ namespace FlightEvents.DiscordBot
         [Required]
         public string BotToken { get; set; }
         [Required]
+        public DiscordServerOptions[] Servers { get; set; }
+    }
+
+    public class DiscordServerOptions
+    {
+        [Required]
         public ulong ServerId { get; set; }
         [Required]
         public ulong ChannelCategoryId { get; set; }
+        [Required]
+        public string LoungeChannelName { get; set; }
         [Required]
         public int ChannelBitrate { get; set; }
     }
@@ -67,32 +75,39 @@ namespace FlightEvents.DiscordBot
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            logger.LogInformation("Bot running at: {time}", DateTimeOffset.Now);
-
-            logger.LogInformation("Connecting to server URL {serverUrl}", appOptions.WebServerUrl);
-            await hub.StartAsync();
-            logger.LogInformation("Connected to SignalR server");
-
             try
             {
-                botClient = new DiscordSocketClient();
-                botClient.GuildAvailable += BotClient_GuildAvailable;
-                await botClient.LoginAsync(TokenType.Bot, discordOptions.BotToken);
-                await botClient.StartAsync();
-                logger.LogInformation("Connected to Discord");
+                logger.LogInformation("Bot running at: {time}", DateTimeOffset.Now);
 
-                await hub.SendAsync("Join", "Bot");
-                logger.LogInformation("Joined Bot group");
+                logger.LogInformation("Connecting to server URL {serverUrl}", appOptions.WebServerUrl);
+                await hub.StartAsync();
+                logger.LogInformation("Connected to SignalR server");
+
+                try
+                {
+                    botClient = new DiscordSocketClient();
+                    botClient.GuildAvailable += BotClient_GuildAvailable;
+                    await botClient.LoginAsync(TokenType.Bot, discordOptions.BotToken);
+                    await botClient.StartAsync();
+                    logger.LogInformation("Connected to Discord");
+
+                    await hub.SendAsync("Join", "Bot");
+                    logger.LogInformation("Joined Bot group");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cannot connect to Discord");
+                    throw;
+                }
+
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    await Task.Delay(1000, stoppingToken);
+                }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Cannot connect to Discord");
-                throw;
-            }
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                await Task.Delay(1000, stoppingToken);
+                logger.LogError(ex, "Cannot initialize bot");
             }
         }
 
@@ -105,15 +120,42 @@ namespace FlightEvents.DiscordBot
         private async Task Hub_Reconnected(string arg)
         {
             logger.LogInformation("Reconnected to SignalR");
-            
+
             await hub.SendAsync("Join", "Bot");
             logger.LogInformation("Joined Bot group");
         }
 
-        private Task BotClient_GuildAvailable(SocketGuild guild)
+        private async Task BotClient_GuildAvailable(SocketGuild guild)
         {
-            logger.LogInformation("{guildName} is available.", guild.Name);
-            return Task.CompletedTask;
+            try
+            {
+                logger.LogInformation("{guildName} is available.", guild.Name);
+
+                var serverOptions = discordOptions.Servers.SingleOrDefault(o => o.ServerId == guild.Id);
+
+                if (serverOptions != null)
+                {
+                    var category = guild.GetCategoryChannel(serverOptions.ChannelCategoryId);
+                    if (category != null)
+                    {
+                        var lounge = category.Channels.SingleOrDefault(o => o.Name == serverOptions.LoungeChannelName);
+                        if (lounge == null)
+                        {
+                            logger.LogInformation("Create lounge channel named {lounge}.", serverOptions.LoungeChannelName);
+                            var newLounge = await guild.CreateVoiceChannelAsync(serverOptions.LoungeChannelName, props =>
+                            {
+                                props.CategoryId = category.Id;
+                            });
+                            logger.LogInformation("Created lounge channel {loungeId}", newLounge.Id);
+                        }
+
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                logger.LogError(ex, "Cannot prepare server [{guildId}] {guildName}", guild.Id, guild.Name);
+            }
         }
 
         private async Task MoveVoiceChannelAsync(string clientId, int toFrequency)
@@ -121,21 +163,37 @@ namespace FlightEvents.DiscordBot
             var connection = await discordConnectionStorage.GetConnectionAsync(clientId);
             if (connection == null) return;
 
-            ulong guildId = discordOptions.ServerId;
-            ulong channelCategoryId = discordOptions.ChannelCategoryId;
+            SocketGuildUser guildUser = null;
+            DiscordServerOptions serverOptions = null;
+            foreach (var options in discordOptions.Servers)
+            {
+                guildUser = botClient.Guilds.SingleOrDefault(o => o.Id == options.ServerId)?.GetUser(connection.UserId);
+                serverOptions = options;
+                if (guildUser != null) break;
+            }
+
+            if (guildUser == null)
+            {
+                return;
+            }
+
+            if (guildUser.VoiceChannel?.CategoryId != serverOptions.ChannelCategoryId)
+            {
+                // Do not touch user not connecting to voice or connecting outside the channel
+                return;
+            }
+
+            var guild = guildUser.Guild;
 
             var channelName = (toFrequency / 1000d).ToString("N3");
-
-            var guild = botClient.Guilds.FirstOrDefault(o => o.Id == guildId);
-            if (guild == null) return;
 
             var channel = guild.Channels.FirstOrDefault(c => c.Name == channelName);
             if (channel == null)
             {
                 await guild.CreateVoiceChannelAsync(channelName, props =>
                 {
-                    props.CategoryId = channelCategoryId;
-                    props.Bitrate = discordOptions.ChannelBitrate;
+                    props.CategoryId = serverOptions.ChannelCategoryId;
+                    props.Bitrate = serverOptions.ChannelBitrate;
                 });
 
                 logger.LogInformation("Created new channel {channelName}", channelName);
@@ -144,7 +202,6 @@ namespace FlightEvents.DiscordBot
             }
             else
             {
-                var guildUser = guild.GetUser(connection.UserId);
                 var oldChannel = guildUser.VoiceChannel;
 
                 await guildUser.ModifyAsync(props =>
@@ -153,7 +210,7 @@ namespace FlightEvents.DiscordBot
                 });
                 logger.LogInformation("Moved user {username}#{discriminator} to channel {channelName}", guildUser.Username, guildUser.Discriminator, channelName);
 
-                if (oldChannel?.CategoryId == channelCategoryId)
+                if (oldChannel?.CategoryId == serverOptions.ChannelCategoryId && oldChannel?.Name != serverOptions.LoungeChannelName)
                 {
                     await Task.Delay(2000);
 
