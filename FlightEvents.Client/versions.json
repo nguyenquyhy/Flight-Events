@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "1.5.0",
+      "changes": "Automatic Discord channel switching"
+    },
+    {
       "id": "1.4.0",
       "changes": "Send flight plan to map"
     },
