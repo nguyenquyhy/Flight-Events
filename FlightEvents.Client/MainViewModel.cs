@@ -49,8 +49,5 @@ namespace FlightEvents.Client
 
         private DiscordConnection discordConnection;
         public DiscordConnection DiscordConnection { get { return discordConnection; } set { SetProperty(ref discordConnection, value); } }
-
-        private bool autoSwitchChannel;
-        public bool AutoSwitchChannel { get { return autoSwitchChannel; } set { SetProperty(ref autoSwitchChannel, value); } }
     }
 }

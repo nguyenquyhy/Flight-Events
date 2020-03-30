@@ -299,7 +299,7 @@ namespace FlightEvents.Client
                     if (lastFreqencyCom1 != e.AircraftStatus.FreqencyCom1 && viewModel.AtcCallsign == null)
                     {
                         var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
-                        if (viewModel.AutoSwitchChannel && !string.IsNullOrEmpty(clientId))
+                        if (!string.IsNullOrEmpty(clientId))
                         {
                             await hub.SendAsync("ChangeFrequency", clientId, lastFreqencyCom1, e.AircraftStatus.FreqencyCom1);
                             lastFreqencyCom1 = e.AircraftStatus.FreqencyCom1;
@@ -478,7 +478,7 @@ namespace FlightEvents.Client
         {
             var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
 
-            if (viewModel.AutoSwitchChannel && !string.IsNullOrEmpty(clientId) && lastAtcFrequency != e.Frequency)
+            if (!string.IsNullOrEmpty(clientId) && lastAtcFrequency != e.Frequency)
             {
                 await hub.SendAsync("ChangeFrequency", clientId, lastAtcFrequency, e.Frequency);
                 lastAtcFrequency = e.Frequency;
