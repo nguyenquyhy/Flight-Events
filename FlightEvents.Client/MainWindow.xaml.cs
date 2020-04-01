@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -154,7 +155,14 @@ namespace FlightEvents.Client
             ButtonStartTrack.Visibility = Visibility.Collapsed;
             ButtonStopTrack.Visibility = Visibility.Visible;
 
-            flightConnector.Send("Connected to Flight Events!");
+            try
+            {
+                flightConnector.Send("Connected to Flight Events!");
+            }
+            catch (COMException ex) when (ex.Message == "0xC000014B")
+            {
+                // broken pipe
+            }
         }
 
         private void ButtonStopTrack_Click(object sender, RoutedEventArgs e)
