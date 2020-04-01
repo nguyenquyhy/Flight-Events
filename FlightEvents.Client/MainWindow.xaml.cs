@@ -21,6 +21,8 @@ namespace FlightEvents.Client
     public partial class MainWindow : Window
     {
         private const int MinimumUpdatePeriod = 500;
+        private const string DefaultWebServerUrl = "https://events.flighttracker.tech";
+
         private readonly Random random = new Random();
 
         private readonly MainViewModel viewModel;
@@ -54,7 +56,7 @@ namespace FlightEvents.Client
             DataContext = viewModel;
 
             hub = new HubConnectionBuilder()
-                .WithUrl(this.appSettings.WebServerUrl + "/FlightEventHub")
+                .WithUrl((this.appSettings.WebServerUrl ?? DefaultWebServerUrl) + "/FlightEventHub")
                 .WithAutomaticReconnect()
                 .AddMessagePackProtocol()
                 .Build();
