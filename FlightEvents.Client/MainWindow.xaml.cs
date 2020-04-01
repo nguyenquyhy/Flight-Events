@@ -37,7 +37,7 @@ namespace FlightEvents.Client
 
         private AircraftData aircraftData;
 
-        public MainWindow(ILogger<MainWindow> logger, IFlightConnector flightConnector, MainViewModel viewModel, 
+        public MainWindow(ILogger<MainWindow> logger, IFlightConnector flightConnector, MainViewModel viewModel,
             IOptionsMonitor<AppSettings> appSettings,
             ATCServer atcServer, UserPreferencesLoader userPreferencesLoader, VersionLogic versionLogic)
         {
@@ -113,16 +113,23 @@ namespace FlightEvents.Client
 
             if (!string.IsNullOrEmpty(pref.ClientId))
             {
-                using (var httpClient = new HttpClient())
+                try
                 {
-                    var response = await httpClient.GetAsync(appSettings.WebServerUrl + "/Discord/Connection/" + pref.ClientId);
-
-                    if (response.IsSuccessStatusCode)
+                    using (var httpClient = new HttpClient())
                     {
-                        using var stream = await response.Content.ReadAsStreamAsync();
-                        var connection = await JsonSerializer.DeserializeAsync<DiscordConnection>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                        viewModel.DiscordConnection = connection;
+                        var response = await httpClient.GetAsync(appSettings.WebServerUrl + "/Discord/Connection/" + pref.ClientId);
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            using var stream = await response.Content.ReadAsStreamAsync();
+                            var connection = await JsonSerializer.DeserializeAsync<DiscordConnection>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                            viewModel.DiscordConnection = connection;
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Cannot get Discord connection!");
                 }
             }
 
