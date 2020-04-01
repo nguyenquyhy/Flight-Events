@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -182,7 +183,15 @@ namespace FlightEvents.Client
         private void ButtonStartATC_Click(object sender, RoutedEventArgs e)
         {
             ButtonStartATC.IsEnabled = false;
-            atcServer.Start();
+            try
+            {
+                atcServer.Start();
+            }
+            catch (SocketException ex)
+            {
+                logger.LogWarning(ex, "Cannot start ATC server!");
+                MessageBox.Show(this, "Cannot start ATC server! Please make sure no other FSD server is running.", "ATC Server", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private async void ButtonStopATC_Click(object sender, RoutedEventArgs e)
