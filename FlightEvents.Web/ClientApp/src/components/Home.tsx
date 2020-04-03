@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { ButtonGroup, Button } from 'reactstrap';
 import * as signalr from '@microsoft/signalr';
 import 'msgpack5';
-import * as protocol from '@microsoft/signalr-protocol-msgpack';
+//import * as protocol from '@microsoft/signalr-protocol-msgpack';
 import { AircraftStatus, Airport, FlightPlan, FlightPlanData } from '../Models';
 import AircraftList from './AircraftList';
 import EventList from './EventList';

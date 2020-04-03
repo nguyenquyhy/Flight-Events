@@ -350,7 +350,7 @@ export default class MaptalksMap implements IMap {
             let index = 0;
             const colors = ['red', 'blue'];
 
-            for (var flightPlan of flightPlans) {
+            for (let flightPlan of flightPlans) {
                 const latlngs = flightPlan.waypoints.reduce((prev: Coordinate[], curr) =>
                     prev.concat(new maptalks.Coordinate([curr.longitude, curr.latitude])),
                     [])
