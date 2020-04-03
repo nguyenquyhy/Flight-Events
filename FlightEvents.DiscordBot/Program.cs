@@ -41,7 +41,8 @@ namespace FlightEvents.DiscordBot
                     services.AddOptions<AzureTableOptions>().Bind(hostContext.Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();
 
                     services.AddTransient<IDiscordConnectionStorage, AzureTableDiscordConnectionStorage>();
-                    services.AddHostedService<Worker>();
+                    services.AddHostedService<MovingWorker>();
+                    services.AddHostedService<CleaningWorker>();
                 });
     }
 }

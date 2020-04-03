@@ -39,16 +39,16 @@ namespace FlightEvents.DiscordBot
         public int ChannelBitrate { get; set; }
     }
 
-    public class Worker : BackgroundService
+    public class MovingWorker : BackgroundService
     {
-        private readonly ILogger<Worker> logger;
+        private readonly ILogger<MovingWorker> logger;
         private readonly AppOptions appOptions;
         private readonly DiscordOptions discordOptions;
         private readonly IDiscordConnectionStorage discordConnectionStorage;
         private readonly HubConnection hub;
         private DiscordSocketClient botClient;
 
-        public Worker(ILogger<Worker> logger,
+        public MovingWorker(ILogger<MovingWorker> logger,
             IOptionsMonitor<AppOptions> appOptionsAccessor,
             IOptionsMonitor<DiscordOptions> discordOptionsAccessor,
             IDiscordConnectionStorage discordConnectionStorage)
