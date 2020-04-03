@@ -169,7 +169,7 @@ namespace FlightEvents.DiscordBot
             {
                 guildUser = botClient.Guilds.SingleOrDefault(o => o.Id == options.ServerId)?.GetUser(connection.UserId);
                 serverOptions = options;
-                if (guildUser != null) break;
+                if (guildUser?.VoiceChannel != null) break;
             }
 
             if (guildUser == null)
