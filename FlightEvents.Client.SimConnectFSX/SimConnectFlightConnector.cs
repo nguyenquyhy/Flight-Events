@@ -400,21 +400,6 @@ namespace FlightEvents.Client.SimConnectFSX
                                 var serializer = new XmlSerializer(typeof(FlightPlanDocumentXml));
                                 var flightPlan = serializer.Deserialize(stream) as FlightPlanDocumentXml;
 
-                                // Workaround for wrong cruising alt
-                                var fltFileName = planName[0..^4] + ".FLT";
-                                if (File.Exists(fltFileName))
-                                {
-                                    var lines = File.ReadAllLines(fltFileName);
-                                    var line = lines.LastOrDefault(o => o.StartsWith("cruising_altitude="));
-                                    if (line != null)
-                                    {
-                                        if (int.TryParse(line.Substring("cruising_altitude=".Length), out var cruisingAlt))
-                                        {
-                                            flightPlan.FlightPlan.CruisingAlt = cruisingAlt;
-                                        }
-                                    }
-                                }
-
                                 var flightPlanData = flightPlan.FlightPlan.ToData();
                                 FlightPlanUpdated?.Invoke(this, new FlightPlanUpdatedEventArgs(flightPlanData));
 

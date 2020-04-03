@@ -143,9 +143,9 @@ namespace FlightEvents.Client.ATC
         {
             var ifrs = isIFR ? "I" : "V";
             var alternate = "NONE";
-            var remarks = $"Aircraft = {title} Registration = {registration}";
+            var remarks = $"Aircraft = {title.Replace(":", "_")} Registration = {registration.Replace(":", "_")}";
 
-            var fp = $"$FP{callsign}:*A:{ifrs}:{type}:{speed}:{departure}:::{altitude}:{arrival}:::{(enroute == null ? ":" : $"{enroute.Value.Hours.ToString("00")}:{enroute.Value.Minutes.ToString("00")}")}:{alternate}:{remarks}:{route}:";
+            var fp = $"$FP{callsign}:*A:{ifrs}:{type.Replace(":", "_")}:{speed}:{departure}:::{altitude}:{arrival}:::{(enroute == null ? ":" : $"{enroute.Value.Hours.ToString("00")}:{enroute.Value.Minutes.ToString("00")}")}:{alternate}:{remarks}:{route}:";
 
             await writer?.WriteLineAsync(fp);
             await writer?.FlushAsync();

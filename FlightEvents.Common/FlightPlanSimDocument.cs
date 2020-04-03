@@ -32,7 +32,7 @@ namespace FlightEvents
                 Title = Title,
                 Type = FPType,
                 RouteType = RouteType,
-                CruisingAltitude = CruisingAlt,
+                CruisingAltitude = (int)CruisingAlt,
                 Description = Descr,
                 Departure = new FlightPlanPosition
                 {
@@ -54,7 +54,7 @@ namespace FlightEvents
         public string Title { get; set; }
         public string FPType { get; set; }
         public string RouteType { get; set; }
-        public int CruisingAlt { get; set; }
+        public double CruisingAlt { get; set; }
         public string DepartureID { get; set; }
         public string DepartureLLA { get; set; }
         public string DestinationID { get; set; }

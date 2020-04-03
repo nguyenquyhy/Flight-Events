@@ -256,7 +256,7 @@ namespace FlightEvents.Client
                 var data = await flightConnector.RequestFlightPlanAsync();
                 if (data != null)
                 {
-                    var flightPlan = new FlightPlanCompact(data, viewModel.Callsign, aircraftData.Model, (int)aircraftData.EstimatedCruiseSpeed);
+                    var flightPlan = new FlightPlanCompact(data, viewModel.Callsign, aircraftData.Title, (int)aircraftData.EstimatedCruiseSpeed);
                     await hub.SendAsync("ReturnFlightPlan", hub.ConnectionId, flightPlan, new string[] { atcConnectionId });
                 }
             }
