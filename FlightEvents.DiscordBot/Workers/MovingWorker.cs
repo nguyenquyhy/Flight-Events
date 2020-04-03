@@ -209,17 +209,6 @@ namespace FlightEvents.DiscordBot
                     props.ChannelId = channel.Id;
                 });
                 logger.LogInformation("Moved user {username}#{discriminator} to channel {channelName}", guildUser.Username, guildUser.Discriminator, channelName);
-
-                if (oldChannel?.CategoryId == serverOptions.ChannelCategoryId && oldChannel?.Name != serverOptions.LoungeChannelName)
-                {
-                    await Task.Delay(2000);
-
-                    if (!oldChannel.Users.Any())
-                    {
-                        await oldChannel.DeleteAsync();
-                        logger.LogInformation("Removed empty channel {channelName}", channelName);
-                    }
-                }
             }
         }
     }
