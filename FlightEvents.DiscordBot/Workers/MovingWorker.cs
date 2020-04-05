@@ -69,7 +69,7 @@ namespace FlightEvents.DiscordBot
             hub.On<string, int?, int>("ChangeFrequency", async (clientId, from, to) =>
             {
                 logger.LogDebug("Got ChangeFrequency message from {clientId} to change from {fromFrequency} to {toFrequency}", clientId, from, to);
-                await MoveVoiceChannelAsync(clientId, to);
+                await CreateVoiceChannelAndMoveAsync(clientId, to);
             });
         }
 
@@ -158,7 +158,7 @@ namespace FlightEvents.DiscordBot
             }
         }
 
-        private async Task MoveVoiceChannelAsync(string clientId, int toFrequency)
+        private async Task CreateVoiceChannelAndMoveAsync(string clientId, int toFrequency)
         {
             var connection = await discordConnectionStorage.GetConnectionAsync(clientId);
             if (connection == null) return;
@@ -190,7 +190,7 @@ namespace FlightEvents.DiscordBot
             var channel = guild.Channels.FirstOrDefault(c => c.Name == channelName);
             if (channel == null)
             {
-                await guild.CreateVoiceChannelAsync(channelName, props =>
+                var voiceChannel = await guild.CreateVoiceChannelAsync(channelName, props =>
                 {
                     props.CategoryId = serverOptions.ChannelCategoryId;
                     props.Bitrate = serverOptions.ChannelBitrate;
@@ -198,18 +198,21 @@ namespace FlightEvents.DiscordBot
 
                 logger.LogInformation("Created new channel {channelName}", channelName);
 
-                await MoveVoiceChannelAsync(clientId, toFrequency);
+                await MoveMemberAsync(guildUser, voiceChannel);
             }
             else
             {
-                var oldChannel = guildUser.VoiceChannel;
-
-                await guildUser.ModifyAsync(props =>
-                {
-                    props.ChannelId = channel.Id;
-                });
-                logger.LogInformation("Moved user {username}#{discriminator} to channel {channelName}", guildUser.Username, guildUser.Discriminator, channelName);
+                await MoveMemberAsync(guildUser, channel);
             }
+        }
+
+        private async Task MoveMemberAsync(SocketGuildUser guildUser, IGuildChannel channel)
+        {
+            await guildUser.ModifyAsync(props =>
+            {
+                props.ChannelId = channel.Id;
+            });
+            logger.LogInformation("Moved user {username}#{discriminator} to channel {channelName}", guildUser.Username, guildUser.Discriminator, channel.Name);
         }
     }
 }
