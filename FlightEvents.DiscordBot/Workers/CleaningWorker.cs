@@ -105,15 +105,18 @@ namespace FlightEvents.DiscordBot
 
         private Task BotClient_UserVoiceStateUpdated(SocketUser user, SocketVoiceState oldState, SocketVoiceState newState)
         {
-            logger.LogInformation("Member {username} updated. Old: {oldChannel} of {oldGuild}. New: {newChannel} of {newGuild}", 
-                user.Username, oldState.VoiceChannel?.Name, oldState.VoiceChannel?.Guild?.Name, newState.VoiceChannel?.Name, newState.VoiceChannel?.Guild?.Name);
-            if (oldState.VoiceChannel != null)
+            if (oldState.VoiceChannel?.Id != newState.VoiceChannel?.Id)
             {
-                TouchVoiceChannel(oldState.VoiceChannel);
-            }
-            if (newState.VoiceChannel != null)
-            {
-                TouchVoiceChannel(newState.VoiceChannel);
+                logger.LogInformation("Member {username} updated. Old: {oldChannel} of {oldGuild}. New: {newChannel} of {newGuild}",
+                    user.Username, oldState.VoiceChannel?.Name, oldState.VoiceChannel?.Guild?.Name, newState.VoiceChannel?.Name, newState.VoiceChannel?.Guild?.Name);
+                if (oldState.VoiceChannel != null)
+                {
+                    TouchVoiceChannel(oldState.VoiceChannel);
+                }
+                if (newState.VoiceChannel != null)
+                {
+                    TouchVoiceChannel(newState.VoiceChannel);
+                }
             }
             return Task.CompletedTask;
         }
