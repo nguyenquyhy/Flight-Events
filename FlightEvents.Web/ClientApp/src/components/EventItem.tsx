@@ -1,8 +1,10 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
+import { css } from 'styled-components';
 import { FlightEvent, Airport, FlightPlan } from '../Models';
 import EventModal from './EventModal';
 import parseJSON from 'date-fns/parseJSON';
+import addHours from 'date-fns/addHours';
 import formatRelative from 'date-fns/formatRelative';
 import isBefore from 'date-fns/isBefore';
 
@@ -35,7 +37,7 @@ export default class EventItem extends React.Component<Props, State> {
 
     public render() {
         return <ListItem>
-            <button className={"btn btn-link " + (isBefore(parseJSON(this.props.flightEvent.startDateTime), new Date()) ? "disabled" : "")} onClick={this.handleToggle}>{this.props.flightEvent.name} ({formatRelative(parseJSON(this.props.flightEvent.startDateTime), new Date())})</button>
+            <CustomButton className={"btn btn-link"} endDateTime={addHours(parseJSON(this.props.flightEvent.startDateTime), 4)} onClick={this.handleToggle}>{this.props.flightEvent.name} ({formatRelative(parseJSON(this.props.flightEvent.startDateTime), new Date())})</CustomButton>
             <EventModal isOpen={this.state.isOpen} toggle={this.handleToggle} flightEvent={this.props.flightEvent} onAirportLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />
         </ListItem>
     }
@@ -43,4 +45,8 @@ export default class EventItem extends React.Component<Props, State> {
 
 const ListItem = styled.li`
 
+`
+
+const CustomButton = styled.button`
+${props => isBefore(props.endDateTime, new Date()) && css`color: gray`}
 `
