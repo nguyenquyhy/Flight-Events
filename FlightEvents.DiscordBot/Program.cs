@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using System.IO;
+using System.Reflection;
 
 namespace FlightEvents.DiscordBot
 {
@@ -16,17 +18,20 @@ namespace FlightEvents.DiscordBot
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .UseWindowsService()
                 .ConfigureAppConfiguration(configBuilder => 
                 {
                     configBuilder.AddJsonFile("appsettings.Release.json", optional: true);
                 })
                 .ConfigureLogging(logging =>
                 {
+                    var assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
                     Log.Logger = new LoggerConfiguration()
                         .MinimumLevel.Debug()
                         .WriteTo.Debug()
                         .WriteTo.Console()
-                        .WriteTo.File("flightevents-bot.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3)
+                        .WriteTo.File(Path.Combine(assemblyDirectory, "flightevents-bot.log"), rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3)
                         .CreateLogger();
 
                     logging
