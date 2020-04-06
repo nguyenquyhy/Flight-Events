@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.FlightSimulator.SimConnect;
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -53,7 +52,10 @@ namespace FlightEvents.Client.SimConnectFSX
                             {
                                 this.simconnect.ReceiveMessage();
                             }
-                            catch { RecoverFromError(); }
+                            catch (Exception ex)
+                            {
+                                RecoverFromError(ex);
+                            }
 
                             isHandled = true;
                         }
@@ -454,19 +456,12 @@ namespace FlightEvents.Client.SimConnectFSX
             logger.LogError("Exception received: {0}", data.dwException);
         }
 
-        private void RecoverFromError()
+        private void RecoverFromError(Exception exception)
         {
-            string errorMessage;
-            //Disconnect();
-
-            //bool wasSuccess = Connect(out errorMessage);
-
-            //// Start monitoring the user's SimObject. This will continuously monitor information
-            //// about the user's Stations attached to their SimObject.
-            //if (wasSuccess)
-            //{
-            //    StartMonitoring();
-            //}
+            // 0xC00000B0: Sim has exited
+            logger.LogError(exception, "Exception received");
+            CloseConnection();
+            Closed?.Invoke(this, new EventArgs());
         }
 
         public Task<FlightPlanData> RequestFlightPlanAsync()
