@@ -453,7 +453,7 @@ namespace FlightEvents.Client.SimConnectFSX
 
         void Simconnect_OnRecvException(SimConnect sender, SIMCONNECT_RECV_EXCEPTION data)
         {
-            logger.LogError("Exception received: {0}", data.dwException);
+            logger.LogError("Exception received: {error}", (SIMCONNECT_EXCEPTION)data.dwException);
         }
 
         private void RecoverFromError(Exception exception)
