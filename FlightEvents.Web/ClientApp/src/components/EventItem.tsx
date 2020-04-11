@@ -48,5 +48,5 @@ const ListItem = styled.li`
 `
 
 const CustomButton = styled.button`
-${props => isBefore(props.endDateTime, new Date()) && css`color: gray`}
+${props => isBefore(props.endDateTime, new Date()) && css`display: none`}
 `
