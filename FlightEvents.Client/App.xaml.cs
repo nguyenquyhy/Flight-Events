@@ -23,6 +23,22 @@ namespace FlightEvents.Client
     /// </summary>
     public partial class App : Application
     {
+        #region Single Instance Enforcer
+
+        readonly SingletonApplicationEnforcer enforcer = new SingletonApplicationEnforcer(args =>
+        {
+            Current.Dispatcher.Invoke(() =>
+            {
+                var mainWindow = Current.MainWindow as MainWindow;
+                if (mainWindow != null && args != null)
+                {
+                    mainWindow.RestoreWindow();
+                }
+            });
+        }, "FlightEvents.Client");
+
+        #endregion
+
         public ServiceProvider ServiceProvider { get; private set; }
 
         private MainWindow mainWindow = null;
@@ -32,6 +48,15 @@ namespace FlightEvents.Client
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            if (enforcer.ShouldApplicationExit())
+            {
+                try
+                {
+                    Shutdown();
+                }
+                catch { }
+            }
+
 #if !DEBUG
             AppCenter.Start("6a75536f-3bd1-446c-b707-c31aabe3fb6f", typeof(Analytics), typeof(Crashes));
 #endif

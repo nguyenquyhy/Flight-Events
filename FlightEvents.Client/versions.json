@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "1.7.0",
+      "changes": "Force single instance"
+    },
+    {
       "id": "1.6.0",
       "changes": "Improve compatibility with Flight Plan on map and ATC client"
     },

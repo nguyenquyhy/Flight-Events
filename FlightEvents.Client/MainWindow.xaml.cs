@@ -551,6 +551,11 @@ namespace FlightEvents.Client
 
         private void myNotifyIcon_TrayLeftMouseDown(object sender, RoutedEventArgs e)
         {
+            RestoreWindow();
+        }
+
+        public void RestoreWindow()
+        {
             myNotifyIcon.Visibility = Visibility.Collapsed;
             Show();
             WindowState = WindowState.Normal;
