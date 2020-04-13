@@ -9,6 +9,11 @@
     altitude: number;
     altitudeAboveGround: number;
     indicatedAirSpeed: number;
+
+    isOnGround: boolean;
+
+    // Calculated
+    isReady: boolean;
 }
 
 export interface FlightEvent {

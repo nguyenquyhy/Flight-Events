@@ -45,6 +45,8 @@ export default class AircraftList extends React.Component<Props> {
                     callsign={this.props.aircrafts[connectionId].callsign || connectionId.substring(5)}
                     onAircraftClick={this.props.onAircraftClick}
 
+                    isReady={this.props.aircrafts[connectionId].isReady}
+
                     isMe={this.props.myConnectionId === connectionId}
                     onMeChanged={this.props.onMeChanged}
                     isFollowing={this.props.followingConnectionId === connectionId}

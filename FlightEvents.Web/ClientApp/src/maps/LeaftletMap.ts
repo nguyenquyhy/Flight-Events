@@ -248,15 +248,15 @@ export default class LeafletMap implements IMap {
     public cleanUp(connectionId: string, isMe: boolean) {
         if (this.mymap !== undefined) {
             const marker = this.markers[connectionId];
-            marker.aircraft.removeFrom(this.mymap);
-            marker.info.removeFrom(this.mymap);
-            if (isMe) {
-                if (this.circleMarker) {
-                    this.circleMarker.removeFrom(this.mymap);
-                    this.circleMarker = null;
+            if (marker) {
+                delete this.markers[connectionId];
+
+                marker.aircraft.removeFrom(this.mymap);
+                marker.info.removeFrom(this.mymap);
+                if (isMe) {
+                    this.removeRangeCircle();
                 }
             }
-            delete this.markers[connectionId];
         }
     }
 

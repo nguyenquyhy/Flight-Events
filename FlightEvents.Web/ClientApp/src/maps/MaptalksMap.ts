@@ -397,13 +397,16 @@ export default class MaptalksMap implements IMap {
     cleanUp(connectionId: string, isMe: boolean) {
         if (this.map) {
             const marker = this.markers[connectionId];
-            marker.aircraft.remove();
-            marker.aircraftLine.remove();
-            marker.info.remove();
-            if (isMe) {
-                this.visibleCircle.hide();
+            if (marker) {
+                delete this.markers[connectionId];
+
+                marker.aircraft.remove();
+                marker.aircraftLine.remove();
+                marker.info.remove();
+                if (isMe) {
+                    this.removeRangeCircle();
+                }
             }
-            delete this.markers[connectionId];
         }
     }
 

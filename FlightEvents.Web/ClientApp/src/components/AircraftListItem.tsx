@@ -7,6 +7,8 @@ interface Props {
     callsign: string;
     onAircraftClick: (connectionId: string) => void;
 
+    isReady: boolean;
+
     isMe: boolean;
     onMeChanged: (connectionId: string | null) => void;
     isFollowing: boolean;
@@ -65,7 +67,7 @@ export default class AircraftListItem extends React.Component<Props> {
     public render() {
         return <ListItem>
             <td>
-                <button className="btn btn-link" onClick={this.handleAircraftClick}>{this.props.callsign}</button>
+                <button className="btn btn-link" disabled={!this.props.isReady} onClick={this.handleAircraftClick}>{this.props.callsign}</button>
             </td>
             <td><Checkbox type="checkbox" checked={this.props.isMe} onChange={this.handleMeChanged} /></td>
             <td><Checkbox type="checkbox" checked={this.props.isFollowing} onChange={this.handleFollowChanged} /></td>

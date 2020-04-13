@@ -89,6 +89,8 @@ export class Home extends React.Component<any, State> {
 
         hub.on("UpdateAircraft", (connectionId, aircraftStatus: AircraftStatus) => {
             try {
+                aircraftStatus.isReady = !(Math.abs(aircraftStatus.latitude) < 0.02 && Math.abs(aircraftStatus.longitude) < 0.02);
+
                 this.setState({
                     aircrafts: {
                         ...this.state.aircrafts,
@@ -101,7 +103,12 @@ export class Home extends React.Component<any, State> {
                     aircraftStatus: aircraftStatus
                 };
 
-                this.map.moveMarker(connectionId, aircraftStatus, this.state.myConnectionId === connectionId, connectionId === this.state.followingConnectionId, this.state.moreInfoConnectionIds.includes(connectionId));
+                if (aircraftStatus.isReady) {
+                    this.map.moveMarker(connectionId, aircraftStatus, this.state.myConnectionId === connectionId, connectionId === this.state.followingConnectionId, this.state.moreInfoConnectionIds.includes(connectionId));
+                } else {
+                    // Aircraft not loaded
+                    this.map.cleanUp(connectionId, this.state.myConnectionId === connectionId);
+                }
             } catch (e) {
                 console.error(e);
             }
