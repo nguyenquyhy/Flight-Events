@@ -71,7 +71,7 @@ export default class LeafletMap implements IMap {
                 }));
                 break;
             case MapTileType.UsVfrSectional:
-                this.baseLayerGroup.addLayer(L.tileLayer('http://wms.chartbundle.com/tms/v1.0/sec/{z}/{x}/{y}.png?type=google', {
+                this.baseLayerGroup.addLayer(L.tileLayer('https://wms.chartbundle.com/tms/v1.0/sec/{z}/{x}/{y}.png?type=google', {
                     maxZoom: 12,
                     attribution: 'Map data: &copy; Federal Aviation Administration (FAA), <a href="http://chartbundle.com">ChartBundle.com</a>'
                 }));

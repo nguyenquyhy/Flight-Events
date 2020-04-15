@@ -186,7 +186,7 @@ export default class MaptalksMap implements IMap {
                 break;
             case MapTileType.UsVfrSectional:
                 this.map.setBaseLayer(new maptalks.TileLayer('usvfrsection', {
-                    urlTemplate: 'http://wms.chartbundle.com/tms/v1.0/sec/{z}/{x}/{y}.png?type=google',
+                    urlTemplate: 'https://wms.chartbundle.com/tms/v1.0/sec/{z}/{x}/{y}.png?type=google',
                     attribution: 'Map data: &copy; Federal Aviation Administration (FAA), <a href="http://chartbundle.com">ChartBundle.com</a>'
                 }));
                 break;
