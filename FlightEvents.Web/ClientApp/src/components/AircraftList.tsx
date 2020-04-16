@@ -107,7 +107,7 @@ export default class AircraftList extends React.Component<Props, State> {
                         {list}
                     </tbody>
                 </List>
-                <Button className="btn" onClick={this.handleToggle}><span>{this.state.collapsed ? '«' : '»'}</span></Button>
+                <Button className="btn" onClick={this.handleToggle}><i className={"fas " + (this.state.collapsed ? "fa-chevron-left" : "fa-chevron-right")}></i></Button>
             </ListWrapper>
         </Wrapper>
     }
@@ -163,11 +163,11 @@ bottom: 0;
 padding: 0;
 width: 12px;
 
-span {
+i {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-weight: bold;
+    font-size: 8px;
 }
 `
