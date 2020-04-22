@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "1.8.0",
+      "changes": "Improve Discord channel switching and display ATC on map"
+    },
+    {
       "id": "1.7.0",
       "changes": "Force single instance"
     },
