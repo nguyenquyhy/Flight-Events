@@ -1,6 +1,6 @@
 ﻿import { IMap, MapTileType, OnViewChangedFn, View } from './IMap';
 import * as maptalks from 'maptalks';
-import { AircraftStatus, Airport, FlightPlanData } from '../Models';
+import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo } from '../Models';
 
 interface Markers {
     aircraft: Sector
@@ -78,6 +78,7 @@ export default class MaptalksMap implements IMap {
 
     map: Map | undefined;
     markers: { [connectionId: string]: Markers } = {};
+    atcMarkers: { [connectionId: string]: Marker } = {};
 
     onViewChangedHandler: OnViewChangedFn | null = null;
 
@@ -91,6 +92,7 @@ export default class MaptalksMap implements IMap {
         }
     })
 
+    atcLayer: VectorLayer = new maptalks.VectorLayer('atc');
     aircraftLayer: VectorLayer | undefined;
     airportLayer: VectorLayer = new maptalks.VectorLayer('airport');
     flightPlanLayer: VectorLayer = new maptalks.VectorLayer('flightPlan', {
@@ -129,6 +131,7 @@ export default class MaptalksMap implements IMap {
 
         aircraftLayer.addGeometry(this.visibleCircle);
 
+        this.atcLayer.addTo(map);
         this.airportLayer.addTo(map);
         this.flightPlanLayer.addTo(map);
 
@@ -190,6 +193,40 @@ export default class MaptalksMap implements IMap {
                     attribution: 'Map data: &copy; Federal Aviation Administration (FAA), <a href="http://chartbundle.com">ChartBundle.com</a>'
                 }));
                 break;
+        }
+    }
+
+    moveATCMarker(connectionId: string, status: ATCStatus | null, info: ATCInfo | null) {
+        if (status && info) {
+            const latlng: Coordinate = new maptalks.Coordinate([status.longitude, status.latitude]);
+
+            const marker = this.atcMarkers[connectionId];
+            if (marker) {
+                // Existing marker
+                marker.setCoordinates(latlng);
+            } else {
+                this.atcMarkers[connectionId] = new maptalks.Marker(latlng, {
+                    symbol: {
+                        markerFile: 'marker-tower.png',
+                        markerWidth: 30,
+                        markerHeight: 30
+                    }
+                })
+                    .addTo(this.atcLayer)
+                    .setInfoWindow({
+                        title: `${info.callsign} [${(status.frequencyCom / 1000)}]`,
+                        content: `Name: ${info.realName}<br />Certificate: ${info.certificate}`,
+                        autoCloseOn: 'click'
+                    });
+            }
+        } else {
+            // Remove
+            const marker = this.atcMarkers[connectionId];
+            if (marker) {
+                // Existing marker
+                marker.remove();
+                delete this.atcMarkers[connectionId];
+            }
         }
     }
 

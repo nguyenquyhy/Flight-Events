@@ -1,4 +1,24 @@
-﻿export interface AircraftStatus {
+﻿export interface ATCInfo {
+    callsign: string;
+
+    longitude: number;
+    latitude: number;
+
+    realName: string;
+    certificate: string;
+    rating: string;
+}
+
+export interface ATCStatus {
+    callsign: string;
+
+    longitude: number;
+    latitude: number;
+
+    frequencyCom: number;
+}
+
+export interface AircraftStatus {
     callsign: string;
 
     longitude: number;
@@ -11,6 +31,8 @@
     indicatedAirSpeed: number;
 
     isOnGround: boolean;
+
+    frequencyCom1: number;
 
     // Calculated
     isReady: boolean;

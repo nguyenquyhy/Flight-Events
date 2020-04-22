@@ -362,8 +362,8 @@ namespace FlightEvents.Client.SimConnectFSX
                                     OverspeedWarning = flightStatus.Value.OverspeedWarning == 1,
                                     IsAutopilotOn = flightStatus.Value.IsAutopilotOn == 1,
                                     Transponder = flightStatus.Value.Transponder.ToString().PadLeft(4, '0'),
-                                    FreqencyCom1 = flightStatus.Value.Com1,
-                                    FreqencyCom2 = flightStatus.Value.Com2,
+                                    FrequencyCom1 = flightStatus.Value.Com1,
+                                    FrequencyCom2 = flightStatus.Value.Com2,
                                 }));
                         }
                         else
@@ -458,6 +458,7 @@ namespace FlightEvents.Client.SimConnectFSX
 
         private void RecoverFromError(Exception exception)
         {
+            // 0xC000014B: CTD
             // 0xC00000B0: Sim has exited
             logger.LogError(exception, "Exception received");
             CloseConnection();

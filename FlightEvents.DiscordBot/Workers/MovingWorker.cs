@@ -66,7 +66,7 @@ namespace FlightEvents.DiscordBot
             hub.Reconnecting += Hub_Reconnecting;
             hub.Reconnected += Hub_Reconnected;
 
-            hub.On<string, int?, int>("ChangeFrequency", async (clientId, from, to) =>
+            hub.On<string, int?, int?>("ChangeFrequency", async (clientId, from, to) =>
             {
                 logger.LogDebug("Got ChangeFrequency message from {clientId} to change from {fromFrequency} to {toFrequency}", clientId, from, to);
                 await CreateVoiceChannelAndMoveAsync(clientId, to);
@@ -158,7 +158,7 @@ namespace FlightEvents.DiscordBot
             }
         }
 
-        private async Task CreateVoiceChannelAndMoveAsync(string clientId, int toFrequency)
+        private async Task CreateVoiceChannelAndMoveAsync(string clientId, int? toFrequency)
         {
             var connection = await discordConnectionStorage.GetConnectionAsync(clientId);
             if (connection == null) return;
@@ -185,7 +185,9 @@ namespace FlightEvents.DiscordBot
 
             var guild = guildUser.Guild;
 
-            var channelName = (toFrequency / 1000d).ToString("N3");
+            var channelName = toFrequency.HasValue ? 
+                (toFrequency.Value / 1000d).ToString("N3") :
+                serverOptions.LoungeChannelName;
 
             var channel = guild.Channels.FirstOrDefault(c => c.Name == channelName);
             if (channel == null)

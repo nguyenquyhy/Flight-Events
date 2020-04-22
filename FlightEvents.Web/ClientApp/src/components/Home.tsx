@@ -4,7 +4,7 @@ import { ButtonGroup, Button } from 'reactstrap';
 import * as signalr from '@microsoft/signalr';
 import 'msgpack5';
 //import * as protocol from '@microsoft/signalr-protocol-msgpack';
-import { AircraftStatus, Airport, FlightPlan, FlightPlanData } from '../Models';
+import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo } from '../Models';
 import AircraftList from './AircraftList';
 import EventList from './EventList';
 import { IMap, MapTileType, View } from '../maps/IMap';
@@ -86,6 +86,14 @@ export class Home extends React.Component<any, State> {
 
             await hub.send('Join', 'Map');
         })
+
+        hub.on("UpdateATC", (connectionId, status: ATCStatus, atc: ATCInfo) => {
+            try {
+                this.map.moveATCMarker(connectionId, status, atc);
+            } catch (e) {
+                console.error(e);
+            }
+        });
 
         hub.on("UpdateAircraft", (connectionId, aircraftStatus: AircraftStatus) => {
             try {

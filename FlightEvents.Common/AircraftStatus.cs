@@ -32,8 +32,8 @@
 
         public bool IsAutopilotOn { get; set; }
         public string Transponder { get; set; }
-        public int FreqencyCom1 { get; set; }
-        public int FreqencyCom2 { get; set; }
+        public int FrequencyCom1 { get; set; }
+        public int FrequencyCom2 { get; set; }
         public TransponderMode TransponderMode { get; set; } = TransponderMode.ModeC;
     }
 

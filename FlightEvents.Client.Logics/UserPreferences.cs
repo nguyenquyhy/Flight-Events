@@ -74,12 +74,22 @@ namespace FlightEvents.Client.Logics
                 }
                 catch (JsonException)
                 {
-                    return new UserPreferences();
+                    var pref = new UserPreferences
+                    {
+                        ClientId = Guid.NewGuid().ToString("N")
+                    };
+                    await SaveToFileAsync(pref);
+                    return pref;
                 }
             }
             else
             {
-                return new UserPreferences();
+                var pref = new UserPreferences
+                {
+                    ClientId = Guid.NewGuid().ToString("N")
+                };
+                await SaveToFileAsync(pref);
+                return pref;
             }
         }
     }

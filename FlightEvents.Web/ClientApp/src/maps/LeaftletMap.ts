@@ -1,7 +1,7 @@
 ﻿import { IMap, MapTileType, OnViewChangedFn, View } from './IMap';
 import * as L from 'leaflet';
 import 'leaflet-rotatedmarker';
-import { AircraftStatus, Airport, FlightPlanData } from '../Models';
+import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo } from '../Models';
 
 
 interface Markers {
@@ -16,6 +16,7 @@ export default class LeafletMap implements IMap {
     airportMarkers: { [indent: string]: L.Marker } = {};
 
     markers: { [connectionId: string]: Markers } = {};
+    atcMarkers: { [connectionId: string]: L.Marker } = {};
 
     flightPlanLayerGroup: L.LayerGroup;
 
@@ -76,6 +77,36 @@ export default class LeafletMap implements IMap {
                     attribution: 'Map data: &copy; Federal Aviation Administration (FAA), <a href="http://chartbundle.com">ChartBundle.com</a>'
                 }));
                 break;
+        }
+    }
+
+    public moveATCMarker(connectionId: string, status: ATCStatus | null, info: ATCInfo | null) {
+        if (status && info) {
+            const latlng: L.LatLngExpression = [status.latitude, status.longitude];
+
+            const marker = this.atcMarkers[connectionId];
+            if (marker) {
+                // Existing marker
+                marker.setLatLng(latlng);
+            } else {
+                this.atcMarkers[connectionId] = L.marker(latlng, {
+                    icon: L.icon({
+                        iconUrl: 'marker-tower.png',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15],
+                    }),
+                    zIndexOffset: 2000
+                })
+                    .bindPopup(`<strong>${info.callsign} [${(status.frequencyCom / 1000)}]</strong><br />Name: ${info.realName}<br />Certificate: ${info.certificate}`)
+                    .addTo(this.mymap);
+            }
+        } else {
+            // Remove
+            const marker = this.atcMarkers[connectionId];
+            if (marker) {
+                marker.remove();
+                delete this.atcMarkers[connectionId];
+            }
         }
     }
 

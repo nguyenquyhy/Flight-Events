@@ -10,12 +10,22 @@ namespace FlightEvents.Client.ATC
 {
     public class ConnectedEventArgs : EventArgs
     {
-        public ConnectedEventArgs(string callsign)
+        public ConnectedEventArgs(string callsign, string realName, string certificate, string rating, double latitude, double longitude)
         {
             Callsign = callsign;
+            RealName = realName;
+            Certificate = certificate;
+            Rating = rating;
+            Latitude = latitude;
+            Longitude = longitude;
         }
 
         public string Callsign { get; }
+        public string RealName { get; }
+        public string Certificate { get; }
+        public string Rating { get; }
+        public double Latitude { get; }
+        public double Longitude { get; }
     }
 
     public class FlightPlanRequestedEventArgs : EventArgs
@@ -187,6 +197,7 @@ namespace FlightEvents.Client.ATC
 
                     if (info.StartsWith("%" + callsign))
                     {
+                        // %EDDM_TWR:18700:4:100:3:48.35378:11.78609:0
                         var tokens = info.Split(':');
                         var freq = int.Parse("1" + tokens[1]);
                         var alt = int.Parse(tokens[2]);
@@ -249,7 +260,7 @@ namespace FlightEvents.Client.ATC
                                 {
                                     var ipep = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
                                     var ipa = ipep.Address;
-                                    await SendAsync($"$CRSERVER:{callsign}:IP:{ipa.ToString()}");
+                                    await SendAsync($"$CRSERVER:{callsign}:IP:{ipa}");
 
                                     await SendAsync($"$CQSERVER:{callsign}:CAPS");
                                 }
@@ -289,13 +300,21 @@ namespace FlightEvents.Client.ATC
                     {
                         if (info.StartsWith("#AA"))
                         {
+                            // #AACYVR_TWR:SERVER:HY:NA:123:3:9:1:0:49.19470:-123.18397:100
                             logger.LogInformation("Connected");
 
                             var tokens = info.Substring("#AA".Length).Split(":");
                             callsign = tokens[0];
+                            var to = tokens[1];
+                            var realName = tokens[2];
+                            var certificate = tokens[3];
+                            var password = tokens[4];
+                            var rating = tokens[5];
+                            var lat = double.Parse(tokens[9]);
+                            var lon = double.Parse(tokens[10]);
                             await SendAsync($"#TM{ClientCode}:{callsign}:Connected to {ClientName}.");
 
-                            Connected?.Invoke(this, new ConnectedEventArgs(callsign));
+                            Connected?.Invoke(this, new ConnectedEventArgs(callsign, realName, certificate, rating, lat, lon));
                         }
                     }
                 }

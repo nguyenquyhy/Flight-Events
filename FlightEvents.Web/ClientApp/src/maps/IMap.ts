@@ -1,8 +1,9 @@
-﻿import { AircraftStatus, Airport, FlightPlanData } from '../Models';
+﻿import { ATCStatus, ATCInfo, AircraftStatus, Airport, FlightPlanData } from '../Models';
 
 export interface IMap {
     initialize(divId: string, view?: View)
     deinitialize();
+    moveATCMarker(connectionId: string, atcStatus: ATCStatus | null, atcInfo: ATCInfo | null)
     moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isMoreInfo: boolean)
     drawAirports(airports: Airport[])
     drawFlightPlans(flightPlans: FlightPlanData[])

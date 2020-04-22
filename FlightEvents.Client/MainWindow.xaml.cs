@@ -32,9 +32,10 @@ namespace FlightEvents.Client
         private readonly ATCServer atcServer;
         private readonly UserPreferencesLoader userPreferencesLoader;
         private readonly VersionLogic versionLogic;
-        private readonly HubConnection hub;
         private readonly ILogger<MainWindow> logger;
         private readonly IFlightConnector flightConnector;
+
+        private HubConnection hub;
 
         private AircraftData aircraftData;
 
@@ -56,9 +57,17 @@ namespace FlightEvents.Client
             flightConnector.AircraftStatusUpdated += FlightConnector_AircraftStatusUpdated;
 
             DataContext = viewModel;
+        }
 
+        #region Interaction
+
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            var pref = await userPreferencesLoader.LoadAsync();
+
+            var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
             hub = new HubConnectionBuilder()
-                .WithUrl((this.appSettings.WebServerUrl ?? DefaultWebServerUrl) + "/FlightEventHub")
+                .WithUrl((this.appSettings.WebServerUrl ?? DefaultWebServerUrl) + "/FlightEventHub?clientId=" + clientId)
                 .WithAutomaticReconnect()
                 .AddMessagePackProtocol()
                 .Build();
@@ -77,13 +86,8 @@ namespace FlightEvents.Client
             atcServer.Connected += AtcServer_Connected;
             atcServer.MessageSent += AtcServer_MessageSent;
             atcServer.AtcLoggedIn += AtcServer_AtcLoggedIn;
-        }
+            atcServer.AtcLoggedOff += AtcServer_AtcLoggedOff;
 
-        #region Interaction
-
-        private async void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            var pref = await userPreferencesLoader.LoadAsync();
 
             if (string.IsNullOrWhiteSpace(viewModel.Callsign))
             {
@@ -112,26 +116,23 @@ namespace FlightEvents.Client
                 logger.LogError(ex, "Cannot check for update!");
             }
 
-            if (!string.IsNullOrEmpty(pref.ClientId))
+            try
             {
-                try
+                using (var httpClient = new HttpClient())
                 {
-                    using (var httpClient = new HttpClient())
-                    {
-                        var response = await httpClient.GetAsync(appSettings.WebServerUrl + "/Discord/Connection/" + pref.ClientId);
+                    var response = await httpClient.GetAsync(appSettings.WebServerUrl + "/Discord/Connection/" + pref.ClientId);
 
-                        if (response.IsSuccessStatusCode)
-                        {
-                            using var stream = await response.Content.ReadAsStreamAsync();
-                            var connection = await JsonSerializer.DeserializeAsync<DiscordConnection>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                            viewModel.DiscordConnection = connection;
-                        }
+                    if (response.IsSuccessStatusCode)
+                    {
+                        using var stream = await response.Content.ReadAsStreamAsync();
+                        var connection = await JsonSerializer.DeserializeAsync<DiscordConnection>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        viewModel.DiscordConnection = connection;
                     }
                 }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "Cannot get Discord connection!");
-                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Cannot get Discord connection!");
             }
 
             while (true)
@@ -199,12 +200,12 @@ namespace FlightEvents.Client
             viewModel.AtcCallsign = null;
 
             hub.Remove("UpdateAircraft");
-            hub.Remove("UpdateFlightPlan");
             hub.Remove("ReturnFlightPlan");
 
             atcServer.Stop();
 
             await hub.SendAsync("Leave", "ATC");
+            await hub.SendAsync("UpdateATC", null);
 
             ButtonStopATC.Visibility = Visibility.Collapsed;
             ButtonStartATC.Visibility = Visibility.Visible;
@@ -282,7 +283,7 @@ namespace FlightEvents.Client
                     {
                         // @18700 @22900&@20000
                         var frequency = "1" + to.Substring(1);
-                        if (frequency == viewModel.AircraftStatus.FreqencyCom1.ToString() || frequency == viewModel.AircraftStatus.FreqencyCom2.ToString())
+                        if (frequency == viewModel.AircraftStatus.FrequencyCom1.ToString() || frequency == viewModel.AircraftStatus.FrequencyCom2.ToString())
                         {
                             flightConnector.Send($"{from} [{frequency}]: {message}");
                         }
@@ -305,7 +306,6 @@ namespace FlightEvents.Client
         }
 
         DateTime lastStatusSent = DateTime.Now;
-        int? lastFreqencyCom1 = null;
 
         private async void FlightConnector_AircraftStatusUpdated(object sender, AircraftStatusUpdatedEventArgs e)
         {
@@ -317,20 +317,10 @@ namespace FlightEvents.Client
                 if (hub?.ConnectionId != null && DateTime.Now - lastStatusSent > TimeSpan.FromMilliseconds(MinimumUpdatePeriod))
                 {
                     lastStatusSent = DateTime.Now;
-                    await hub.SendAsync("UpdateAircraft", hub.ConnectionId, e.AircraftStatus);
+                    await hub.SendAsync("UpdateAircraft", e.AircraftStatus);
                     lastStatusSent = DateTime.Now;
 
                     if (viewModel.TransponderIdent) viewModel.TransponderIdent = false;
-
-                    if (lastFreqencyCom1 != e.AircraftStatus.FreqencyCom1 && viewModel.AtcCallsign == null)
-                    {
-                        var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
-                        if (!string.IsNullOrEmpty(clientId))
-                        {
-                            await hub.SendAsync("ChangeFrequency", clientId, lastFreqencyCom1, e.AircraftStatus.FreqencyCom1);
-                            lastFreqencyCom1 = e.AircraftStatus.FreqencyCom1;
-                        }
-                    }
                 }
 
                 viewModel.AircraftStatus = e.AircraftStatus;
@@ -367,10 +357,6 @@ namespace FlightEvents.Client
                 ButtonDiscordConfirm.IsEnabled = false;
 
                 var userPref = await userPreferencesLoader.LoadAsync();
-                if (string.IsNullOrEmpty(userPref.ClientId))
-                {
-                    userPref = await userPreferencesLoader.UpdateAsync(userPref => userPref.ClientId = Guid.NewGuid().ToString("N"));
-                }
 
                 using var httpClient = new HttpClient();
                 var response = await httpClient.PostAsync($"{appSettings.WebServerUrl}/discord/confirm?clientId={userPref.ClientId}&code={TextDiscordConfirm.Text}", null);
@@ -403,12 +389,9 @@ namespace FlightEvents.Client
                 if (result == MessageBoxResult.Yes)
                 {
                     var userPref = await userPreferencesLoader.LoadAsync();
-                    if (!string.IsNullOrEmpty(userPref.ClientId))
+                    using (var httpClient = new HttpClient())
                     {
-                        using (var httpClient = new HttpClient())
-                        {
-                            await httpClient.DeleteAsync(appSettings.WebServerUrl + "/Discord/Connection/" + userPref.ClientId);
-                        }
+                        await httpClient.DeleteAsync(appSettings.WebServerUrl + "/Discord/Connection/" + userPref.ClientId);
                     }
                     viewModel.DiscordConnection = null;
                 }
@@ -427,7 +410,7 @@ namespace FlightEvents.Client
         {
             viewModel.AtcCallsign = e.Callsign;
 
-            // ATC specific events
+            // Register ATC specific events
             hub.On<string, AircraftStatus>("UpdateAircraft", async (connectionId, aircraftStatus) =>
             {
                 await atcServer.SendPositionAsync(aircraftStatus.Callsign, aircraftStatus.Transponder,
@@ -439,21 +422,6 @@ namespace FlightEvents.Client
                         TransponderMode.Ident => AtcTransponderMode.Ident,
                         _ => AtcTransponderMode.Standby
                     });
-            });
-            hub.On<string, FlightPlanCompact>("UpdateFlightPlan", async (connectionId, flightPlan) =>
-            {
-                await atcServer.SendFlightPlanAsync(
-                    flightPlan.Callsign,
-                    flightPlan.Type == "IFR",
-                    flightPlan.AircraftType,
-                    flightPlan.Callsign,
-                    flightPlan.AircraftType,
-                    flightPlan.Departure,
-                    flightPlan.Destination,
-                    flightPlan.Route,
-                    flightPlan.CruisingSpeed,
-                    flightPlan.CruisingAltitude,
-                    flightPlan.EstimatedEnroute);
             });
             hub.On<string, FlightPlanCompact>("ReturnFlightPlan", async (connectionId, flightPlan) =>
             {
@@ -471,6 +439,17 @@ namespace FlightEvents.Client
                     flightPlan.EstimatedEnroute);
             });
             await hub.SendAsync("Join", "ATC");
+
+            // Update ATC Location on map
+            await hub.SendAsync("LoginATC", new ATCInfo
+            {
+                Callsign = e.Callsign,
+                Latitude = e.Latitude,
+                Longitude = e.Longitude,
+                RealName = e.RealName, 
+                Certificate = e.Certificate, 
+                Rating = e.Rating
+            });
 
             Dispatcher.Invoke(() =>
             {
@@ -498,17 +477,21 @@ namespace FlightEvents.Client
         }
 
 
-        private int? lastAtcFrequency = null;
-
         private async void AtcServer_AtcLoggedIn(object sender, AtcLoggedInEventArgs e)
         {
-            var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
-
-            if (!string.IsNullOrEmpty(clientId) && lastAtcFrequency != e.Frequency)
+            await hub.SendAsync("UpdateATC", new ATCStatus
             {
-                await hub.SendAsync("ChangeFrequency", clientId, lastAtcFrequency, e.Frequency);
-                lastAtcFrequency = e.Frequency;
-            }
+                Callsign = e.Callsign,
+                Latitude = e.Latitude,
+                Longitude = e.Longitude,
+                Altitude = e.Altitude,
+                FrequencyCom = e.Frequency
+            });
+        }
+
+        private async void AtcServer_AtcLoggedOff(object sender, AtcLoggedOffEventArgs e)
+        {
+            await hub.SendAsync("UpdateATC", null);
         }
 
         #endregion
