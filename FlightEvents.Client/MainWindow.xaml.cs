@@ -63,11 +63,12 @@ namespace FlightEvents.Client
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            var currentVersion = versionLogic.GetVersion();
             var pref = await userPreferencesLoader.LoadAsync();
 
             var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
             hub = new HubConnectionBuilder()
-                .WithUrl((this.appSettings.WebServerUrl ?? DefaultWebServerUrl) + "/FlightEventHub?clientId=" + clientId)
+                .WithUrl($"{this.appSettings.WebServerUrl ?? DefaultWebServerUrl}/FlightEventHub?clientVersion={currentVersion}&clientId={clientId}")
                 .WithAutomaticReconnect()
                 .AddMessagePackProtocol()
                 .Build();
@@ -96,7 +97,7 @@ namespace FlightEvents.Client
 
             try
             {
-                this.Title = "Flight Events " + versionLogic.GetVersion();
+                this.Title = "Flight Events " + currentVersion;
                 var version = await versionLogic.GetUpdatedVersionAsync();
                 if (version != null)
                 {
