@@ -82,7 +82,7 @@ export default class MaptalksMap implements IMap {
 
     onViewChangedHandler: OnViewChangedFn | null = null;
 
-    visibleCircle: Circle = new maptalks.Circle([0, 0], 3048, {
+    visibleCircle: Circle = new maptalks.Circle([0, 0], 5029, {
         symbol: {
             lineColor: '#000000',
             lineWidth: 2,
