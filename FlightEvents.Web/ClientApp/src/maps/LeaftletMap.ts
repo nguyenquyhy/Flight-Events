@@ -294,7 +294,7 @@ export default class LeafletMap implements IMap {
     public addRangeCircle() {
         if (!this.circleMarker) {
             this.circleMarker = L.circle([0, 0], {
-                radius: 3048,
+                radius: 5029,
                 opacity: 0.5,
                 fillOpacity: 0,
                 weight: 2,
