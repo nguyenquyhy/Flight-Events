@@ -51,8 +51,9 @@ interface Geometry {
 }
 
 interface Marker extends Geometry {
-    setCoordinates: (coordinate: Coordinate) => void;
+    setCoordinates: (coordinate: Coordinate) => Marker;
     getCoordinates: () => Coordinate;
+    setInfoWindow: (info: any) => Marker;
 }
 
 interface Label extends Marker {
@@ -203,7 +204,13 @@ export default class MaptalksMap implements IMap {
             const marker = this.atcMarkers[connectionId];
             if (marker) {
                 // Existing marker
-                marker.setCoordinates(latlng);
+                marker
+                    .setInfoWindow({
+                        title: `${info.callsign} [${(status.frequencyCom / 1000)}]`,
+                        content: `Name: ${info.realName}<br />Certificate: ${info.certificate}`,
+                        autoCloseOn: 'click'
+                    })
+                    .setCoordinates(latlng);
             } else {
                 this.atcMarkers[connectionId] = new maptalks.Marker(latlng, {
                     symbol: {

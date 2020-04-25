@@ -87,7 +87,9 @@ export default class LeafletMap implements IMap {
             const marker = this.atcMarkers[connectionId];
             if (marker) {
                 // Existing marker
-                marker.setLatLng(latlng);
+                marker
+                    .bindPopup(`<strong>${info.callsign} [${(status.frequencyCom / 1000)}]</strong><br />Name: ${info.realName}<br />Certificate: ${info.certificate}`)
+                    .setLatLng(latlng);
             } else {
                 this.atcMarkers[connectionId] = L.marker(latlng, {
                     icon: L.icon({
