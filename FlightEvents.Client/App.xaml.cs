@@ -11,6 +11,7 @@ using Serilog;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -48,7 +49,7 @@ namespace FlightEvents.Client
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            if (enforcer.ShouldApplicationExit())
+            if (!e.Args.Contains("--multiple-instances") && enforcer.ShouldApplicationExit())
             {
                 try
                 {

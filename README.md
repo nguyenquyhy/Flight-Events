@@ -11,6 +11,10 @@ This includes:
 - A Discord bot to automatically move players between voice channels based on their COM1 frequency
 https://discordapp.com/api/oauth2/authorize?client_id={BOT_CLIENT_ID}&scope=bot&permissions=221249553
 
+### NOTES
+
+- The client automatically forces single instance unless `--multiple-instances` flag is used at launch.
+
 ### TODO
 
 - [X] Show ATC on map
