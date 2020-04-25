@@ -55,5 +55,7 @@ namespace FlightEvents.Web.Hubs
         /// <param name="fromFrequency"></param>
         /// <param name="toFrequency"></param>
         Task ChangeFrequency(string clientId, int? fromFrequency, int? toFrequency);
+
+        Task SendATC(string to, string message);
     }
 }

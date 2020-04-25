@@ -68,7 +68,7 @@ namespace FlightEvents.Client
 
             var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
             hub = new HubConnectionBuilder()
-                .WithUrl($"{this.appSettings.WebServerUrl ?? DefaultWebServerUrl}/FlightEventHub?clientVersion={currentVersion}&clientId={clientId}")
+                .WithUrl($"{this.appSettings.WebServerUrl ?? DefaultWebServerUrl}/FlightEventHub?clientType=Client&clientVersion={currentVersion}&clientId={clientId}")
                 .WithAutomaticReconnect()
                 .AddMessagePackProtocol()
                 .Build();
@@ -86,9 +86,9 @@ namespace FlightEvents.Client
             atcServer.FlightPlanRequested += AtcServer_FlightPlanRequested;
             atcServer.Connected += AtcServer_Connected;
             atcServer.MessageSent += AtcServer_MessageSent;
-            atcServer.AtcLoggedIn += AtcServer_AtcLoggedIn;
+            atcServer.AtcUpdated += AtcServer_AtcUpdated;
             atcServer.AtcLoggedOff += AtcServer_AtcLoggedOff;
-
+            atcServer.AtcMessageSent += AtcServer_AtcMessageSent;
 
             if (string.IsNullOrWhiteSpace(viewModel.Callsign))
             {
@@ -439,6 +439,13 @@ namespace FlightEvents.Client
                     flightPlan.CruisingAltitude,
                     flightPlan.EstimatedEnroute);
             });
+            hub.On<string, string>("SendATC", async (to, message) =>
+            {
+                if (to == "*" || viewModel.AtcCallsign == to)
+                {
+                    await atcServer.SendAsync(message);
+                }
+            });
             await hub.SendAsync("Join", "ATC");
 
             // Update ATC Location on map
@@ -477,8 +484,7 @@ namespace FlightEvents.Client
             await hub.SendAsync("SendMessage", viewModel.AtcCallsign, e.To, e.Message);
         }
 
-
-        private async void AtcServer_AtcLoggedIn(object sender, AtcLoggedInEventArgs e)
+        private async void AtcServer_AtcUpdated(object sender, AtcUpdatedEventArgs e)
         {
             await hub.SendAsync("UpdateATC", new ATCStatus
             {
@@ -493,6 +499,11 @@ namespace FlightEvents.Client
         private async void AtcServer_AtcLoggedOff(object sender, AtcLoggedOffEventArgs e)
         {
             await hub.SendAsync("UpdateATC", null);
+        }
+
+        private async void AtcServer_AtcMessageSent(object sender, AtcMessageSentEventArgs e)
+        {
+            await hub.SendAsync("SendATC", e.To, e.Message);
         }
 
         #endregion

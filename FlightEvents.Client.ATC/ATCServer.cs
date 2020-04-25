@@ -8,76 +8,6 @@ using System.Threading.Tasks;
 
 namespace FlightEvents.Client.ATC
 {
-    public class ConnectedEventArgs : EventArgs
-    {
-        public ConnectedEventArgs(string callsign, string realName, string certificate, string rating, double latitude, double longitude)
-        {
-            Callsign = callsign;
-            RealName = realName;
-            Certificate = certificate;
-            Rating = rating;
-            Latitude = latitude;
-            Longitude = longitude;
-        }
-
-        public string Callsign { get; }
-        public string RealName { get; }
-        public string Certificate { get; }
-        public string Rating { get; }
-        public double Latitude { get; }
-        public double Longitude { get; }
-    }
-
-    public class FlightPlanRequestedEventArgs : EventArgs
-    {
-        public FlightPlanRequestedEventArgs(string callsign)
-        {
-            Callsign = callsign;
-        }
-
-        public string Callsign { get; }
-    }
-
-    public class MessageSentEventArgs : EventArgs
-    {
-        public MessageSentEventArgs(string to, string message)
-        {
-            To = to;
-            Message = message;
-        }
-
-        public string To { get; }
-        public string Message { get; }
-    }
-
-    public class AtcLoggedInEventArgs : EventArgs
-    {
-        public AtcLoggedInEventArgs(string callsign, int frequency, int altitude, double latitude, double longitude)
-        {
-            Callsign = callsign;
-            Frequency = frequency;
-            Altitude = altitude;
-            Latitude = latitude;
-            Longitude = longitude;
-        }
-
-        public string Callsign { get; }
-        public int Frequency { get; }
-        public int Altitude { get; }
-        public double Latitude { get; }
-        public double Longitude { get; }
-    }
-
-    public class AtcLoggedOffEventArgs : EventArgs
-    {
-        public AtcLoggedOffEventArgs(string callsign)
-        {
-            Callsign = callsign;
-        }
-
-        public string Callsign { get; }
-    }
-
     public enum AtcTransponderMode
     {
         Standby,
@@ -103,8 +33,13 @@ namespace FlightEvents.Client.ATC
         public event EventHandler<ConnectedEventArgs> Connected;
         public event EventHandler<FlightPlanRequestedEventArgs> FlightPlanRequested;
         public event EventHandler<MessageSentEventArgs> MessageSent;
-        public event EventHandler<AtcLoggedInEventArgs> AtcLoggedIn;
+        public event EventHandler<AtcUpdatedEventArgs> AtcUpdated;
         public event EventHandler<AtcLoggedOffEventArgs> AtcLoggedOff;
+
+        /// <summary>
+        /// Signal a Message need to be sent to another ATC client
+        /// </summary>
+        public event EventHandler<AtcMessageSentEventArgs> AtcMessageSent;
 
         public ATCServer(ILogger<ATCServer> logger)
         {
@@ -155,7 +90,7 @@ namespace FlightEvents.Client.ATC
             var alternate = "NONE";
             var remarks = $"Aircraft = {title.Replace(":", "_")} Registration = {registration.Replace(":", "_")}";
 
-            var fp = $"$FP{callsign}:*A:{ifrs}:{type.Replace(":", "_")}:{speed}:{departure}:::{altitude}:{arrival}:::{(enroute == null ? ":" : $"{enroute.Value.Hours.ToString("00")}:{enroute.Value.Minutes.ToString("00")}")}:{alternate}:{remarks}:{route}:";
+            var fp = $"$FP{callsign}:*A:{ifrs}:{type.Replace(":", "_")}:{speed}:{departure}:::{altitude}:{arrival}:::{(enroute == null ? ":" : $"{enroute.Value.Hours:00}:{enroute.Value.Minutes:00}")}:{alternate}:{remarks}:{route}:";
 
             await writer?.WriteLineAsync(fp);
             await writer?.FlushAsync();
@@ -180,6 +115,8 @@ namespace FlightEvents.Client.ATC
                 {
                     var info = await reader.ReadLineAsync();
                     logger.LogInformation($"Receive: {info}");
+
+                    if (info == null) break;
 
                     if (info.Contains("VRC") && !atc)
                     {
@@ -206,7 +143,8 @@ namespace FlightEvents.Client.ATC
                         var lat = double.Parse(tokens[5]);
                         var lng = double.Parse(tokens[6]);
 
-                        AtcLoggedIn?.Invoke(this, new AtcLoggedInEventArgs(callsign, freq, alt, lat, lng));
+                        AtcUpdated?.Invoke(this, new AtcUpdatedEventArgs(callsign, freq, alt, lat, lng));
+                        AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs("*", info));
                     }
 
                     if (info.StartsWith($"#DA{callsign}:SERVER"))
@@ -230,8 +168,11 @@ namespace FlightEvents.Client.ATC
                     if (info.StartsWith("$CQ"))
                     {
                         // TODO: Command 
-                        // (e.g. $CQHYHY:@94835:BC:HY3088:2677)
-                        // (e.g. $CQKAUS_TWR:SERVER:FP:DS-TZZ)
+                        // (e.g. $CQHYHY:@94835:BC:HY3088:2677 --- Set squawk)
+                        // (e.g. $CQKAUS_TWR:SERVER:FP:DS-TZZ --- Requesting flight plan)
+
+                        //$CQCYVR_TWR:@94835:DR:USEP6Q --- Assume a callsign
+                        //#TMCYVR_TWR:FP:USEP6Q --- Release
 
                         var tokens = info.Substring("$CQ".Length).Split(new char[] { ':' }, 4);
                         var sender = tokens[0];
@@ -239,39 +180,53 @@ namespace FlightEvents.Client.ATC
                         var command = tokens[2];
                         var data = tokens.Length == 4 ? tokens[3] : null;
 
-                        switch (command)
+                        if (recipient == "SERVER")
                         {
-                            case "ATC":
-                                if (recipient == "SERVER")
-                                {
-                                    await SendAsync($"$CRSERVER:{callsign}:ATC:N:{callsign}");
-                                }
-                                break;
+                            switch (command)
+                            {
+                                case "ATC":
+                                        await SendAsync($"$CRSERVER:{callsign}:ATC:Y:{data}");
+                                    break;
 
-                            case "CAPS":
-                                if (recipient == "SERVER")
-                                {
-                                    await SendAsync($"$CRSERVER:{callsign}:CAPS:ATCINFO=1:SECPOS=1");
-                                }
+                                case "CAPS":
+                                        await SendAsync($"$CRSERVER:{callsign}:CAPS:ATCINFO=1:SECPOS=1");
+                                    break;
+                                case "IP":
+                                        var ipep = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
+                                        var ipa = ipep.Address;
+                                        await SendAsync($"$CRSERVER:{callsign}:IP:{ipa}");
 
-                                break;
-                            case "IP":
-                                if (recipient == "SERVER")
-                                {
-                                    var ipep = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
-                                    var ipa = ipep.Address;
-                                    await SendAsync($"$CRSERVER:{callsign}:IP:{ipa}");
-
-                                    await SendAsync($"$CQSERVER:{callsign}:CAPS");
-                                }
-                                break;
-
-                            case "FP":
-                                if (!string.IsNullOrEmpty(data))
-                                {
+                                        await SendAsync($"$CQSERVER:{callsign}:CAPS");
+                                    break;
+                                case "FP":
                                     FlightPlanRequested?.Invoke(this, new FlightPlanRequestedEventArgs(data));
-                                }
-                                break;
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            // Real Name
+                            // $CQCYVR_TWR:EDDM_GND:RN
+                            // Expect: $CREDDM_GND:WADD_TWR:RN:<Name>Hy:<location>Vancouver FIR 2004/1-1 CZVR 20200404:<rating>3
+
+                            AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs(recipient, info));
+                        }
+                    }
+
+                    if (info.StartsWith("$CR"))
+                    {
+                        //$CRCYVR_TWR:CYVR_GND:CAPS:ATCINFO=1:SECPOS=1:MODELDESC=1:ONGOINGCOORD=1
+
+                        var tokens = info.Split(":");
+                        var recipient = tokens[1];
+
+                        if (recipient == "SERVER")
+                        {
+                            // Ignore
+                        }
+                        else
+                        {
+                            AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs(recipient, info));
                         }
                     }
 
@@ -285,6 +240,7 @@ namespace FlightEvents.Client.ATC
                         var msg = tokens[2];
 
                         MessageSent?.Invoke(this, new MessageSentEventArgs(to, msg));
+                        AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs("*", info));
                     }
 
                     if (this.vrc)
@@ -310,8 +266,8 @@ namespace FlightEvents.Client.ATC
                             var certificate = tokens[3];
                             var password = tokens[4];
                             var rating = tokens[5];
-                            var lat = double.Parse(tokens[9]);
-                            var lon = double.Parse(tokens[10]);
+                            var lat = tokens.Length > 9 ? double.Parse(tokens[9]) : (double?)null;
+                            var lon = tokens.Length > 10 ? double.Parse(tokens[10]) : (double?)null;
                             await SendAsync($"#TM{ClientCode}:{callsign}:Connected to {ClientName}.");
 
                             Connected?.Invoke(this, new ConnectedEventArgs(callsign, realName, certificate, rating, lat, lon));
@@ -328,7 +284,7 @@ namespace FlightEvents.Client.ATC
             await SendAsync($"$ARSERVER:{callsign}:METAR:{metar}");
         }
 
-        private async Task SendAsync(string data)
+        public async Task SendAsync(string data)
         {
             if (writer != null)
             {

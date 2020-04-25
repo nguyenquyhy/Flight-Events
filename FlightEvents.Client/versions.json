@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "1.9.0",
+      "changes": "Add support for multiple ATCs"
+    },
+    {
       "id": "1.8.0",
       "changes": "Improve Discord channel switching and display ATC on map"
     },

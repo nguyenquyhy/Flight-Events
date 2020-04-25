@@ -68,7 +68,7 @@ namespace FlightEvents.Web.Hubs
                     await Clients.Groups("Bot").ChangeFrequency(clientId, fromFrequency, status?.FrequencyCom);
                 }
 
-                await Clients.Groups("Map", "ATC").UpdateATC(clientId, status, atc);
+                await Clients.Groups("Map").UpdateATC(clientId, status, atc);
             }
         }
 
@@ -143,5 +143,14 @@ namespace FlightEvents.Web.Hubs
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, group);
         }
+
+        #region ATC
+
+        public async Task SendATC(string to, string message)
+        {
+            await Clients.GroupExcept("ATC", Context.ConnectionId).SendATC(to, message);
+        }
+
+        #endregion
     }
 }
