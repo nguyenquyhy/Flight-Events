@@ -14,14 +14,24 @@ namespace FlightEvents.Web.Hubs
         private static readonly ConcurrentDictionary<string, ATCInfo> atcInfos = new ConcurrentDictionary<string, ATCInfo>();
         private static readonly ConcurrentDictionary<string, ATCStatus> atcStatuses = new ConcurrentDictionary<string, ATCStatus>();
 
-        public override Task OnConnectedAsync()
+        public override async Task OnConnectedAsync()
         {
+            var clientType = (string)Context.GetHttpContext().Request.Query["clientType"];
             var clientId = (string)Context.GetHttpContext().Request.Query["clientId"];
+            var clientVersion = (string)Context.GetHttpContext().Request.Query["clientVersion"];
             if (clientId != null)
             {
                 clientIds[Context.ConnectionId] = clientId;
             }
-            return base.OnConnectedAsync();
+            switch (clientType)
+            {
+                case "Web":
+                    await Groups.AddToGroupAsync(Context.ConnectionId, "Map");
+                    break;
+                default:
+                    break;
+            }
+            await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)

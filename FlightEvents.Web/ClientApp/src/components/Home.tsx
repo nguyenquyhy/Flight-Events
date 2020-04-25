@@ -130,8 +130,6 @@ export class Home extends React.Component<any, State> {
 
         await hub.start();
 
-        await hub.send('Join', 'Map');
-
         setInterval(this.cleanUp, 2000);
     }
 
