@@ -17,13 +17,16 @@ namespace FlightEvents.MockClient
     {
         public MockAircraft()
         {
+            ClientId = Guid.NewGuid().ToString();
             Hub = new HubConnectionBuilder()
-                //.WithUrl("https://localhost:44359/FlightEventHub")
-                .WithUrl("https://events.flighttracker.tech/FlightEventHub")
+                .WithUrl("https://localhost:44359/FlightEventHub?clientId=" + ClientId)
+                //.WithUrl("https://events.flighttracker.tech/FlightEventHub?clientId=" + ClientId)
                 .WithAutomaticReconnect()
                 .AddMessagePackProtocol()
                 .Build();
         }
+
+        public string ClientId { get; }
 
         public HubConnection Hub { get; }
         public string ConnectionId { get; set; }
@@ -65,7 +68,7 @@ namespace FlightEvents.MockClient
                 {
                     if (aircraft.Hub.State == HubConnectionState.Connected)
                     {
-                        await aircraft.Hub.SendAsync("UpdateAircraft", aircraft.Hub.ConnectionId, new AircraftStatus
+                        await aircraft.Hub.SendAsync("UpdateAircraft", new AircraftStatus
                         {
                             Callsign = aircraft.Callsign,
                             Longitude = aircraft.Longitude,
