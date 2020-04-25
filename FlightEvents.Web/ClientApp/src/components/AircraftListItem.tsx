@@ -2,21 +2,21 @@
 import styled from 'styled-components';
 
 interface Props {
-    connectionId: string;
+    clientId: string;
 
     callsign: string;
-    onAircraftClick: (connectionId: string) => void;
+    onAircraftClick: (clientId: string) => void;
 
     isReady: boolean;
 
     isMe: boolean;
-    onMeChanged: (connectionId: string | null) => void;
+    onMeChanged: (clientId: string | null) => void;
     isFollowing: boolean;
-    onFollowingChanged: (connectionId: string | null) => void;
+    onFollowingChanged: (clientId: string | null) => void;
     isMoreInfo: boolean;
-    onMoreInfoChanged: (connectionId: string) => void;
+    onMoreInfoChanged: (clientId: string) => void;
     isFlightPlan: boolean;
-    onFlightPlanChanged: (connectionId: string | null) => void;
+    onFlightPlanChanged: (clientId: string | null) => void;
 }
 
 export default class AircraftListItem extends React.Component<Props> {
@@ -33,14 +33,14 @@ export default class AircraftListItem extends React.Component<Props> {
     }
 
     handleAircraftClick() {
-        this.props.onAircraftClick(this.props.connectionId)
+        this.props.onAircraftClick(this.props.clientId)
     }
 
     handleMeChanged() {
         if (this.props.isMe) {
             this.props.onMeChanged(null);
         } else {
-            this.props.onMeChanged(this.props.connectionId);
+            this.props.onMeChanged(this.props.clientId);
         }
     }
 
@@ -48,19 +48,19 @@ export default class AircraftListItem extends React.Component<Props> {
         if (this.props.isFollowing) {
             this.props.onFollowingChanged(null);
         } else {
-            this.props.onFollowingChanged(this.props.connectionId);
+            this.props.onFollowingChanged(this.props.clientId);
         }
     }
 
     handleMoreInfoChanged() {
-        this.props.onMoreInfoChanged(this.props.connectionId);
+        this.props.onMoreInfoChanged(this.props.clientId);
     }
 
     handleFlightPlanChanged() {
         if (this.props.isFlightPlan) {
             this.props.onFlightPlanChanged(null);
         } else {
-            this.props.onFlightPlanChanged(this.props.connectionId);
+            this.props.onFlightPlanChanged(this.props.clientId);
         }
     }
 

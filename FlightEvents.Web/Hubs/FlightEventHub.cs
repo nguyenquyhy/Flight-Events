@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace FlightEvents.Web.Hubs
@@ -10,7 +11,7 @@ namespace FlightEvents.Web.Hubs
     {
         private static readonly ConcurrentDictionary<string, string> clientIds = new ConcurrentDictionary<string, string>();
         private static readonly ConcurrentDictionary<string, AircraftStatus> aircraftStatuses = new ConcurrentDictionary<string, AircraftStatus>();
-        private static readonly ConcurrentDictionary<string, ATCInfo> atcInfos= new ConcurrentDictionary<string, ATCInfo>();
+        private static readonly ConcurrentDictionary<string, ATCInfo> atcInfos = new ConcurrentDictionary<string, ATCInfo>();
         private static readonly ConcurrentDictionary<string, ATCStatus> atcStatuses = new ConcurrentDictionary<string, ATCStatus>();
 
         public override Task OnConnectedAsync()
@@ -103,9 +104,14 @@ namespace FlightEvents.Web.Hubs
             await Clients.Clients(atcConnectionIds).ReturnFlightPlan(connectionId, flightPlan);
         }
 
-        public async Task RequestFlightPlanDetails(string connectionId)
+        public async Task RequestFlightPlanDetails(string clientId)
         {
-            await Clients.Clients(connectionId).RequestFlightPlanDetails(Context.ConnectionId);
+            var pairs = clientIds.ToArray();
+            if (pairs.Any(p => p.Value == clientId))
+            {
+                var connectionId = pairs.First(p => p.Value == clientId).Key;
+                await Clients.Clients(connectionId).RequestFlightPlanDetails(Context.ConnectionId);
+            }
         }
 
         public async Task ReturnFlightPlanDetails(string connectionId, FlightPlanData flightPlan, string webConnectionId)

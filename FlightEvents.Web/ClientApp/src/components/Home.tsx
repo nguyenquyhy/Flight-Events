@@ -12,11 +12,11 @@ import LeafletMap from '../maps/LeaftletMap';
 import MaptalksMap from '../maps/MaptalksMap';
 
 interface State {
-    aircrafts: { [connectionId: string]: AircraftStatus };
-    myConnectionId: string | null;
-    followingConnectionId: string | null;
-    moreInfoConnectionIds: string[];
-    flightPlanConnectionId: string | null;
+    aircrafts: { [clientId: string]: AircraftStatus };
+    myClientId: string | null;
+    followingClientId: string | null;
+    moreInfoClientIds: string[];
+    flightPlanClientId: string | null;
 
     map3D: boolean;
     mapTileType: MapTileType;
@@ -29,17 +29,17 @@ export class Home extends React.Component<any, State> {
     private map: IMap;
     private currentView?: View;
 
-    private aircrafts: { [connectionId: string]: { aircraftStatus: AircraftStatus, lastUpdated: Date } } = {};
+    private aircrafts: { [clientId: string]: { aircraftStatus: AircraftStatus, lastUpdated: Date } } = {};
 
     constructor(props: any) {
         super(props);
 
         this.state = {
             aircrafts: {},
-            myConnectionId: null,
-            followingConnectionId: null,
-            moreInfoConnectionIds: [],
-            flightPlanConnectionId: null,
+            myClientId: null,
+            followingClientId: null,
+            moreInfoClientIds: [],
+            flightPlanClientId: null,
             map3D: false,
             mapTileType: MapTileType.OpenStreetMap,
         }
@@ -50,7 +50,7 @@ export class Home extends React.Component<any, State> {
         });
 
         this.hub = new signalr.HubConnectionBuilder()
-            .withUrl('/FlightEventHub')
+            .withUrl('/FlightEventHub?clientType=Web')
             .withAutomaticReconnect()
             //.withHubProtocol(new protocol.MessagePackHubProtocol())
             .build();
@@ -87,35 +87,35 @@ export class Home extends React.Component<any, State> {
             await hub.send('Join', 'Map');
         })
 
-        hub.on("UpdateATC", (connectionId, status: ATCStatus, atc: ATCInfo) => {
+        hub.on("UpdateATC", (clientId, status: ATCStatus, atc: ATCInfo) => {
             try {
-                this.map.moveATCMarker(connectionId, status, atc);
+                this.map.moveATCMarker(clientId, status, atc);
             } catch (e) {
                 console.error(e);
             }
         });
 
-        hub.on("UpdateAircraft", (connectionId, aircraftStatus: AircraftStatus) => {
+        hub.on("UpdateAircraft", (clientId, aircraftStatus: AircraftStatus) => {
             try {
                 aircraftStatus.isReady = !(Math.abs(aircraftStatus.latitude) < 0.02 && Math.abs(aircraftStatus.longitude) < 0.02);
 
                 this.setState({
                     aircrafts: {
                         ...this.state.aircrafts,
-                        [connectionId]: aircraftStatus
+                        [clientId]: aircraftStatus
                     }
                 });
 
-                this.aircrafts[connectionId] = {
+                this.aircrafts[clientId] = {
                     lastUpdated: new Date(),
                     aircraftStatus: aircraftStatus
                 };
 
                 if (aircraftStatus.isReady) {
-                    this.map.moveMarker(connectionId, aircraftStatus, this.state.myConnectionId === connectionId, connectionId === this.state.followingConnectionId, this.state.moreInfoConnectionIds.includes(connectionId));
+                    this.map.moveMarker(clientId, aircraftStatus, this.state.myClientId === clientId, clientId === this.state.followingClientId, this.state.moreInfoClientIds.includes(clientId));
                 } else {
                     // Aircraft not loaded
-                    this.map.cleanUp(connectionId, this.state.myConnectionId === connectionId);
+                    this.map.cleanUp(clientId, this.state.myClientId === clientId);
                 }
             } catch (e) {
                 console.error(e);
@@ -141,38 +141,38 @@ export class Home extends React.Component<any, State> {
     }
 
     private cleanUp() {
-        const connectionIds = Object.keys(this.aircrafts);
-        for (let connectionId of connectionIds) {
-            const aircraft = this.aircrafts[connectionId];
+        const clientIds = Object.keys(this.aircrafts);
+        for (let clientId of clientIds) {
+            const aircraft = this.aircrafts[clientId];
             if (new Date().getTime() - aircraft.lastUpdated.getTime() > 5 * 1000) {
-                this.map.cleanUp(connectionId, connectionId === this.state.myConnectionId);
+                this.map.cleanUp(clientId, clientId === this.state.myClientId);
 
-                if (connectionId === this.state.myConnectionId) {
+                if (clientId === this.state.myClientId) {
                     this.setState({
-                        myConnectionId: null
+                        myClientId: null
                     });
                 }
-                if (connectionId === this.state.followingConnectionId) {
+                if (clientId === this.state.followingClientId) {
                     this.setState({
-                        followingConnectionId: null
+                        followingClientId: null
                     });
                 }
                 let newAircrafts = {
                     ...this.state.aircrafts
                 };
-                delete newAircrafts[connectionId];
+                delete newAircrafts[clientId];
                 this.setState({
                     aircrafts: newAircrafts
                 })
 
-                delete this.aircrafts[connectionId];
+                delete this.aircrafts[clientId];
             }
         }
     }
 
-    private handleAircraftClick(connectionId: string) {
+    private handleAircraftClick(clientId: string) {
         if (this.map) {
-            this.map.focusAircraft(this.aircrafts[connectionId].aircraftStatus);
+            this.map.focusAircraft(this.aircrafts[clientId].aircraftStatus);
         }
     }
 
@@ -237,36 +237,36 @@ export class Home extends React.Component<any, State> {
         this.map.setTileLayer(MapTileType.UsVfrSectional);
     }
 
-    private handleMeChanged(connectionId: string | null) {
-        this.setState({ myConnectionId: connectionId });
+    private handleMeChanged(clientId: string | null) {
+        this.setState({ myClientId: clientId });
 
-        if (connectionId) {
+        if (clientId) {
             this.map.addRangeCircle();
         } else {
             this.map.removeRangeCircle();
         }
     }
 
-    private handleFollowingChanged(connectionId: string | null) {
-        this.setState({ followingConnectionId: connectionId });
+    private handleFollowingChanged(clientId: string | null) {
+        this.setState({ followingClientId: clientId });
     }
 
-    private handleMoreInfoChanged(connectionId: string) {
-        if (this.state.moreInfoConnectionIds.includes(connectionId)) {
-            this.setState({ moreInfoConnectionIds: this.state.moreInfoConnectionIds.filter(o => o !== connectionId) });
+    private handleMoreInfoChanged(clientId: string) {
+        if (this.state.moreInfoClientIds.includes(clientId)) {
+            this.setState({ moreInfoClientIds: this.state.moreInfoClientIds.filter(o => o !== clientId) });
         } else {
-            this.setState({ moreInfoConnectionIds: this.state.moreInfoConnectionIds.concat(connectionId) });
+            this.setState({ moreInfoClientIds: this.state.moreInfoClientIds.concat(clientId) });
         }
     }
 
-    private handleFlightPlanChanged(connectionId: string | null) {
-        this.setState({ flightPlanConnectionId: connectionId }, () => {
-            if (connectionId == null) {
+    private handleFlightPlanChanged(clientId: string | null) {
+        this.setState({ flightPlanClientId: clientId }, () => {
+            if (clientId == null) {
                 // Clear map
                 this.map.drawFlightPlans([]);
             } else {
                 // Request plan
-                this.hub.send('RequestFlightPlanDetails', connectionId);
+                this.hub.send('RequestFlightPlanDetails', clientId);
             }
         });
     }
@@ -296,10 +296,10 @@ export class Home extends React.Component<any, State> {
                 <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.UsVfrSectional} onClick={this.handleUsVfrSectional}>US VFR</Button>
             </LayerWrapper>
             <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
-                onMeChanged={this.handleMeChanged} myConnectionId={this.state.myConnectionId}
-                onFollowingChanged={this.handleFollowingChanged} followingConnectionId={this.state.followingConnectionId}
-                onMoreInfoChanged={this.handleMoreInfoChanged} moreInfoConnectionIds={this.state.moreInfoConnectionIds}
-                onFlightPlanChanged={this.handleFlightPlanChanged} flightPlanConnectionId={this.state.flightPlanConnectionId}
+                onMeChanged={this.handleMeChanged} myClientId={this.state.myClientId}
+                onFollowingChanged={this.handleFollowingChanged} followingClientId={this.state.followingClientId}
+                onMoreInfoChanged={this.handleMoreInfoChanged} moreInfoClientIds={this.state.moreInfoClientIds}
+                onFlightPlanChanged={this.handleFlightPlanChanged} flightPlanClientId={this.state.flightPlanClientId}
             />
             <EventList onAirportsLoaded={this.handleAirportsLoaded} onFlightPlansLoaded={this.handleFlightPlansLoaded} />
         </>;

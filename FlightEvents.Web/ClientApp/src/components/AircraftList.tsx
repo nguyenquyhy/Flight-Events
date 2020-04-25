@@ -8,20 +8,20 @@ import AircraftListItem from './AircraftListItem';
 import Download from './Download';
 
 interface Props {
-    aircrafts: { [connectionId: string]: AircraftStatus };
-    onAircraftClick: (connectionId: string) => void;
+    aircrafts: { [clientId: string]: AircraftStatus };
+    onAircraftClick: (clientId: string) => void;
 
-    myConnectionId: string | null;
-    onMeChanged: (connectionId: string | null) => void;
+    myClientId: string | null;
+    onMeChanged: (clientId: string | null) => void;
 
-    followingConnectionId: string | null;
-    onFollowingChanged: (connectionId: string | null) => void;
+    followingClientId: string | null;
+    onFollowingChanged: (clientId: string | null) => void;
 
-    moreInfoConnectionIds: string[];
-    onMoreInfoChanged: (connectionId: string) => void;
+    moreInfoClientIds: string[];
+    onMoreInfoChanged: (clientId: string) => void;
 
-    flightPlanConnectionId: string | null;
-    onFlightPlanChanged: (connectionId: string | null) => void;
+    flightPlanClientId: string | null;
+    onFlightPlanChanged: (clientId: string | null) => void;
 }
 
 interface State {
@@ -48,33 +48,33 @@ export default class AircraftList extends React.Component<Props, State> {
     }
 
     public render() {
-        let connectionIds = Object
+        let clientIds = Object
             .entries(this.props.aircrafts)
             .sort((a, b) => (a[1].callsign || a[0].substring(5)).localeCompare((b[1].callsign || b[0].substring(5))))
             .map(o => o[0]);
 
-        if (this.props.myConnectionId) {
-            connectionIds = connectionIds.filter(o => o !== this.props.myConnectionId);
-            connectionIds = [this.props.myConnectionId].concat(connectionIds);
+        if (this.props.myClientId) {
+            clientIds = clientIds.filter(o => o !== this.props.myClientId);
+            clientIds = [this.props.myClientId].concat(clientIds);
         }
-        const list = connectionIds.length === 0 ?
+        const list = clientIds.length === 0 ?
             <tr><td colSpan={4}><NoneText>None</NoneText></td></tr> :
-            connectionIds.map(connectionId => (
-                <AircraftListItem key={connectionId}
-                    connectionId={connectionId}
+            clientIds.map(clientId => (
+                <AircraftListItem key={clientId}
+                    clientId={clientId}
 
-                    callsign={this.props.aircrafts[connectionId].callsign || connectionId.substring(5)}
+                    callsign={this.props.aircrafts[clientId].callsign || clientId.substring(5)}
                     onAircraftClick={this.props.onAircraftClick}
 
-                    isReady={this.props.aircrafts[connectionId].isReady}
+                    isReady={this.props.aircrafts[clientId].isReady}
 
-                    isMe={this.props.myConnectionId === connectionId}
+                    isMe={this.props.myClientId === clientId}
                     onMeChanged={this.props.onMeChanged}
-                    isFollowing={this.props.followingConnectionId === connectionId}
+                    isFollowing={this.props.followingClientId === clientId}
                     onFollowingChanged={this.props.onFollowingChanged}
-                    isMoreInfo={this.props.moreInfoConnectionIds.includes(connectionId)}
+                    isMoreInfo={this.props.moreInfoClientIds.includes(clientId)}
                     onMoreInfoChanged={this.props.onMoreInfoChanged}
-                    isFlightPlan={this.props.flightPlanConnectionId === connectionId}
+                    isFlightPlan={this.props.flightPlanClientId === clientId}
                     onFlightPlanChanged={this.props.onFlightPlanChanged}
                 />));
 
@@ -84,7 +84,7 @@ export default class AircraftList extends React.Component<Props, State> {
                 <List>
                     <thead>
                         <tr>
-                            <th><Title>Aircraft {(connectionIds.length === 0 ? "" : `(${connectionIds.length})`)}</Title></th>
+                            <th><Title>Aircraft {(clientIds.length === 0 ? "" : `(${clientIds.length})`)}</Title></th>
                             <th>
                                 <div id="txtMe">Own</div>
                                 <UncontrolledTooltip placement="right" target="txtMe">Own aircraft. Will display the visible range circle for multiplayer</UncontrolledTooltip>
