@@ -441,7 +441,7 @@ namespace FlightEvents.Client
             });
             hub.On<string, string>("SendATC", async (to, message) =>
             {
-                if (to == "*" || viewModel.AtcCallsign == to)
+                if (to == "*" || to == "@94835" || viewModel.AtcCallsign == to)
                 {
                     await atcServer.SendAsync(message);
                 }
