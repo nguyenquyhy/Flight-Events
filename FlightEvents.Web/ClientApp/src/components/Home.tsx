@@ -119,6 +119,9 @@ export class Home extends React.Component<any, State> {
                     }
                 } else {
                     // Aircraft not loaded
+                    if (this.state.myClientId === clientId) {
+                        this.map.clearTrack();
+                    }
                     this.map.cleanUp(clientId, this.state.myClientId === clientId);
                 }
             } catch (e) {
@@ -130,7 +133,7 @@ export class Home extends React.Component<any, State> {
             if (flightPlan) {
                 this.map.drawFlightPlans([flightPlan]);
             }
-        })
+        });
 
         await hub.start();
 
@@ -243,9 +246,22 @@ export class Home extends React.Component<any, State> {
         this.setState({ myClientId: clientId });
 
         if (clientId) {
+            this.hub.stream("RequestFlightRoute", clientId)
+                .subscribe({
+                    next: item => {
+                        this.map.prependTrack([item]);
+                    },
+                    complete: () => {
+
+                    },
+                    error: () => {
+
+                    }
+                });
             this.map.addRangeCircle();
         } else {
             this.map.removeRangeCircle();
+            this.map.clearTrack();
         }
     }
 

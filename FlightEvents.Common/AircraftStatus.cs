@@ -1,5 +1,24 @@
 ﻿namespace FlightEvents
 {
+    public class AircraftStatusBrief
+    {
+        public AircraftStatusBrief()
+        {
+            
+        }
+
+        public AircraftStatusBrief(AircraftStatus status)
+        {
+            Latitude = status.Latitude;
+            Longitude = status.Longitude;
+            Altitude = status.Altitude;
+        }
+
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public double Altitude { get; set; }
+    }
+
     public class AircraftStatus
     {
         public string Callsign { get; set; }

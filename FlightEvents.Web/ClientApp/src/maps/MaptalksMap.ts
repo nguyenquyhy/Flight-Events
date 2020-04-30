@@ -504,6 +504,34 @@ export default class MaptalksMap implements IMap {
         }
     }
 
+    public prependTrack(route: AircraftStatus[]) {
+        if (!this.routeLine) {
+            const line = new maptalks.LineString(route.map(r => new maptalks.Coordinate([r.longitude, r.latitude])), {
+                symbol: {
+                    lineColor: 'blue',
+                    lineWidth: 3
+                },
+                properties: {
+                    altitude: route.map(r => r.altitude * MaptalksMap.FEET_TO_METER)
+                }
+            });
+            line.addTo(this.routeLayer);
+            this.routeLine = line;
+        } else {
+            this.routeLine.setCoordinates(route.map(r => new maptalks.Coordinate([r.longitude, r.latitude])).concat(this.routeLine.getCoordinates()));
+            this.routeLine.setProperties({
+                altitude: route.map(r => r.altitude * MaptalksMap.FEET_TO_METER).concat(this.routeLine.getProperties().altitude)
+            });
+        }
+    }
+
+    public clearTrack() {
+        if (this.routeLine) {
+            this.routeLine.remove();
+            this.routeLine = undefined;
+        }
+    }
+
     private fitExtent(c1: Coordinate, c2: Coordinate) {
         if (!this.map) return;
 

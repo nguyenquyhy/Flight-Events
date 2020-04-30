@@ -5,7 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -79,6 +81,7 @@ namespace FlightEvents.Client
 
             hub.On<string, string>("RequestFlightPlan", Hub_OnRequestFlightPlan);
             hub.On<string>("RequestFlightPlanDetails", Hub_OnRequestFlightPlanDetails);
+            hub.On<string>("RequestFlightRoute", Hub_OnRequestFlightRoute);
             hub.On<string, string, string>("SendMessage", Hub_OnMessageSent);
 
             TextURL.Text = this.appSettings.WebServerUrl;
@@ -158,6 +161,8 @@ namespace FlightEvents.Client
 
         private async void ButtonStartTrack_Click(object sender, RoutedEventArgs e)
         {
+            route.Clear();
+
             viewModel.IsTracking = true;
 
             await userPreferencesLoader.UpdateAsync(o => o.LastCallsign = viewModel.Callsign);
@@ -177,6 +182,8 @@ namespace FlightEvents.Client
 
         private void ButtonStopTrack_Click(object sender, RoutedEventArgs e)
         {
+            route.Clear();
+
             viewModel.IsTracking = false;
             ButtonStopTrack.Visibility = Visibility.Collapsed;
             ButtonStartTrack.Visibility = Visibility.Visible;
@@ -273,6 +280,24 @@ namespace FlightEvents.Client
             await hub.SendAsync("ReturnFlightPlanDetails", hub.ConnectionId, data, webConnectionId);
         }
 
+        /// <summary>
+        /// Flight route is requested from web client
+        /// </summary>
+        private async void Hub_OnRequestFlightRoute(string webConnectionId)
+        {
+            await hub.SendAsync("StreamFlightRoute", ClientStreamData());
+        }
+
+        async IAsyncEnumerable<AircraftStatusBrief> ClientStreamData()
+        {
+            var copy = route.ToList();
+            copy.Reverse();
+            foreach (var status in copy)
+            {
+                yield return status;
+            }
+        }
+
         private void Hub_OnMessageSent(string from, string toRaw, string message)
         {
             if (viewModel.IsTracking && viewModel.Callsign != from)
@@ -308,6 +333,8 @@ namespace FlightEvents.Client
 
         DateTime lastStatusSent = DateTime.Now;
 
+        private readonly List<AircraftStatusBrief> route = new List<AircraftStatusBrief>();
+
         private async void FlightConnector_AircraftStatusUpdated(object sender, AircraftStatusUpdatedEventArgs e)
         {
             if (viewModel.IsTracking)
@@ -317,6 +344,8 @@ namespace FlightEvents.Client
 
                 if (hub?.ConnectionId != null && DateTime.Now - lastStatusSent > TimeSpan.FromMilliseconds(MinimumUpdatePeriod))
                 {
+                    route.Add(new AircraftStatusBrief(e.AircraftStatus));
+
                     lastStatusSent = DateTime.Now;
                     await hub.SendAsync("UpdateAircraft", e.AircraftStatus);
                     lastStatusSent = DateTime.Now;

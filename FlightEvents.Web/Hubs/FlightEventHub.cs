@@ -3,16 +3,21 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace FlightEvents.Web.Hubs
 {
     public class FlightEventHub : Hub<IFlightEventHub>
     {
-        private static readonly ConcurrentDictionary<string, string> clientIds = new ConcurrentDictionary<string, string>();
-        private static readonly ConcurrentDictionary<string, AircraftStatus> aircraftStatuses = new ConcurrentDictionary<string, AircraftStatus>();
-        private static readonly ConcurrentDictionary<string, ATCInfo> atcInfos = new ConcurrentDictionary<string, ATCInfo>();
-        private static readonly ConcurrentDictionary<string, ATCStatus> atcStatuses = new ConcurrentDictionary<string, ATCStatus>();
+        private static readonly ConcurrentDictionary<string, string> connectionIdToClientIds = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, string> clientIdToConnectionIds = new ConcurrentDictionary<string, string>();
+
+        private static readonly ConcurrentDictionary<string, AircraftStatus> connectionIdToAircraftStatuses = new ConcurrentDictionary<string, AircraftStatus>();
+        private static readonly ConcurrentDictionary<string, ATCInfo> connectionIdToToAtcInfos = new ConcurrentDictionary<string, ATCInfo>();
+        private static readonly ConcurrentDictionary<string, ATCStatus> connectionIdToAtcStatuses = new ConcurrentDictionary<string, ATCStatus>();
+
+        private static readonly ConcurrentDictionary<string, ChannelWriter<AircraftStatusBrief>> clientIdToChannelWriter = new ConcurrentDictionary<string, ChannelWriter<AircraftStatusBrief>>();
 
         public override async Task OnConnectedAsync()
         {
@@ -21,7 +26,8 @@ namespace FlightEvents.Web.Hubs
             var clientVersion = (string)Context.GetHttpContext().Request.Query["clientVersion"];
             if (clientId != null)
             {
-                clientIds[Context.ConnectionId] = clientId;
+                connectionIdToClientIds[Context.ConnectionId] = clientId;
+                clientIdToConnectionIds[clientId] = Context.ConnectionId;
             }
             switch (clientType)
             {
@@ -36,32 +42,33 @@ namespace FlightEvents.Web.Hubs
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            if (clientIds.TryRemove(Context.ConnectionId, out var clientId))
+            if (connectionIdToClientIds.TryRemove(Context.ConnectionId, out var clientId))
             {
+                clientIdToConnectionIds.TryRemove(clientId, out _);
                 await Clients.Groups("Map", "ATC").UpdateATC(clientId, null, null);
             }
-            aircraftStatuses.TryRemove(Context.ConnectionId, out _);
-            atcStatuses.TryRemove(Context.ConnectionId, out _);
+            connectionIdToAircraftStatuses.TryRemove(Context.ConnectionId, out _);
+            connectionIdToAtcStatuses.TryRemove(Context.ConnectionId, out _);
             await base.OnDisconnectedAsync(exception);
         }
 
         public void LoginATC(ATCInfo atc)
         {
-            atcInfos[Context.ConnectionId] = atc;
+            connectionIdToToAtcInfos[Context.ConnectionId] = atc;
         }
 
         public async Task UpdateATC(ATCStatus status)
         {
-            if (clientIds.TryGetValue(Context.ConnectionId, out var clientId) && atcInfos.TryGetValue(Context.ConnectionId, out var atc))
+            if (connectionIdToClientIds.TryGetValue(Context.ConnectionId, out var clientId) && connectionIdToToAtcInfos.TryGetValue(Context.ConnectionId, out var atc))
             {
                 int? fromFrequency = null;
-                if (atcStatuses.TryGetValue(Context.ConnectionId, out var lastStatus))
+                if (connectionIdToAtcStatuses.TryGetValue(Context.ConnectionId, out var lastStatus))
                 {
                     fromFrequency = lastStatus.FrequencyCom;
                 }
                 if (status != null)
                 {
-                    atcStatuses[Context.ConnectionId] = status;
+                    connectionIdToAtcStatuses[Context.ConnectionId] = status;
                 }
                 if (fromFrequency != status?.FrequencyCom)
                 {
@@ -74,7 +81,7 @@ namespace FlightEvents.Web.Hubs
 
         public async Task UpdateAircraft(AircraftStatus status)
         {
-            if (clientIds.TryGetValue(Context.ConnectionId, out var clientId))
+            if (connectionIdToClientIds.TryGetValue(Context.ConnectionId, out var clientId))
             {
                 // Sanitize status
                 if (Math.Abs(status.Latitude) < 0.02 && Math.Abs(status.Longitude) < 0.02)
@@ -83,17 +90,17 @@ namespace FlightEvents.Web.Hubs
                     status.FrequencyCom1 = 0;
                 }
 
-                if (!atcStatuses.TryGetValue(Context.ConnectionId, out _))
+                if (!connectionIdToAtcStatuses.TryGetValue(Context.ConnectionId, out _))
                 {
                     // Detect COM1 change if ATC is not active
                     int fromFrequency = 0;
-                    if (aircraftStatuses.TryGetValue(Context.ConnectionId, out var lastStatus))
+                    if (connectionIdToAircraftStatuses.TryGetValue(Context.ConnectionId, out var lastStatus))
                     {
                         fromFrequency = lastStatus.FrequencyCom1;
                     }
                     var toFrequency = status.FrequencyCom1;
 
-                    aircraftStatuses[Context.ConnectionId] = status;
+                    connectionIdToAircraftStatuses[Context.ConnectionId] = status;
 
                     if (fromFrequency != toFrequency)
                     {
@@ -116,7 +123,7 @@ namespace FlightEvents.Web.Hubs
 
         public async Task RequestFlightPlanDetails(string clientId)
         {
-            var pairs = clientIds.ToArray();
+            var pairs = connectionIdToClientIds.ToArray();
             if (pairs.Any(p => p.Value == clientId))
             {
                 var connectionId = pairs.First(p => p.Value == clientId).Key;
@@ -127,6 +134,40 @@ namespace FlightEvents.Web.Hubs
         public async Task ReturnFlightPlanDetails(string connectionId, FlightPlanData flightPlan, string webConnectionId)
         {
             await Clients.Clients(webConnectionId).ReturnFlightPlanDetails(connectionId, flightPlan);
+        }
+
+        public async Task<ChannelReader<AircraftStatusBrief>> RequestFlightRoute(string clientId)
+        {
+            var channel = Channel.CreateUnbounded<AircraftStatusBrief>();
+            clientIdToChannelWriter[clientId] = channel.Writer;
+            await Clients.Clients(clientIdToConnectionIds[clientId]).RequestFlightRoute(Context.ConnectionId);
+            return channel.Reader;
+        }
+
+        public async Task StreamFlightRoute(ChannelReader<AircraftStatusBrief> channel)
+        {
+            if (clientIdToChannelWriter.TryRemove(connectionIdToClientIds[Context.ConnectionId], out var writer))
+            {
+                Exception localException = null;
+                try
+                {
+                    // Wait asynchronously for data to become available
+                    while (await channel.WaitToReadAsync())
+                    {
+                        // Read all currently available data synchronously, before waiting for more data
+                        while (channel.TryRead(out var status))
+                        {
+                            await writer.WriteAsync(status);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    localException = ex;
+                }
+
+                writer.Complete(localException);
+            }
         }
 
         public async Task SendMessage(string from, string to, string message)

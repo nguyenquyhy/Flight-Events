@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FlightEvents.Web.Hubs
 {
@@ -39,6 +40,10 @@ namespace FlightEvents.Web.Hubs
         /// <param name="connectionId"></param>
         /// <param name="flightPlan"></param>
         Task ReturnFlightPlanDetails(string connectionId, FlightPlanData flightPlan);
+
+        Task RequestFlightRoute(string webConnectionId);
+
+        Task ReturnFlightRoute(string webConnectionId, List<AircraftStatusBrief> route);
 
         /// <summary>
         /// Send a message to client

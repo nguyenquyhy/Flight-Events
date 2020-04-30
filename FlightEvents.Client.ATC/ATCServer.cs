@@ -158,6 +158,12 @@ namespace FlightEvents.Client.ATC
                         break;
                     }
 
+                    if (info.StartsWith("#AP"))
+                    {
+                        // #APNWA360:SERVER:1363753::1:100:6:Jim Levain KBLI
+                        // #APTHY73Q:SERVER:1349469::1:100:2:Bedran Batkitar LTFM
+                    }
+
                     if (info.StartsWith("$AX"))
                     {
                         // METAR
@@ -185,18 +191,18 @@ namespace FlightEvents.Client.ATC
                             switch (command)
                             {
                                 case "ATC":
-                                        await SendAsync($"$CRSERVER:{callsign}:ATC:Y:{data}");
+                                    await SendAsync($"$CRSERVER:{callsign}:ATC:Y:{data}");
                                     break;
 
                                 case "CAPS":
-                                        await SendAsync($"$CRSERVER:{callsign}:CAPS:ATCINFO=1:SECPOS=1");
+                                    await SendAsync($"$CRSERVER:{callsign}:CAPS:ATCINFO=1:SECPOS=1");
                                     break;
                                 case "IP":
-                                        var ipep = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
-                                        var ipa = ipep.Address;
-                                        await SendAsync($"$CRSERVER:{callsign}:IP:{ipa}");
+                                    var ipep = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
+                                    var ipa = ipep.Address;
+                                    await SendAsync($"$CRSERVER:{callsign}:IP:{ipa}");
 
-                                        await SendAsync($"$CQSERVER:{callsign}:CAPS");
+                                    await SendAsync($"$CQSERVER:{callsign}:CAPS");
                                     break;
                                 case "FP":
                                     FlightPlanRequested?.Invoke(this, new FlightPlanRequestedEventArgs(data));
@@ -257,6 +263,7 @@ namespace FlightEvents.Client.ATC
                         if (info.StartsWith("#AA"))
                         {
                             // #AACYVR_TWR:SERVER:HY:NA:123:3:9:1:0:49.19470:-123.18397:100
+                            // #AAEGHQ_ATIS:SERVER:Daniel Button:1343255::4:100
                             logger.LogInformation("Connected");
 
                             var tokens = info.Substring("#AA".Length).Split(":");

@@ -16,6 +16,8 @@ export interface IMap {
     onViewChanged(handler: OnViewChangedFn);
 
     track: (latitude: number, longitude: number, altitude: number) => void;
+    prependTrack: (route: AircraftStatus[]) => void;
+    clearTrack: () => void;
 }
 
 export type OnViewChangedFn = (view: View) => void;

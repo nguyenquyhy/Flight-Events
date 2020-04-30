@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "1.10.0",
+      "changes": "Show flight route for own aircraft"
+    },
+    {
       "id": "1.9.0",
       "changes": "Add support for multiple ATCs"
     },

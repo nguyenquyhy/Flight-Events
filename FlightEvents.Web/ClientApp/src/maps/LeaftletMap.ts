@@ -326,4 +326,19 @@ export default class LeafletMap implements IMap {
         }
         this.routeLine.addLatLng([latitude, longitude]);
     }
+
+    public prependTrack(route: AircraftStatus[]) {
+        if (!this.routeLine) {
+            this.routeLine = L.polyline(route.map(r => [r.latitude, r.longitude]), { color: 'blue' }).addTo(this.routeLayerGroup);
+        } else {
+            this.routeLine.setLatLngs(route.map(r => [r.latitude, r.longitude]).concat(this.routeLine.getLatLngs()));
+        }
+    }
+
+    public clearTrack() {
+        if (this.routeLine) {
+            this.routeLine.remove();
+            this.routeLine = undefined;
+        }
+    }
 }
