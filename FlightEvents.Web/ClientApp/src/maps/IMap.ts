@@ -14,6 +14,8 @@ export interface IMap {
     setTileLayer(type: MapTileType)
 
     onViewChanged(handler: OnViewChangedFn);
+
+    track: (latitude: number, longitude: number, altitude: number) => void;
 }
 
 export type OnViewChangedFn = (view: View) => void;

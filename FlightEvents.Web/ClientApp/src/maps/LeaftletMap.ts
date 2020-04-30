@@ -20,6 +20,9 @@ export default class LeafletMap implements IMap {
 
     flightPlanLayerGroup: L.LayerGroup;
 
+    routeLayerGroup: L.LayerGroup;
+    routeLine?: L.Polyline;
+
     circleMarker: L.Circle;
 
     onViewChangedHandler: OnViewChangedFn | null = null;
@@ -37,6 +40,7 @@ export default class LeafletMap implements IMap {
         this.baseLayerGroup = L.layerGroup().addTo(this.mymap);
         this.airportLayerGroup = L.layerGroup().addTo(this.mymap);
         this.flightPlanLayerGroup = L.layerGroup().addTo(this.mymap);
+        this.routeLayerGroup = L.layerGroup().addTo(this.mymap);
 
         setInterval(this.cleanUp, 2000);
     }
@@ -314,5 +318,12 @@ export default class LeafletMap implements IMap {
 
     public onViewChanged(handler: OnViewChangedFn) {
         this.onViewChangedHandler = handler;
+    }
+
+    public track(latitude: number, longitude: number, altitude: number) {
+        if (!this.routeLine) {
+            this.routeLine = L.polyline([], { color: 'blue' }).addTo(this.routeLayerGroup);
+        }
+        this.routeLine.addLatLng([latitude, longitude]);
     }
 }

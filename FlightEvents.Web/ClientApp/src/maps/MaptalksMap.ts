@@ -41,13 +41,20 @@ interface VectorLayer {
     addTo: (map: Map) => void;
 }
 
+interface LineString extends Geometry {
+    getCoordinates: () => Coordinate[];
+    setCoordinates: (coordinates: Coordinate[]) => void;
+}
+
 interface Geometry {
     show: () => void;
     hide: () => void;
     remove: () => void;
+    getProperties: () => any;
     setProperties: (props: any) => void;
     updateSymbol: (props: any) => void;
     animate: (animation: any, props: any) => void;
+    addTo: (layer: VectorLayer) => void;
 }
 
 interface Marker extends Geometry {
@@ -104,6 +111,15 @@ export default class MaptalksMap implements IMap {
             lineWidth: 0
         }
     });
+    routeLayer: VectorLayer = new maptalks.VectorLayer('route', {
+        enableAltitude: true,
+        drawAltitude: {
+            polygonFill: '#1bbc9b',
+            polygonOpacity: 0.3,
+            lineWidth: 0
+        }
+    });
+    routeLine?: LineString;
 
     initialize(divId: string, view?: View) {
         const map: Map = new maptalks.Map(divId, {
@@ -135,6 +151,7 @@ export default class MaptalksMap implements IMap {
         this.atcLayer.addTo(map);
         this.airportLayer.addTo(map);
         this.flightPlanLayer.addTo(map);
+        this.routeLayer.addTo(map);
 
         this.visibleCircle.hide();
 
@@ -464,6 +481,27 @@ export default class MaptalksMap implements IMap {
 
     public onViewChanged(handler: OnViewChangedFn) {
         this.onViewChangedHandler = handler;
+    }
+
+    public track(latitude: number, longitude: number, altitude: number) {
+        if (!this.routeLine) {
+            const line = new maptalks.LineString([new maptalks.Coordinate([longitude, latitude])], {
+                symbol: {
+                    lineColor: 'blue',
+                    lineWidth: 3
+                },
+                properties: {
+                    altitude: [altitude * MaptalksMap.FEET_TO_METER]
+                }
+            });
+            line.addTo(this.routeLayer);
+            this.routeLine = line;
+        } else {
+            this.routeLine.setCoordinates(this.routeLine.getCoordinates().concat([new maptalks.Coordinate([longitude, latitude])]));
+            this.routeLine.setProperties({
+                altitude: this.routeLine.getProperties().altitude.concat(altitude * MaptalksMap.FEET_TO_METER)
+            });
+        }
     }
 
     private fitExtent(c1: Coordinate, c2: Coordinate) {

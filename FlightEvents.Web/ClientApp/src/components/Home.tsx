@@ -113,6 +113,10 @@ export class Home extends React.Component<any, State> {
 
                 if (aircraftStatus.isReady) {
                     this.map.moveMarker(clientId, aircraftStatus, this.state.myClientId === clientId, clientId === this.state.followingClientId, this.state.moreInfoClientIds.includes(clientId));
+
+                    if (clientId === this.state.myClientId) {
+                        this.map.track(aircraftStatus.latitude, aircraftStatus.longitude, aircraftStatus.altitude);
+                    }
                 } else {
                     // Aircraft not loaded
                     this.map.cleanUp(clientId, this.state.myClientId === clientId);
