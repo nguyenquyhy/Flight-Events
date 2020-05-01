@@ -50,9 +50,24 @@ namespace FlightEvents
             return earthRadiusKt * c;
         }
 
-        private static double DegreesToRadians(double degrees)
+        private static double DegreesToRadians(double degrees) => degrees * Math.PI / 180;
+
+        /// <summary>
+        /// Based on https://stackoverflow.com/questions/8981943/lat-long-to-x-y-z-position-in-js-not-working
+        /// Assuming the earth is a perfect sphere
+        /// </summary>
+        /// <param name="latitude"></param>
+        /// <param name="longitude"></param>
+        /// <param name="altitude"></param>
+        /// <returns></returns>
+        public static (double x, double y, double z) ToXyz(double latitude, double longitude, double altitude)
         {
-            return degrees * Math.PI / 180;
+            var cosLat = Math.Cos(DegreesToRadians(latitude));
+            var sinLat = Math.Sin(DegreesToRadians(latitude));
+            var cosLon = Math.Cos(DegreesToRadians(longitude));
+            var sinLon = Math.Sin(DegreesToRadians(longitude));
+            var rad = 500.0;
+            return (rad * cosLat * cosLon, rad * cosLat * sinLon, rad * sinLat);
         }
     }
 }

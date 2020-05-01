@@ -31,6 +31,7 @@ namespace FlightEvents.Client
 
         private readonly MainViewModel viewModel;
         private readonly AppSettings appSettings;
+        private readonly LineSimplifier lineSimplifier;
         private readonly ATCServer atcServer;
         private readonly UserPreferencesLoader userPreferencesLoader;
         private readonly VersionLogic versionLogic;
@@ -54,6 +55,7 @@ namespace FlightEvents.Client
             this.versionLogic = versionLogic;
             this.viewModel = viewModel;
             this.appSettings = appSettings.CurrentValue;
+            this.lineSimplifier = new LineSimplifier();
 
             flightConnector.AircraftDataUpdated += FlightConnector_AircraftDataUpdated;
             flightConnector.AircraftStatusUpdated += FlightConnector_AircraftStatusUpdated;
@@ -291,7 +293,7 @@ namespace FlightEvents.Client
 
         async IAsyncEnumerable<AircraftStatusBrief> ClientStreamData()
         {
-            var copy = route.ToList();
+            var copy = lineSimplifier.DouglasPeucker(route.ToList(), 0.0001).ToList();
             copy.Reverse();
             foreach (var status in copy)
             {
@@ -489,8 +491,8 @@ namespace FlightEvents.Client
                 Callsign = e.Callsign,
                 Latitude = e.Latitude,
                 Longitude = e.Longitude,
-                RealName = e.RealName, 
-                Certificate = e.Certificate, 
+                RealName = e.RealName,
+                Certificate = e.Certificate,
                 Rating = e.Rating
             });
 
