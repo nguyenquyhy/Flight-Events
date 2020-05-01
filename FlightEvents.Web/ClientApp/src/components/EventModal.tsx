@@ -74,12 +74,14 @@ export default class EventModal extends React.Component<Props, State> {
 
                 {this.state.flightPlans && <>
                     <h4>Flight Plans</h4>
-
-                    <ul>
-                        {this.state.flightPlans.map(flightPlan => (
-                            <li key={flightPlan.id}><a href={flightPlan.downloadUrl} target="_blank" rel="noopener noreferrer" download={flightPlan.id}>{flightPlan.data.title}</a></li>
-                        ))}
-                    </ul>
+                    {this.state.flightPlans.length === 0 ?
+                        <p><em>No flight plan is available for this event.</em></p> :
+                        <ul>
+                            {this.state.flightPlans.map(flightPlan => (
+                                <li key={flightPlan.id}><a href={flightPlan.downloadUrl} target="_blank" rel="noopener noreferrer" download={flightPlan.id}>{flightPlan.data.title}</a></li>
+                            ))}
+                        </ul>
+                    }
                 </>}
             </> :
             <div>Loading...</div>;
