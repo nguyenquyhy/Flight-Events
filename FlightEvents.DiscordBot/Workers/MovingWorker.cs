@@ -59,7 +59,7 @@ namespace FlightEvents.DiscordBot
             this.discordConnectionStorage = discordConnectionStorage;
 
             this.hub = new HubConnectionBuilder()
-                .WithUrl(appOptions.WebServerUrl + "/FlightEventHub")
+                .WithUrl(appOptions.WebServerUrl + "/FlightEventHub?clientType=Bot")
                 .WithAutomaticReconnect()
                 .Build();
 
@@ -90,9 +90,6 @@ namespace FlightEvents.DiscordBot
                     await botClient.LoginAsync(TokenType.Bot, discordOptions.BotToken);
                     await botClient.StartAsync();
                     logger.LogInformation("Connected to Discord");
-
-                    await hub.SendAsync("Join", "Bot");
-                    logger.LogInformation("Joined Bot group");
                 }
                 catch (Exception ex)
                 {
@@ -117,12 +114,10 @@ namespace FlightEvents.DiscordBot
             return Task.CompletedTask;
         }
 
-        private async Task Hub_Reconnected(string arg)
+        private Task Hub_Reconnected(string arg)
         {
             logger.LogInformation("Reconnected to SignalR");
-
-            await hub.SendAsync("Join", "Bot");
-            logger.LogInformation("Joined Bot group");
+            return Task.CompletedTask;
         }
 
         private async Task BotClient_GuildAvailable(SocketGuild guild)

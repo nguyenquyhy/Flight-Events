@@ -21,6 +21,7 @@ namespace FlightEvents.Web.Hubs
 
         public override async Task OnConnectedAsync()
         {
+            // Web or Client
             var clientType = (string)Context.GetHttpContext().Request.Query["clientType"];
             var clientId = (string)Context.GetHttpContext().Request.Query["clientId"];
             var clientVersion = (string)Context.GetHttpContext().Request.Query["clientVersion"];
@@ -33,6 +34,9 @@ namespace FlightEvents.Web.Hubs
             {
                 case "Web":
                     await Groups.AddToGroupAsync(Context.ConnectionId, "Map");
+                    break;
+                case "Bot":
+                    await Groups.AddToGroupAsync(Context.ConnectionId, "Bot");
                     break;
                 default:
                     break;
