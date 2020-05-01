@@ -80,7 +80,7 @@ namespace FlightEvents.Client.ATC
             var pos = $"@{modeString}:{callsign}:{squawk}:{rating}:{latitude}:{longitude}:{altitude}:{groundSpeed}:62905944:5";
             await writer?.WriteLineAsync(pos);
 
-            logger.LogDebug("Sent Position: " + pos);
+            logger.LogTrace("Sent Position: " + pos);
         }
 
         public async Task SendFlightPlanAsync(string callsign, bool isIFR, string type, string registration, string title,
@@ -229,6 +229,25 @@ namespace FlightEvents.Client.ATC
                         if (recipient == "SERVER")
                         {
                             // Ignore
+                        }
+                        else
+                        {
+                            AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs(recipient, info));
+                        }
+                    }
+
+                    if (info.StartsWith("$HO") || info.StartsWith("#PC"))
+                    {
+                        // Manual transfer
+                        // $HOCYVR_TWR:CZVR_CTR:NF-OJS
+                        // #PCCYVR_TWR:CZVR_CTR:CCP:ST:NF-OJS:1:::::::::
+
+                        var tokens = info.Split(":");
+                        var recipient = tokens[1];
+
+                        if (recipient == "SERVER")
+                        {
+                            // Probably never happen
                         }
                         else
                         {

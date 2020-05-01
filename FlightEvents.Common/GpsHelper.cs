@@ -5,7 +5,7 @@ namespace FlightEvents
 {
     public class GpsHelper
     {
-        private static Regex re = new Regex(@"([N|S])([0-9]*[\.[0-9]+]*)°\s([0-9]*[\.[0-9]+]*)'\s([0-9]*[\.[0-9]+]*)"",([W|E])([0-9]*[\.[0-9]+]*)°\s([0-9]*[\.[0-9]+]*)'\s([0-9]*[\.[0-9]+]*)""");
+        private static Regex re = new Regex(@"([N|S])([0-9]*[\.[0-9]+]*)[*|°]\s([0-9]*[\.[0-9]+]*)'\s([0-9]*[\.[0-9]+]*)"",([W|E])([0-9]*[\.[0-9]+]*)[*|°]\s([0-9]*[\.[0-9]+]*)'\s([0-9]*[\.[0-9]+]*)""");
 
         public static (double latitude, double longitude) ConvertString(string data)
         {
