@@ -13,6 +13,7 @@ namespace FlightEvents.Client.SimConnectFSX
     {
         public event EventHandler<AircraftDataUpdatedEventArgs> AircraftDataUpdated;
         public event EventHandler<AircraftStatusUpdatedEventArgs> AircraftStatusUpdated;
+        public event EventHandler AircraftPositionChanged;
         public event EventHandler<FlightPlanUpdatedEventArgs> FlightPlanUpdated;
 
         private TaskCompletionSource<FlightPlanData> requestFlightPlanTcs = null;
@@ -85,6 +86,9 @@ namespace FlightEvents.Client.SimConnectFSX
             RegisterAircraftDataDefinition();
             RegisterFlightStatusDefinition();
 
+            simconnect.SubscribeToSystemEvent(EVENTS.POSITION_CHANGED, "PositionChanged");
+            simconnect.OnRecvEvent += Simconnect_OnRecvEvent;
+
             simconnect.OnRecvSystemState += Simconnect_OnRecvSystemState;
         }
 
@@ -156,6 +160,13 @@ namespace FlightEvents.Client.SimConnectFSX
 
         private void RegisterFlightStatusDefinition()
         {
+            //simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
+            //    "SIM TIME",
+            //    "Seconds",
+            //    SIMCONNECT_DATATYPE.FLOAT32,
+            //    0.0f,
+            //    SimConnect.SIMCONNECT_UNUSED);
+
             simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
                 "SIMULATION RATE",
                 "number",
@@ -339,7 +350,7 @@ namespace FlightEvents.Client.SimConnectFSX
 
                         if (flightStatus.HasValue)
                         {
-                            logger.LogDebug("Get Aircraft status");
+                            logger.LogTrace("Get Aircraft status");
                             AircraftStatusUpdated?.Invoke(this, new AircraftStatusUpdatedEventArgs(
                                 new AircraftStatus
                                 {
@@ -372,6 +383,28 @@ namespace FlightEvents.Client.SimConnectFSX
                             logger.LogError("Cannot cast to FlightStatusStruct!");
                         }
                     }
+                    break;
+            }
+        }
+
+        void Simconnect_OnRecvEvent(SimConnect sender, SIMCONNECT_RECV_EVENT data)
+        {
+            logger.LogInformation("OnRecvEvent dwID " + data.dwID + " uEventID " + data.uEventID);
+            switch ((SIMCONNECT_RECV_ID)data.dwID)
+            {
+                case SIMCONNECT_RECV_ID.EVENT_FILENAME:
+
+                    break;
+                case SIMCONNECT_RECV_ID.QUIT:
+                    logger.LogInformation("Quit");
+                    break;
+            }
+
+            switch ((EVENTS)data.uEventID)
+            {
+                case EVENTS.POSITION_CHANGED:
+                    logger.LogInformation("Position changed");
+                    AircraftPositionChanged?.Invoke(this, new EventArgs());
                     break;
             }
         }

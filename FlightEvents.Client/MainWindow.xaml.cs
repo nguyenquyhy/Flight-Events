@@ -57,6 +57,7 @@ namespace FlightEvents.Client
 
             flightConnector.AircraftDataUpdated += FlightConnector_AircraftDataUpdated;
             flightConnector.AircraftStatusUpdated += FlightConnector_AircraftStatusUpdated;
+            flightConnector.AircraftPositionChanged += FlightConnector_AircraftPositionChanged;
 
             DataContext = viewModel;
         }
@@ -355,6 +356,11 @@ namespace FlightEvents.Client
 
                 viewModel.AircraftStatus = e.AircraftStatus;
             }
+        }
+
+        private void FlightConnector_AircraftPositionChanged(object sender, EventArgs e)
+        {
+            route.Clear();
         }
 
         #endregion

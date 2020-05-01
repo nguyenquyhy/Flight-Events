@@ -26,7 +26,8 @@ namespace FlightEvents.Client.SimConnectFSX
     internal enum EVENTS
     {
         CONNECTED,
-        MESSAGE_RECEIVED
+        MESSAGE_RECEIVED,
+        POSITION_CHANGED
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
@@ -44,6 +45,7 @@ namespace FlightEvents.Client.SimConnectFSX
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     struct FlightStatusStruct
     {
+        //public float SimTime;
         public int SimRate;
 
         public double Latitude;
