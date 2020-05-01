@@ -246,6 +246,7 @@ export class Home extends React.Component<any, State> {
         this.setState({ myClientId: clientId });
 
         if (clientId) {
+            this.map.clearTrack();
             this.hub.stream("RequestFlightRoute", clientId)
                 .subscribe({
                     next: item => {
