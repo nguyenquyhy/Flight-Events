@@ -12,11 +12,13 @@
             Latitude = status.Latitude;
             Longitude = status.Longitude;
             Altitude = status.Altitude;
+            IsOnGround = status.IsOnGround;
         }
 
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public double Altitude { get; set; }
+        public bool IsOnGround { get; set; }
     }
 
     public class AircraftStatus

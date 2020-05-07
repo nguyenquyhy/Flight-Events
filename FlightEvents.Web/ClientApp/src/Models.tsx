@@ -18,6 +18,13 @@ export interface ATCStatus {
     frequencyCom: number;
 }
 
+export interface AircraftStatusBrief {
+    longitude: number;
+    latitude: number;
+    altitude: number;
+    isOnGround: boolean;
+}
+
 export interface AircraftStatus {
     callsign: string;
 

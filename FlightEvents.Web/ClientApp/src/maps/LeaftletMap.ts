@@ -1,13 +1,16 @@
 ﻿import { IMap, MapTileType, OnViewChangedFn, View } from './IMap';
 import * as L from 'leaflet';
 import 'leaflet-rotatedmarker';
-import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo } from '../Models';
+import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
 
 
 interface Markers {
     aircraft: L.Marker<any>
     info: L.Marker<any>
 }
+
+const ROUTE_AIR_COLOR = 'blue';
+const ROUTE_GROUND_COLOR = 'brown';
 
 export default class LeafletMap implements IMap {
     mymap: L.Map;
@@ -22,6 +25,7 @@ export default class LeafletMap implements IMap {
 
     routeLayerGroup: L.LayerGroup;
     routeLine?: L.Polyline;
+    currentStatus: AircraftStatusBrief | null = null;
 
     circleMarker: L.Circle;
 
@@ -320,24 +324,40 @@ export default class LeafletMap implements IMap {
         this.onViewChangedHandler = handler;
     }
 
-    public track(latitude: number, longitude: number, altitude: number) {
-        if (!this.routeLine) {
-            this.routeLine = L.polyline([], { color: 'blue' }).addTo(this.routeLayerGroup);
+    public track(status: AircraftStatusBrief) {
+        if (!this.routeLine || this.currentStatus == null || this.currentStatus.isOnGround !== status.isOnGround) {
+            this.routeLine = this.createRouteLine(this.currentStatus ? [this.currentStatus] : [], status.isOnGround);
         }
-        this.routeLine.addLatLng([latitude, longitude]);
+        this.currentStatus = status;
+        this.routeLine.addLatLng([status.latitude, status.longitude]);
     }
 
-    public prependTrack(route: AircraftStatus[]) {
-        if (!this.routeLine) {
-            this.routeLine = L.polyline(route.map(r => [r.latitude, r.longitude]), { color: 'blue' }).addTo(this.routeLayerGroup);
-        } else {
-            this.routeLine.setLatLngs(route.map(r => [r.latitude, r.longitude]).concat(this.routeLine.getLatLngs()));
+    public prependTrack(route: AircraftStatusBrief[]) {
+        let isOnGround: boolean | null = null;
+        let routeSoFar: AircraftStatusBrief[] = [];
+        for (let status of route) {
+            if (isOnGround !== status.isOnGround) {
+                if (routeSoFar.length > 0 && isOnGround !== null) {
+                    this.createRouteLine(routeSoFar, isOnGround);
+                }
+                routeSoFar = routeSoFar.length > 0 ? routeSoFar.slice(routeSoFar.length - 1, routeSoFar.length) : [];
+                isOnGround = status.isOnGround;
+            }
+            routeSoFar.push(status);
         }
+        if (routeSoFar.length > 0 && isOnGround !== null) {
+            this.createRouteLine(routeSoFar, isOnGround);
+        }
+    }
+
+    private createRouteLine(route: AircraftStatusBrief[], isOnGround: boolean) {
+        return L.polyline(route.map(r => [r.latitude, r.longitude]), { color: isOnGround ? ROUTE_GROUND_COLOR : ROUTE_AIR_COLOR }).addTo(this.routeLayerGroup);
     }
 
     public clearTrack() {
+        this.currentStatus = null;
         if (this.routeLine) {
-            this.routeLine.remove();
+            this.routeLayerGroup.clearLayers();
             this.routeLine = undefined;
         }
     }

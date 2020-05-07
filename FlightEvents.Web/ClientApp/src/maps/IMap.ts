@@ -1,4 +1,4 @@
-﻿import { ATCStatus, ATCInfo, AircraftStatus, Airport, FlightPlanData } from '../Models';
+﻿import { ATCStatus, ATCInfo, AircraftStatus, Airport, FlightPlanData, AircraftStatusBrief } from '../Models';
 
 export interface IMap {
     initialize(divId: string, view?: View)
@@ -15,8 +15,8 @@ export interface IMap {
 
     onViewChanged(handler: OnViewChangedFn);
 
-    track: (latitude: number, longitude: number, altitude: number) => void;
-    prependTrack: (route: AircraftStatus[]) => void;
+    track: (status: AircraftStatusBrief) => void;
+    prependTrack: (route: AircraftStatusBrief[]) => void;
     clearTrack: () => void;
 }
 

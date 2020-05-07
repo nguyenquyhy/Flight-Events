@@ -4,7 +4,7 @@ import { ButtonGroup, Button } from 'reactstrap';
 import * as signalr from '@microsoft/signalr';
 import 'msgpack5';
 //import * as protocol from '@microsoft/signalr-protocol-msgpack';
-import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo } from '../Models';
+import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
 import AircraftList from './AircraftList';
 import EventList from './EventList';
 import { IMap, MapTileType, View } from '../maps/IMap';
@@ -115,7 +115,7 @@ export class Home extends React.Component<any, State> {
                     this.map.moveMarker(clientId, aircraftStatus, this.state.myClientId === clientId, clientId === this.state.followingClientId, this.state.moreInfoClientIds.includes(clientId));
 
                     if (clientId === this.state.myClientId) {
-                        this.map.track(aircraftStatus.latitude, aircraftStatus.longitude, aircraftStatus.altitude);
+                        this.map.track(aircraftStatus);
                     }
                 } else {
                     // Aircraft not loaded
@@ -247,13 +247,14 @@ export class Home extends React.Component<any, State> {
 
         if (clientId) {
             this.map.clearTrack();
+            let route: AircraftStatusBrief[] = [];
             this.hub.stream("RequestFlightRoute", clientId)
                 .subscribe({
                     next: item => {
-                        this.map.prependTrack([item]);
+                        route = [item].concat(route);
                     },
                     complete: () => {
-
+                        this.map.prependTrack(route);
                     },
                     error: () => {
 
