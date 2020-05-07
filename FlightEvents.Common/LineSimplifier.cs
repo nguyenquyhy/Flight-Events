@@ -5,12 +5,31 @@ namespace FlightEvents
 {
     public class LineSimplifier
     {
+        /// <summary>
+        /// Apply Douglas-Peucker on each section with the same IsOnGround
+        /// </summary>
+        /// <param name="route"></param>
+        /// <param name="tolerance"></param>
+        /// <returns></returns>
         public IEnumerable<AircraftStatusBrief> DouglasPeucker(List<AircraftStatusBrief> route, double tolerance)
         {
             var result = new List<int>();
-            result.Add(0);
-            DouglasPeuckerRecursive(route.Select(o => GpsHelper.ToXyz(o.Latitude, o.Longitude, o.Altitude)).ToList(), tolerance * tolerance, 0, route.Count - 1, result);
-            result.Add(route.Count - 1);
+            int start = 0, end = 0;
+            while (end < route.Count)
+            {
+                result.Add(start);
+                while (end < route.Count - 1 && route[end + 1].IsOnGround == route[end].IsOnGround)
+                {
+                    end++;
+                }
+                if (end - start > 1)
+                {
+                    DouglasPeuckerRecursive(route.Select(o => GpsHelper.ToXyz(o.Latitude, o.Longitude, o.Altitude)).ToList(), tolerance * tolerance, start, end, result);
+                }
+                result.Add(end);
+                start = end + 1;
+                end = start;
+            }
 
             foreach (var index in result)
             {
