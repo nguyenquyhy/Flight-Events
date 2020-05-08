@@ -24,7 +24,8 @@ namespace FlightEvents.Client
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const int MinimumUpdatePeriod = 500;
+        private int MinimumUpdatePeriod = 500;
+
         private const string DefaultWebServerUrl = "https://events.flighttracker.tech";
 
         private readonly Random random = new Random();
@@ -86,6 +87,7 @@ namespace FlightEvents.Client
             hub.On<string>("RequestFlightPlanDetails", Hub_OnRequestFlightPlanDetails);
             hub.On<string>("RequestFlightRoute", Hub_OnRequestFlightRoute);
             hub.On<string, string, string>("SendMessage", Hub_OnMessageSent);
+            hub.On<string, int>("ChangeUpdateRateByCallsign", Hub_OnChangeUpdateRateByCallsign);
 
             TextURL.Text = this.appSettings.WebServerUrl;
 
@@ -322,6 +324,15 @@ namespace FlightEvents.Client
                         flightConnector.Send($"{from}: {message}");
                     }
                 }
+            }
+        }
+
+        private void Hub_OnChangeUpdateRateByCallsign(string callsign, int hz)
+        {
+            if (viewModel.Callsign == callsign)
+            {
+                MinimumUpdatePeriod = 1000 / hz;
+                hub.SendAsync("NotifyUpdateRateChanged", hz);
             }
         }
 

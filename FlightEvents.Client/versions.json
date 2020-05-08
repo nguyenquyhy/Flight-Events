@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "1.11.0",
+      "changes": "Dynamic refresh rate"
+    },
+    {
       "id": "1.10.0",
       "changes": "Show flight route for own aircraft"
     },

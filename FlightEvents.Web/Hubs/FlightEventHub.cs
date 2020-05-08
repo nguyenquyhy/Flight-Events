@@ -179,6 +179,16 @@ namespace FlightEvents.Web.Hubs
             await Clients.All.SendMessage(from, to, message);
         }
 
+        public async Task ChangeUpdateRateByCallsign(string callsign, int hz)
+        {
+            await Clients.All.ChangeUpdateRateByCallsign(callsign, hz);
+        }
+
+        public async Task NotifyUpdateRateChanged(int hz)
+        {
+            await Clients.Group("Map").NotifyUpdateRateChanged(connectionIdToClientIds[Context.ConnectionId], hz);
+        }
+
         public async Task Join(string group)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, group);

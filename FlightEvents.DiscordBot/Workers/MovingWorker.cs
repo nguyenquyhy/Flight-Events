@@ -51,17 +51,14 @@ namespace FlightEvents.DiscordBot
         public MovingWorker(ILogger<MovingWorker> logger,
             IOptionsMonitor<AppOptions> appOptionsAccessor,
             IOptionsMonitor<DiscordOptions> discordOptionsAccessor,
-            IDiscordConnectionStorage discordConnectionStorage)
+            IDiscordConnectionStorage discordConnectionStorage,
+            HubConnection hub)
         {
             this.logger = logger;
             this.appOptions = appOptionsAccessor.CurrentValue;
             this.discordOptions = discordOptionsAccessor.CurrentValue;
             this.discordConnectionStorage = discordConnectionStorage;
-
-            this.hub = new HubConnectionBuilder()
-                .WithUrl(appOptions.WebServerUrl + "/FlightEventHub?clientType=Bot")
-                .WithAutomaticReconnect()
-                .Build();
+            this.hub = hub;
 
             hub.Reconnecting += Hub_Reconnecting;
             hub.Reconnected += Hub_Reconnected;

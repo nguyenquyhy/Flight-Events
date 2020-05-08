@@ -18,8 +18,6 @@ namespace FlightEvents.Client.SimConnectFSX
 
         private TaskCompletionSource<FlightPlanData> requestFlightPlanTcs = null;
 
-        private const int StatusDelayMilliseconds = 500;
-
         public event EventHandler Closed;
 
         // User-defined win32 event
@@ -83,6 +81,7 @@ namespace FlightEvents.Client.SimConnectFSX
             simconnect.OnRecvException += Simconnect_OnRecvException;
 
             simconnect.OnRecvSimobjectDataBytype += Simconnect_OnRecvSimobjectDataBytypeAsync;
+            simconnect.OnRecvSimobjectData += Simconnect_OnRecvSimobjectData;
             RegisterAircraftDataDefinition();
             RegisterFlightStatusDefinition();
 
@@ -317,33 +316,11 @@ namespace FlightEvents.Client.SimConnectFSX
             simconnect.RegisterDataDefineStruct<FlightStatusStruct>(DEFINITIONS.FlightStatus);
         }
 
-        private void Simconnect_OnRecvSimobjectDataBytypeAsync(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
+        private void Simconnect_OnRecvSimobjectData(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA data)
         {
             // Must be general SimObject information
             switch (data.dwRequestID)
             {
-                case (uint)DATA_REQUESTS.AIRCRAFT_DATA:
-                    {
-                        // Handle this when aircraft is changed
-                        var aircraftData = data.dwData[0] as AircraftDataStruct?;
-
-                        if (aircraftData.HasValue)
-                        {
-                            logger.LogDebug("Get Aircraft data");
-
-                            AircraftDataUpdated?.Invoke(this, new AircraftDataUpdatedEventArgs(new AircraftData
-                            {
-                                Type = aircraftData.Value.Type,
-                                Model = aircraftData.Value.Model,
-                                Title = aircraftData.Value.Title,
-                                EstimatedCruiseSpeed = aircraftData.Value.EstimatedCruiseSpeed
-                            }));
-
-                            simconnect.RequestSystemState(DATA_REQUESTS.FLIGHT_PLAN, "FlightPlan");
-                        }
-                    }
-                    break;
-
                 case (uint)DATA_REQUESTS.FLIGHT_STATUS:
                     {
                         var flightStatus = data.dwData[0] as FlightStatusStruct?;
@@ -377,10 +354,34 @@ namespace FlightEvents.Client.SimConnectFSX
                                     FrequencyCom2 = flightStatus.Value.Com2,
                                 }));
                         }
-                        else
+                    }
+                    break;
+            }
+        }
+
+        private void Simconnect_OnRecvSimobjectDataBytypeAsync(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
+        {
+            // Must be general SimObject information
+            switch (data.dwRequestID)
+            {
+                case (uint)DATA_REQUESTS.AIRCRAFT_DATA:
+                    {
+                        // Handle this when aircraft is changed
+                        var aircraftData = data.dwData[0] as AircraftDataStruct?;
+
+                        if (aircraftData.HasValue)
                         {
-                            // Cast failed
-                            logger.LogError("Cannot cast to FlightStatusStruct!");
+                            logger.LogDebug("Get Aircraft data");
+
+                            AircraftDataUpdated?.Invoke(this, new AircraftDataUpdatedEventArgs(new AircraftData
+                            {
+                                Type = aircraftData.Value.Type,
+                                Model = aircraftData.Value.Model,
+                                Title = aircraftData.Value.Title,
+                                EstimatedCruiseSpeed = aircraftData.Value.EstimatedCruiseSpeed
+                            }));
+
+                            simconnect.RequestSystemState(DATA_REQUESTS.FLIGHT_PLAN, "FlightPlan");
                         }
                     }
                     break;
@@ -459,21 +460,7 @@ namespace FlightEvents.Client.SimConnectFSX
         {
             logger.LogInformation("Connected to Flight Simulator");
 
-            cts?.Cancel();
-            cts = new CancellationTokenSource();
-            Task.Run(async () =>
-            {
-                try
-                {
-                    while (true)
-                    {
-                        await Task.Delay(StatusDelayMilliseconds);
-                        cts?.Token.ThrowIfCancellationRequested();
-                        simconnect?.RequestDataOnSimObjectType(DATA_REQUESTS.FLIGHT_STATUS, DEFINITIONS.FlightStatus, 0, SIMCONNECT_SIMOBJECT_TYPE.USER);
-                    }
-                }
-                catch (TaskCanceledException) { }
-            });
+            simconnect.RequestDataOnSimObject(DATA_REQUESTS.FLIGHT_STATUS, DEFINITIONS.FlightStatus, 0, SIMCONNECT_PERIOD.SIM_FRAME, SIMCONNECT_DATA_REQUEST_FLAG.DEFAULT, 0, 0, 0);
         }
 
         // The case where the user closes Flight Simulator

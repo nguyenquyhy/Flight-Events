@@ -62,5 +62,9 @@ namespace FlightEvents.Web.Hubs
         Task ChangeFrequency(string clientId, int? fromFrequency, int? toFrequency);
 
         Task SendATC(string to, string message);
+
+        Task ChangeUpdateRateByCallsign(string callsign, int hz);
+
+        Task NotifyUpdateRateChanged(string clientId, int hz);
     }
 }

@@ -1,4 +1,5 @@
 using FlightEvents.Data;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -45,9 +46,20 @@ namespace FlightEvents.DiscordBot
                     services.AddOptions<DiscordOptions>().Bind(hostContext.Configuration.GetSection("Discord")).ValidateDataAnnotations();
                     services.AddOptions<AzureTableOptions>().Bind(hostContext.Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();
 
+                    var appOptions = new AppOptions();
+                    hostContext.Configuration.Bind(appOptions);
+
+                    var hub = new HubConnectionBuilder()
+                        .WithUrl(appOptions.WebServerUrl + "/FlightEventHub?clientType=Bot")
+                        .WithAutomaticReconnect()
+                        .Build();
+
+                    services.AddSingleton(hub);
+
                     services.AddTransient<IDiscordConnectionStorage, AzureTableDiscordConnectionStorage>();
                     services.AddHostedService<MovingWorker>();
                     services.AddHostedService<CleaningWorker>();
+                    services.AddHostedService<DmWorker>();
                 });
     }
 }
