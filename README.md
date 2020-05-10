@@ -19,9 +19,11 @@ https://discordapp.com/api/oauth2/authorize?client_id={BOT_CLIENT_ID}&scope=bot&
 
 - [X] Show ATC on map
 - [X] Show flight path trace
+  - [X] Show multiple trace at the same time
 - [X] Dynamic refresh rate
 - [ ] Teleport aircraft using map
 - [ ] Dark mode on map
 - [ ] MSI packaging
 - [ ] Gamebar integration
 - [ ] Colors for connection states
+- [ ] Gradient for altitude

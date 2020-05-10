@@ -11,6 +11,8 @@ interface Props {
 
     isMe: boolean;
     onMeChanged: (clientId: string | null) => void;
+    isShowPath: boolean;
+    onShowPathChanged: (clientId: string) => void;
     isFollowing: boolean;
     onFollowingChanged: (clientId: string | null) => void;
     isMoreInfo: boolean;
@@ -27,6 +29,7 @@ export default class AircraftListItem extends React.Component<Props> {
 
         this.handleAircraftClick = this.handleAircraftClick.bind(this);
         this.handleMeChanged = this.handleMeChanged.bind(this);
+        this.handleShowPathChanged = this.handleShowPathChanged.bind(this);
         this.handleFollowChanged = this.handleFollowChanged.bind(this);
         this.handleMoreInfoChanged = this.handleMoreInfoChanged.bind(this);
         this.handleFlightPlanChanged = this.handleFlightPlanChanged.bind(this);
@@ -42,6 +45,10 @@ export default class AircraftListItem extends React.Component<Props> {
         } else {
             this.props.onMeChanged(this.props.clientId);
         }
+    }
+
+    handleShowPathChanged() {
+        this.props.onShowPathChanged(this.props.clientId);
     }
 
     handleFollowChanged() {
@@ -73,6 +80,7 @@ export default class AircraftListItem extends React.Component<Props> {
             <td><Checkbox type="checkbox" checked={this.props.isFollowing} onChange={this.handleFollowChanged} /></td>
             <td><Checkbox type="checkbox" checked={this.props.isMoreInfo} onChange={this.handleMoreInfoChanged} /></td>
             <td><Checkbox type="checkbox" checked={this.props.isFlightPlan} onChange={this.handleFlightPlanChanged} /></td>
+            <td><Checkbox type="checkbox" checked={this.props.isShowPath} onChange={this.handleShowPathChanged} /></td>
         </ListItem>;
     }
 }

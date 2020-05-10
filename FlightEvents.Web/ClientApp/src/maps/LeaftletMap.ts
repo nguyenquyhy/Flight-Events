@@ -23,9 +23,9 @@ export default class LeafletMap implements IMap {
 
     flightPlanLayerGroup: L.LayerGroup;
 
-    routeLayerGroup: L.LayerGroup;
-    routeLine?: L.Polyline;
-    currentStatus: AircraftStatusBrief | null = null;
+    routeLayerGroups: { [id: string]: L.LayerGroup } = {};
+    routeLines: { [id: string]: L.Polyline } = {};
+    trackingStatuses: { [id: string]: AircraftStatusBrief } = {};
 
     circleMarker: L.Circle;
 
@@ -44,7 +44,6 @@ export default class LeafletMap implements IMap {
         this.baseLayerGroup = L.layerGroup().addTo(this.mymap);
         this.airportLayerGroup = L.layerGroup().addTo(this.mymap);
         this.flightPlanLayerGroup = L.layerGroup().addTo(this.mymap);
-        this.routeLayerGroup = L.layerGroup().addTo(this.mymap);
 
         setInterval(this.cleanUp, 2000);
     }
@@ -324,21 +323,21 @@ export default class LeafletMap implements IMap {
         this.onViewChangedHandler = handler;
     }
 
-    public track(status: AircraftStatusBrief) {
-        if (!this.routeLine || this.currentStatus == null || this.currentStatus.isOnGround !== status.isOnGround) {
-            this.routeLine = this.createRouteLine(this.currentStatus ? [this.currentStatus] : [], status.isOnGround);
+    public track(id: string, status: AircraftStatusBrief) {
+        if (!this.routeLines[id] || !this.trackingStatuses[id] || this.trackingStatuses[id].isOnGround !== status.isOnGround) {
+            this.routeLines[id] = this.createRouteLine(id, this.trackingStatuses[id] ? [this.trackingStatuses[id]] : [], status.isOnGround);
         }
-        this.currentStatus = status;
-        this.routeLine.addLatLng([status.latitude, status.longitude]);
+        this.trackingStatuses[id] = status;
+        this.routeLines[id].addLatLng([status.latitude, status.longitude]);
     }
 
-    public prependTrack(route: AircraftStatusBrief[]) {
+    public prependTrack(id: string, route: AircraftStatusBrief[]) {
         let isOnGround: boolean | null = null;
         let routeSoFar: AircraftStatusBrief[] = [];
         for (let status of route) {
             if (isOnGround !== status.isOnGround) {
                 if (routeSoFar.length > 0 && isOnGround !== null) {
-                    this.createRouteLine(routeSoFar, isOnGround);
+                    this.createRouteLine(id, routeSoFar, isOnGround);
                 }
                 routeSoFar = routeSoFar.length > 0 ? routeSoFar.slice(routeSoFar.length - 1, routeSoFar.length) : [];
                 isOnGround = status.isOnGround;
@@ -346,19 +345,23 @@ export default class LeafletMap implements IMap {
             routeSoFar.push(status);
         }
         if (routeSoFar.length > 0 && isOnGround !== null) {
-            this.createRouteLine(routeSoFar, isOnGround);
+            this.createRouteLine(id, routeSoFar, isOnGround);
         }
     }
 
-    private createRouteLine(route: AircraftStatusBrief[], isOnGround: boolean) {
-        return L.polyline(route.map(r => [r.latitude, r.longitude]), { color: isOnGround ? ROUTE_GROUND_COLOR : ROUTE_AIR_COLOR }).addTo(this.routeLayerGroup);
+    private createRouteLine(id: string, route: AircraftStatusBrief[], isOnGround: boolean) {
+        if (!this.routeLayerGroups[id]) {
+            this.routeLayerGroups[id] = L.layerGroup().addTo(this.mymap);
+        }
+        return L.polyline(route.map(r => [r.latitude, r.longitude]), { color: isOnGround ? ROUTE_GROUND_COLOR : ROUTE_AIR_COLOR }).addTo(this.routeLayerGroups[id]);
     }
 
-    public clearTrack() {
-        this.currentStatus = null;
-        if (this.routeLine) {
-            this.routeLayerGroup.clearLayers();
-            this.routeLine = undefined;
+    public clearTrack(id: string) {
+        delete this.trackingStatuses[id];
+        if (this.routeLayerGroups[id]) {
+            this.routeLayerGroups[id].remove();
+            delete this.routeLayerGroups[id];
         }
+        delete this.routeLines[id];
     }
 }

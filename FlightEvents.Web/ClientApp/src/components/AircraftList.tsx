@@ -14,6 +14,9 @@ interface Props {
     myClientId: string | null;
     onMeChanged: (clientId: string | null) => void;
 
+    showPathClientIds: string[];
+    onShowPathChanged: (clientId: string) => void;
+
     followingClientId: string | null;
     onFollowingChanged: (clientId: string | null) => void;
 
@@ -70,6 +73,8 @@ export default class AircraftList extends React.Component<Props, State> {
 
                     isMe={this.props.myClientId === clientId}
                     onMeChanged={this.props.onMeChanged}
+                    isShowPath={this.props.showPathClientIds.includes(clientId)}
+                    onShowPathChanged={this.props.onShowPathChanged}
                     isFollowing={this.props.followingClientId === clientId}
                     onFollowingChanged={this.props.onFollowingChanged}
                     isMoreInfo={this.props.moreInfoClientIds.includes(clientId)}
@@ -100,6 +105,10 @@ export default class AircraftList extends React.Component<Props, State> {
                             <th>
                                 <div id="txtMore">Pln</div>
                                 <UncontrolledTooltip placement="right" target="txtMore">Show flight plan</UncontrolledTooltip>
+                            </th>
+                            <th>
+                                <div id="txtMore">Rte</div>
+                                <UncontrolledTooltip placement="right" target="txtMore">Show flight route</UncontrolledTooltip>
                             </th>
                         </tr>
                     </thead>

@@ -14,6 +14,7 @@ import MaptalksMap from '../maps/MaptalksMap';
 interface State {
     aircrafts: { [clientId: string]: AircraftStatus };
     myClientId: string | null;
+    showPathClientIds: string[];
     followingClientId: string | null;
     moreInfoClientIds: string[];
     flightPlanClientId: string | null;
@@ -37,6 +38,7 @@ export class Home extends React.Component<any, State> {
         this.state = {
             aircrafts: {},
             myClientId: null,
+            showPathClientIds: [],
             followingClientId: null,
             moreInfoClientIds: [],
             flightPlanClientId: null,
@@ -67,6 +69,7 @@ export class Home extends React.Component<any, State> {
         this.handleUsVfrSectional = this.handleUsVfrSectional.bind(this);
 
         this.handleMeChanged = this.handleMeChanged.bind(this);
+        this.handleShowPathChanged = this.handleShowPathChanged.bind(this);
         this.handleFollowingChanged = this.handleFollowingChanged.bind(this);
         this.handleMoreInfoChanged = this.handleMoreInfoChanged.bind(this);
         this.handleFlightPlanChanged = this.handleFlightPlanChanged.bind(this);
@@ -114,13 +117,13 @@ export class Home extends React.Component<any, State> {
                 if (aircraftStatus.isReady) {
                     this.map.moveMarker(clientId, aircraftStatus, this.state.myClientId === clientId, clientId === this.state.followingClientId, this.state.moreInfoClientIds.includes(clientId));
 
-                    if (clientId === this.state.myClientId) {
-                        this.map.track(aircraftStatus);
+                    if (this.state.showPathClientIds.includes(clientId)) {
+                        this.map.track(clientId, aircraftStatus);
                     }
                 } else {
                     // Aircraft not loaded
-                    if (this.state.myClientId === clientId) {
-                        this.map.clearTrack();
+                    if (this.state.showPathClientIds.includes(clientId)) {
+                        this.map.clearTrack(clientId);
                     }
                     this.map.cleanUp(clientId, this.state.myClientId === clientId);
                 }
@@ -246,7 +249,21 @@ export class Home extends React.Component<any, State> {
         this.setState({ myClientId: clientId });
 
         if (clientId) {
-            this.map.clearTrack();
+            this.map.addRangeCircle();
+        } else {
+            this.map.removeRangeCircle();
+        }
+    }
+
+    private handleShowPathChanged(clientId: string) {
+        if (this.state.showPathClientIds.includes(clientId)) {
+            // Remove
+            this.setState({ showPathClientIds: this.state.showPathClientIds.filter(o => o !== clientId) });
+            this.map.clearTrack(clientId);
+        } else {
+            // Add
+            this.setState({ showPathClientIds: this.state.showPathClientIds.concat(clientId) });
+            this.map.clearTrack(clientId);
             let route: AircraftStatusBrief[] = [];
             this.hub.stream("RequestFlightRoute", clientId)
                 .subscribe({
@@ -254,16 +271,12 @@ export class Home extends React.Component<any, State> {
                         route = [item].concat(route);
                     },
                     complete: () => {
-                        this.map.prependTrack(route);
+                        this.map.prependTrack(clientId, route);
                     },
                     error: () => {
 
                     }
                 });
-            this.map.addRangeCircle();
-        } else {
-            this.map.removeRangeCircle();
-            this.map.clearTrack();
         }
     }
 
@@ -317,6 +330,7 @@ export class Home extends React.Component<any, State> {
             </LayerWrapper>
             <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
                 onMeChanged={this.handleMeChanged} myClientId={this.state.myClientId}
+                onShowPathChanged={this.handleShowPathChanged} showPathClientIds={this.state.showPathClientIds}
                 onFollowingChanged={this.handleFollowingChanged} followingClientId={this.state.followingClientId}
                 onMoreInfoChanged={this.handleMoreInfoChanged} moreInfoClientIds={this.state.moreInfoClientIds}
                 onFlightPlanChanged={this.handleFlightPlanChanged} flightPlanClientId={this.state.flightPlanClientId}

@@ -39,6 +39,7 @@ interface VectorLayer {
     addGeometry: (markers: Geometry | Geometry[]) => void;
     clear: () => void;
     addTo: (map: Map) => void;
+    remove: () => void;
 }
 
 interface LineString extends Geometry {
@@ -114,16 +115,9 @@ export default class MaptalksMap implements IMap {
             lineWidth: 0
         }
     });
-    routeLayer: VectorLayer = new maptalks.VectorLayer('route', {
-        enableAltitude: true,
-        drawAltitude: {
-            polygonFill: '#1bbc9b',
-            polygonOpacity: 0.3,
-            lineWidth: 0
-        }
-    });
-    routeLine?: LineString;
-    currentStatus: AircraftStatusBrief | null = null;
+    routeLayers: { [id: string]: VectorLayer } = {};
+    routeLines: { [id: string]: LineString } = {};
+    trackingStatuses: { [id: string]: AircraftStatusBrief } = {};
 
     initialize(divId: string, view?: View) {
         const map: Map = new maptalks.Map(divId, {
@@ -155,7 +149,6 @@ export default class MaptalksMap implements IMap {
         this.atcLayer.addTo(map);
         this.airportLayer.addTo(map);
         this.flightPlanLayer.addTo(map);
-        this.routeLayer.addTo(map);
 
         this.visibleCircle.hide();
 
@@ -487,25 +480,26 @@ export default class MaptalksMap implements IMap {
         this.onViewChangedHandler = handler;
     }
 
-    public track(status: AircraftStatusBrief) {
-        if (!this.routeLine || this.currentStatus == null || this.currentStatus.isOnGround !== status.isOnGround) {
-            this.routeLine = this.createRouteLine(this.currentStatus ? [this.currentStatus, status] : [status], status.isOnGround);
+    public track(id: string, status: AircraftStatusBrief) {
+        if (!this.routeLines[id] || !this.trackingStatuses[id] || this.trackingStatuses[id].isOnGround !== status.isOnGround) {
+            this.routeLines[id] = this.createRouteLine(id, this.trackingStatuses[id] ? [this.trackingStatuses[id], status] : [status], status.isOnGround);
         } else {
-            this.routeLine.setCoordinates(this.routeLine.getCoordinates().concat([new maptalks.Coordinate([status.longitude, status.latitude])]));
-            this.routeLine.setProperties({
-                altitude: this.routeLine.getProperties().altitude.concat(status.altitude * MaptalksMap.FEET_TO_METER)
+            const routeLine = this.routeLines[id];
+            routeLine.setCoordinates(routeLine.getCoordinates().concat([new maptalks.Coordinate([status.longitude, status.latitude])]));
+            routeLine.setProperties({
+                altitude: routeLine.getProperties().altitude.concat(status.altitude * MaptalksMap.FEET_TO_METER)
             });
         }
-        this.currentStatus = status;
+        this.trackingStatuses[id] = status;
     }
 
-    public prependTrack(route: AircraftStatusBrief[]) {
+    public prependTrack(id: string, route: AircraftStatusBrief[]) {
         let isOnGround: boolean | null = null;
         let routeSoFar: AircraftStatusBrief[] = [];
         for (let status of route) {
             if (isOnGround !== status.isOnGround) {
                 if (routeSoFar.length > 0 && isOnGround !== null) {
-                    this.createRouteLine(routeSoFar, isOnGround);
+                    this.createRouteLine(id, routeSoFar, isOnGround);
                 }
                 routeSoFar = routeSoFar.length > 0 ? routeSoFar.slice(routeSoFar.length - 1, routeSoFar.length) : [];
                 isOnGround = status.isOnGround;
@@ -513,11 +507,25 @@ export default class MaptalksMap implements IMap {
             routeSoFar.push(status);
         }
         if (routeSoFar.length > 0 && isOnGround !== null) {
-            this.createRouteLine(routeSoFar, isOnGround);
+            this.createRouteLine(id, routeSoFar, isOnGround);
         }
     }
 
-    private createRouteLine(route: AircraftStatusBrief[], isOnGround: boolean) {
+    private createRouteLine(id: string, route: AircraftStatusBrief[], isOnGround: boolean) {
+        if (!this.routeLayers[id]) {
+            this.routeLayers[id] = new maptalks.VectorLayer('route_' + id, {
+                enableAltitude: true,
+                drawAltitude: {
+                    polygonFill: '#1bbc9b',
+                    polygonOpacity: 0.3,
+                    lineWidth: 0
+                }
+            });
+            if (this.map) {
+                this.routeLayers[id].addTo(this.map);
+            }
+        }
+
         let line = new maptalks.LineString(route.map(r => new maptalks.Coordinate([r.longitude, r.latitude])), {
             symbol: {
                 lineColor: isOnGround ? ROUTE_GROUND_COLOR : ROUTE_AIR_COLOR,
@@ -527,16 +535,17 @@ export default class MaptalksMap implements IMap {
                 altitude: route.map(r => r.altitude * MaptalksMap.FEET_TO_METER)
             }
         });
-        line.addTo(this.routeLayer)
+        line.addTo(this.routeLayers[id])
         return line;
     }
 
-    public clearTrack() {
-        this.currentStatus = null;
-        if (this.routeLine) {
-            this.routeLayer.clear();
-            this.routeLine = undefined;
+    public clearTrack(id: string) {
+        delete this.trackingStatuses[id];
+        if (this.routeLayers[id]) {
+            this.routeLayers[id].remove();
+            delete this.routeLayers[id];
         }
+        delete this.routeLines[id];
     }
 
     private fitExtent(c1: Coordinate, c2: Coordinate) {
