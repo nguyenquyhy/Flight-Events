@@ -53,9 +53,16 @@ namespace FlightEvents.Client.ATC
             tcpListener = new TcpListener(IPAddress.Any, 6809);
             tcpListener.Start();
 
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                return AcceptAndProcessAsync(tcpListener);
+                try
+                {
+                    await AcceptAndProcessAsync(tcpListener);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cannot process ATC message!");
+                }
             });
         }
 
@@ -79,9 +86,11 @@ namespace FlightEvents.Client.ATC
             var rating = 1;
 
             var pos = $"@{modeString}:{callsign}:{squawk}:{rating}:{latitude}:{longitude}:{altitude}:{groundSpeed}:62905944:5";
-            await writer?.WriteLineAsync(pos);
-
-            logger.LogTrace("Sent Position: " + pos);
+            if (writer != null)
+            {
+                await writer.WriteLineAsync(pos);
+                logger.LogTrace("Sent Position: " + pos);
+            }
         }
 
         public async Task SendFlightPlanAsync(string callsign, bool isIFR, string type, string registration, string title,
@@ -103,205 +112,235 @@ namespace FlightEvents.Client.ATC
             while (true)
             {
                 logger.LogInformation("Waiting for connection...");
+
                 tcpClient = tcpListener.AcceptTcpClient();
                 logger.LogInformation("Accepted a connection");
-                using var stream = tcpClient.GetStream();
-                var reader = new StreamReader(stream);
-                writer = new StreamWriter(stream)
+
+                try
                 {
-                    AutoFlush = true
-                };
-
-                while (true)
-                {
-                    var info = await reader.ReadLineAsync();
-                    logger.LogInformation($"Receive: {info}");
-
-                    if (info == null) break;
-
-                    if (info.Contains("VRC") && !atc)
+                    using var stream = tcpClient.GetStream();
+                    var reader = new StreamReader(stream);
+                    writer = new StreamWriter(stream)
                     {
-                        vrc = true;
-                        atc = true;
-                        await SendAsync($"$DI{ClientCode}:CLIENT:client V1.00:3ef36a24");
-                        logger.LogInformation("Sent VRC Hello");
-                    }
-                    //else if (!this.atc && !this.es)
-                    //{
-                    //    this.es = true;
-                    //    this.atc = true;
-                    //    Console.WriteLine("Sent EuroScope Hello");
-                    //}
+                        AutoFlush = true
+                    };
 
-                    if (info.StartsWith("%" + callsign))
+                    while (true)
                     {
-                        // %EDDM_TWR:18700:4:100:3:48.35378:11.78609:0
-                        var tokens = info.Split(':');
-                        var freq = int.Parse("1" + tokens[1]);
-                        var alt = int.Parse(tokens[2]);
-                        //var protocol = tokens[3];
-                        //var rating = tokens[4];
-                        var lat = double.Parse(tokens[5], CultureInfo.InvariantCulture);
-                        var lng = double.Parse(tokens[6], CultureInfo.InvariantCulture);
+                        var info = await reader.ReadLineAsync();
 
-                        AtcUpdated?.Invoke(this, new AtcUpdatedEventArgs(callsign, freq, alt, lat, lng));
-                        AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs("*", info));
-                    }
-
-                    if (info.StartsWith($"#DA{callsign}:SERVER"))
-                    {
-                        // #DAEDDM_TWR:SERVER
-                        logger.LogInformation("Client is disconnected");
-                        writer = null;
-
-                        AtcLoggedOff?.Invoke(this, new AtcLoggedOffEventArgs(callsign));
-
-                        break;
-                    }
-
-                    if (info.StartsWith("#AP"))
-                    {
-                        // #APNWA360:SERVER:1363753::1:100:6:Jim Levain KBLI
-                        // #APTHY73Q:SERVER:1349469::1:100:2:Bedran Batkitar LTFM
-                    }
-
-                    if (info.StartsWith("$AX"))
-                    {
-                        // METAR
-                        var station = info.Substring($"$AX{callsign}:SERVER:METAR:".Length, 4);
-                        await SendMETARAsync(station);
-                    }
-
-                    if (info.StartsWith("$CQ"))
-                    {
-                        // TODO: Command 
-                        // (e.g. $CQHYHY:@94835:BC:HY3088:2677 --- Set squawk)
-                        // (e.g. $CQKAUS_TWR:SERVER:FP:DS-TZZ --- Requesting flight plan)
-
-                        //$CQCYVR_TWR:@94835:DR:USEP6Q --- Assume a callsign
-                        //#TMCYVR_TWR:FP:USEP6Q --- Release
-
-                        var tokens = info.Substring("$CQ".Length).Split(new char[] { ':' }, 4);
-                        var sender = tokens[0];
-                        var recipient = tokens[1];
-                        var command = tokens[2];
-                        var data = tokens.Length == 4 ? tokens[3] : null;
-
-                        if (recipient == "SERVER")
+                        if (await ProcessLineAsync(info))
                         {
-                            switch (command)
-                            {
-                                case "ATC":
-                                    await SendAsync($"$CRSERVER:{callsign}:ATC:Y:{data}");
-                                    break;
-
-                                case "CAPS":
-                                    await SendAsync($"$CRSERVER:{callsign}:CAPS:ATCINFO=1:SECPOS=1");
-                                    break;
-                                case "IP":
-                                    var ipep = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
-                                    var ipa = ipep.Address;
-                                    await SendAsync($"$CRSERVER:{callsign}:IP:{ipa}");
-
-                                    await SendAsync($"$CQSERVER:{callsign}:CAPS");
-                                    break;
-                                case "FP":
-                                    FlightPlanRequested?.Invoke(this, new FlightPlanRequestedEventArgs(data));
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            // Real Name
-                            // $CQCYVR_TWR:EDDM_GND:RN
-                            // Expect: $CREDDM_GND:WADD_TWR:RN:<Name>Hy:<location>Vancouver FIR 2004/1-1 CZVR 20200404:<rating>3
-
-                            AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs(recipient, info));
-                        }
-                    }
-
-                    if (info.StartsWith("$CR"))
-                    {
-                        //$CRCYVR_TWR:CYVR_GND:CAPS:ATCINFO=1:SECPOS=1:MODELDESC=1:ONGOINGCOORD=1
-
-                        var tokens = info.Split(":");
-                        var recipient = tokens[1];
-
-                        if (recipient == "SERVER")
-                        {
-                            // Ignore
-                        }
-                        else
-                        {
-                            AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs(recipient, info));
-                        }
-                    }
-
-                    if (info.StartsWith("$HO") || info.StartsWith("#PC"))
-                    {
-                        // Manual transfer
-                        // $HOCYVR_TWR:CZVR_CTR:NF-OJS
-                        // #PCCYVR_TWR:CZVR_CTR:CCP:ST:NF-OJS:1:::::::::
-
-                        var tokens = info.Split(":");
-                        var recipient = tokens[1];
-
-                        if (recipient == "SERVER")
-                        {
-                            // Probably never happen
-                        }
-                        else
-                        {
-                            AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs(recipient, info));
-                        }
-                    }
-
-                    if (info.StartsWith($"#TM{callsign}:"))
-                    {
-                        // TODO: Message (e.g. #TMHYHY:FP:HY3088 SET 2677)
-                        // #TMEDDM_TWR:@18700:hello all
-
-                        var tokens = info.Split(new char[] { ':' }, 3);
-                        var to = tokens[1];
-                        var msg = tokens[2];
-
-                        MessageSent?.Invoke(this, new MessageSentEventArgs(to, msg));
-                        AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs("*", info));
-                    }
-
-                    if (this.vrc)
-                    {
-                        if (info.Contains($"$CQ{callsign}:SERVER:ATC:{callsign}") && !this.atc)
-                        {
-                            logger.LogInformation("Send VRC");
-                            await SendAsync($"$CR{ClientCode}:{callsign}:ATC:Y:{callsign}");
-                            this.atc = true;
-                        }
-                    }
-                    else
-                    {
-                        if (info.StartsWith("#AA"))
-                        {
-                            // #AACYVR_TWR:SERVER:HY:NA:123:3:9:1:0:49.19470:-123.18397:100
-                            // #AAEGHQ_ATIS:SERVER:Daniel Button:1343255::4:100
-                            logger.LogInformation("Connected");
-
-                            var tokens = info.Substring("#AA".Length).Split(":");
-                            callsign = tokens[0];
-                            var to = tokens[1];
-                            var realName = tokens[2];
-                            var certificate = tokens[3];
-                            var password = tokens[4];
-                            var rating = tokens[5];
-                            var lat = tokens.Length > 9 ? double.Parse(tokens[9], CultureInfo.InvariantCulture) : (double?)null;
-                            var lon = tokens.Length > 10 ? double.Parse(tokens[10], CultureInfo.InvariantCulture) : (double?)null;
-                            await SendAsync($"#TM{ClientCode}:{callsign}:Connected to {ClientName}.");
-
-                            Connected?.Invoke(this, new ConnectedEventArgs(callsign, realName, certificate, rating, lat, lon));
+                            break;
                         }
                     }
                 }
+                catch (IOException)
+                {
+                    Disconnect();
+                }
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns>true if connection is finished and need to be closed</returns>
+        private async Task<bool> ProcessLineAsync(string info)
+        {
+            if (info == null) throw new ArgumentNullException(nameof(info));
+
+            logger.LogInformation($"Receive: {info}");
+
+            if (info.Contains("VRC") && !atc)
+            {
+                vrc = true;
+                atc = true;
+                await SendAsync($"$DI{ClientCode}:CLIENT:client V1.00:3ef36a24");
+                logger.LogInformation("Sent VRC Hello");
+            }
+            //else if (!this.atc && !this.es)
+            //{
+            //    this.es = true;
+            //    this.atc = true;
+            //    Console.WriteLine("Sent EuroScope Hello");
+            //}
+
+            if (info.StartsWith("%" + callsign))
+            {
+                // %EDDM_TWR:18700:4:100:3:48.35378:11.78609:0
+                var tokens = info.Split(':');
+                var freq = int.Parse("1" + tokens[1]);
+                var alt = int.Parse(tokens[2]);
+                //var protocol = tokens[3];
+                //var rating = tokens[4];
+                var lat = double.Parse(tokens[5], CultureInfo.InvariantCulture);
+                var lng = double.Parse(tokens[6], CultureInfo.InvariantCulture);
+
+                AtcUpdated?.Invoke(this, new AtcUpdatedEventArgs(callsign, freq, alt, lat, lng));
+                AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs("*", info));
+            }
+
+            if (info.StartsWith($"#DA{callsign}:SERVER"))
+            {
+                // #DAEDDM_TWR:SERVER
+                Disconnect();
+
+                return true;
+            }
+
+            if (info.StartsWith("#AP"))
+            {
+                // #APNWA360:SERVER:1363753::1:100:6:Jim Levain KBLI
+                // #APTHY73Q:SERVER:1349469::1:100:2:Bedran Batkitar LTFM
+            }
+
+            if (info.StartsWith("$AX"))
+            {
+                // METAR
+                var station = info.Substring($"$AX{callsign}:SERVER:METAR:".Length, 4);
+                await SendMETARAsync(station);
+            }
+
+            if (info.StartsWith("$CQ"))
+            {
+                // TODO: Command 
+                // (e.g. $CQHYHY:@94835:BC:HY3088:2677 --- Set squawk)
+                // (e.g. $CQKAUS_TWR:SERVER:FP:DS-TZZ --- Requesting flight plan)
+
+                //$CQCYVR_TWR:@94835:DR:USEP6Q --- Assume a callsign
+                //#TMCYVR_TWR:FP:USEP6Q --- Release
+
+                var tokens = info.Substring("$CQ".Length).Split(new char[] { ':' }, 4);
+                var sender = tokens[0];
+                var recipient = tokens[1];
+                var command = tokens[2];
+                var data = tokens.Length == 4 ? tokens[3] : null;
+
+                if (recipient == "SERVER")
+                {
+                    switch (command)
+                    {
+                        case "ATC":
+                            await SendAsync($"$CRSERVER:{callsign}:ATC:Y:{data}");
+                            break;
+
+                        case "CAPS":
+                            await SendAsync($"$CRSERVER:{callsign}:CAPS:ATCINFO=1:SECPOS=1");
+                            break;
+                        case "IP":
+                            var ipep = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
+                            var ipa = ipep.Address;
+                            await SendAsync($"$CRSERVER:{callsign}:IP:{ipa}");
+
+                            await SendAsync($"$CQSERVER:{callsign}:CAPS");
+                            break;
+                        case "FP":
+                            FlightPlanRequested?.Invoke(this, new FlightPlanRequestedEventArgs(data));
+                            break;
+                    }
+                }
+                else
+                {
+                    // Real Name
+                    // $CQCYVR_TWR:EDDM_GND:RN
+                    // Expect: $CREDDM_GND:WADD_TWR:RN:<Name>Hy:<location>Vancouver FIR 2004/1-1 CZVR 20200404:<rating>3
+
+                    AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs(recipient, info));
+                }
+            }
+
+            if (info.StartsWith("$CR"))
+            {
+                //$CRCYVR_TWR:CYVR_GND:CAPS:ATCINFO=1:SECPOS=1:MODELDESC=1:ONGOINGCOORD=1
+
+                var tokens = info.Split(":");
+                var recipient = tokens[1];
+
+                if (recipient == "SERVER")
+                {
+                    // Ignore
+                }
+                else
+                {
+                    AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs(recipient, info));
+                }
+            }
+
+            if (info.StartsWith("$HO") || info.StartsWith("#PC"))
+            {
+                // Manual transfer
+                // $HOCYVR_TWR:CZVR_CTR:NF-OJS
+                // #PCCYVR_TWR:CZVR_CTR:CCP:ST:NF-OJS:1:::::::::
+
+                var tokens = info.Split(":");
+                var recipient = tokens[1];
+
+                if (recipient == "SERVER")
+                {
+                    // Probably never happen
+                }
+                else
+                {
+                    AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs(recipient, info));
+                }
+            }
+
+            if (info.StartsWith($"#TM{callsign}:"))
+            {
+                // TODO: Message (e.g. #TMHYHY:FP:HY3088 SET 2677)
+                // #TMEDDM_TWR:@18700:hello all
+
+                var tokens = info.Split(new char[] { ':' }, 3);
+                var to = tokens[1];
+                var msg = tokens[2];
+
+                MessageSent?.Invoke(this, new MessageSentEventArgs(to, msg));
+                AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs("*", info));
+            }
+
+            if (this.vrc)
+            {
+                if (info.Contains($"$CQ{callsign}:SERVER:ATC:{callsign}") && !this.atc)
+                {
+                    logger.LogInformation("Send VRC");
+                    await SendAsync($"$CR{ClientCode}:{callsign}:ATC:Y:{callsign}");
+                    this.atc = true;
+                }
+            }
+            else
+            {
+                if (info.StartsWith("#AA"))
+                {
+                    // #AACYVR_TWR:SERVER:HY:NA:123:3:9:1:0:49.19470:-123.18397:100
+                    // #AAEGHQ_ATIS:SERVER:Daniel Button:1343255::4:100
+                    logger.LogInformation("Connected");
+
+                    var tokens = info.Substring("#AA".Length).Split(":");
+                    callsign = tokens[0];
+                    var to = tokens[1];
+                    var realName = tokens[2];
+                    var certificate = tokens[3];
+                    var password = tokens[4];
+                    var rating = tokens[5];
+                    var lat = tokens.Length > 9 ? double.Parse(tokens[9], CultureInfo.InvariantCulture) : (double?)null;
+                    var lon = tokens.Length > 10 ? double.Parse(tokens[10], CultureInfo.InvariantCulture) : (double?)null;
+                    await SendAsync($"#TM{ClientCode}:{callsign}:Connected to {ClientName}.");
+
+                    Connected?.Invoke(this, new ConnectedEventArgs(callsign, realName, certificate, rating, lat, lon));
+                }
+            }
+
+            return false;
+        }
+
+        private void Disconnect()
+        {
+            logger.LogInformation("Client is disconnected");
+            writer = null;
+
+            AtcLoggedOff?.Invoke(this, new AtcLoggedOffEventArgs(callsign));
         }
 
         public async Task SendMETARAsync(string station)

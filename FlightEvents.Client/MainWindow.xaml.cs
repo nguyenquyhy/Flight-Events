@@ -514,6 +514,23 @@ namespace FlightEvents.Client
             });
         }
 
+        private async void AtcServer_AtcLoggedOff(object sender, AtcLoggedOffEventArgs e)
+        {
+            // De-Register ATC specific events
+            hub.Remove("UpdateAircraft");
+            hub.Remove("ReturnFlightPlan");
+            hub.Remove("SendATC");
+
+            await hub.SendAsync("UpdateATC", null);
+
+            Dispatcher.Invoke(() =>
+            {
+                viewModel.AtcCallsign = null;
+                ButtonStartATC.Visibility = Visibility.Visible;
+                ButtonStopATC.Visibility = Visibility.Collapsed;
+            });
+        }
+
         private async void AtcServer_FlightPlanRequested(object sender, FlightPlanRequestedEventArgs e)
         {
             await hub.SendAsync("RequestFlightPlan", e.Callsign);
@@ -542,11 +559,6 @@ namespace FlightEvents.Client
                 Altitude = e.Altitude,
                 FrequencyCom = e.Frequency
             });
-        }
-
-        private async void AtcServer_AtcLoggedOff(object sender, AtcLoggedOffEventArgs e)
-        {
-            await hub.SendAsync("UpdateATC", null);
         }
 
         private async void AtcServer_AtcMessageSent(object sender, AtcMessageSentEventArgs e)
