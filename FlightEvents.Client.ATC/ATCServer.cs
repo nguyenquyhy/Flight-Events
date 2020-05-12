@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -140,8 +141,8 @@ namespace FlightEvents.Client.ATC
                         var alt = int.Parse(tokens[2]);
                         //var protocol = tokens[3];
                         //var rating = tokens[4];
-                        var lat = double.Parse(tokens[5]);
-                        var lng = double.Parse(tokens[6]);
+                        var lat = double.Parse(tokens[5], CultureInfo.InvariantCulture);
+                        var lng = double.Parse(tokens[6], CultureInfo.InvariantCulture);
 
                         AtcUpdated?.Invoke(this, new AtcUpdatedEventArgs(callsign, freq, alt, lat, lng));
                         AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs("*", info));
@@ -292,8 +293,8 @@ namespace FlightEvents.Client.ATC
                             var certificate = tokens[3];
                             var password = tokens[4];
                             var rating = tokens[5];
-                            var lat = tokens.Length > 9 ? double.Parse(tokens[9]) : (double?)null;
-                            var lon = tokens.Length > 10 ? double.Parse(tokens[10]) : (double?)null;
+                            var lat = tokens.Length > 9 ? double.Parse(tokens[9], CultureInfo.InvariantCulture) : (double?)null;
+                            var lon = tokens.Length > 10 ? double.Parse(tokens[10], CultureInfo.InvariantCulture) : (double?)null;
                             await SendAsync($"#TM{ClientCode}:{callsign}:Connected to {ClientName}.");
 
                             Connected?.Invoke(this, new ConnectedEventArgs(callsign, realName, certificate, rating, lat, lon));
