@@ -1,12 +1,11 @@
 import * as React from 'react';
-import styled from 'styled-components';
-import { ButtonGroup, Button } from 'reactstrap';
 import * as signalr from '@microsoft/signalr';
 import 'msgpack5';
 //import * as protocol from '@microsoft/signalr-protocol-msgpack';
 import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
 import AircraftList from './AircraftList';
 import EventList from './EventList';
+import Display from './Display';
 import { IMap, MapTileType, View } from '../maps/IMap';
 import LeafletMap from '../maps/LeaftletMap';
 import MaptalksMap from '../maps/MaptalksMap';
@@ -19,6 +18,7 @@ interface State {
     moreInfoClientIds: string[];
     flightPlanClientId: string | null;
 
+    isDark: boolean;
     map3D: boolean;
     mapTileType: MapTileType;
 }
@@ -42,6 +42,7 @@ export class Home extends React.Component<any, State> {
             followingClientId: null,
             moreInfoClientIds: [],
             flightPlanClientId: null,
+            isDark: false,
             map3D: false,
             mapTileType: MapTileType.OpenStreetMap,
         }
@@ -59,14 +60,9 @@ export class Home extends React.Component<any, State> {
 
         this.handleAircraftClick = this.handleAircraftClick.bind(this);
 
-        this.handleMap2D = this.handleMap2D.bind(this);
-        this.handleMap3D = this.handleMap3D.bind(this);
-
-        this.handleOpenStreetMap = this.handleOpenStreetMap.bind(this);
-        this.handleOpenTopoMap = this.handleOpenTopoMap.bind(this);
-        this.handleEsriWorldImagery = this.handleEsriWorldImagery.bind(this);
-        this.handleEsriTopo = this.handleEsriTopo.bind(this);
-        this.handleUsVfrSectional = this.handleUsVfrSectional.bind(this);
+        this.handleIsDarkChanged = this.handleIsDarkChanged.bind(this);
+        this.handleMapDimensionChanged = this.handleMapDimensionChanged.bind(this);
+        this.handleTileTypeChanged = this.handleTileTypeChanged.bind(this);
 
         this.handleMeChanged = this.handleMeChanged.bind(this);
         this.handleShowPathChanged = this.handleShowPathChanged.bind(this);
@@ -184,65 +180,28 @@ export class Home extends React.Component<any, State> {
         }
     }
 
-    private handleMap2D() {
+    private handleIsDarkChanged(isDark: boolean) {
+        this.setState({ isDark: isDark });
+    }
+
+    private handleMapDimensionChanged(dimension: "2D" | "3D") {
         this.setState({
-            map3D: false
+            map3D: dimension === "3D"
         });
 
         this.map?.deinitialize();
-        this.map = new LeafletMap();
+        this.map = dimension === "2D" ? new LeafletMap() : new MaptalksMap();
         this.map.onViewChanged(view => {
             this.currentView = view;
         });
         this.initializeMap();
     }
 
-    private handleMap3D() {
+    private handleTileTypeChanged(tileType: MapTileType) {
         this.setState({
-            map3D: true
-        });
-
-        this.map?.deinitialize();
-        this.map = new MaptalksMap();
-        this.map.onViewChanged(view => {
-            this.currentView = view;
-        });
-        this.initializeMap();
-    }
-
-    private handleOpenStreetMap() {
-        this.setState({
-            mapTileType: MapTileType.OpenStreetMap
+            mapTileType: tileType
         })
-        this.map.setTileLayer(MapTileType.OpenStreetMap);
-    }
-
-    private handleOpenTopoMap() {
-        this.setState({
-            mapTileType: MapTileType.OpenTopoMap
-        })
-        this.map.setTileLayer(MapTileType.OpenTopoMap);
-    }
-
-    private handleEsriWorldImagery() {
-        this.setState({
-            mapTileType: MapTileType.EsriWorldImagery
-        })
-        this.map.setTileLayer(MapTileType.EsriWorldImagery);
-    }
-
-    private handleEsriTopo() {
-        this.setState({
-            mapTileType: MapTileType.EsriTopo
-        })
-        this.map.setTileLayer(MapTileType.EsriTopo);
-    }
-
-    private handleUsVfrSectional() {
-        this.setState({
-            mapTileType: MapTileType.UsVfrSectional
-        })
-        this.map.setTileLayer(MapTileType.UsVfrSectional);
+        this.map.setTileLayer(tileType);
     }
 
     private handleMeChanged(clientId: string | null) {
@@ -314,20 +273,12 @@ export class Home extends React.Component<any, State> {
 
     render() {
         return <>
+            {this.state.isDark && <style dangerouslySetInnerHTML={{ __html: `.leaflet-container { background-color: black } .leaflet-tile { -webkit-filter: hue-rotate(180deg) invert(100%); }` }} />}
             <div id="mapid" style={{ height: '100%' }}></div>
-            <TypeWrapper className="btn-group-vertical">
-                <ButtonGroup>
-                    <Button className="btn btn-light" active={!this.state.map3D} onClick={this.handleMap2D}>2D</Button>
-                    <Button className="btn btn-light" active={this.state.map3D} onClick={this.handleMap3D}>3D</Button>
-                </ButtonGroup>
-            </TypeWrapper>
-            <LayerWrapper className="btn-group-vertical">
-                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.OpenStreetMap} onClick={this.handleOpenStreetMap}>OpenStreetMap</Button>
-                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.OpenTopoMap} onClick={this.handleOpenTopoMap}>OpenTopoMap</Button>
-                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.EsriWorldImagery} onClick={this.handleEsriWorldImagery}>Esri Imagery</Button>
-                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.EsriTopo} onClick={this.handleEsriTopo}>Esri Topo</Button>
-                <Button className="btn btn-light" active={this.state.mapTileType === MapTileType.UsVfrSectional} onClick={this.handleUsVfrSectional}>US VFR</Button>
-            </LayerWrapper>
+            <Display
+                isDark={this.state.isDark} onIsDarkChanged={this.handleIsDarkChanged}
+                dimension={this.state.map3D ? "3D" : "2D"} onDimensionChanged={this.handleMapDimensionChanged}
+                tileType={this.state.mapTileType} onTileTypeChanged={this.handleTileTypeChanged} />
             <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
                 onMeChanged={this.handleMeChanged} myClientId={this.state.myClientId}
                 onShowPathChanged={this.handleShowPathChanged} showPathClientIds={this.state.showPathClientIds}
@@ -339,27 +290,3 @@ export class Home extends React.Component<any, State> {
         </>;
     }
 }
-
-const LayerWrapper = styled.div`
-position: absolute;
-top: 130px;
-left: 10px;
-z-index: 1000;
-width: 140px;
-box-shadow: 0 1px 5px rgba(0,0,0,0.65);
-border-radius: 4px;
-
-button {
-    display: block;
-}
-`;
-
-const TypeWrapper = styled.div`
-position: absolute;
-top: 80px;
-left: 10px;
-z-index: 1000;
-width: 140px;
-box-shadow: 0 1px 5px rgba(0,0,0,0.65);
-border-radius: 4px;
-`;
