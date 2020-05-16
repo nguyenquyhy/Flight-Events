@@ -74,6 +74,10 @@ interface Marker extends Geometry {
 
 interface Label extends Marker {
     setContent: (content: string) => void;
+    getBoxStyle: () => any;
+    setBoxStyle: (style: any) => void;
+    getTextSymbol:() => any;
+    setTextSymbol: (symbol: any) => void;
 }
 
 interface Sector extends Geometry {
@@ -308,6 +312,21 @@ export default class MaptalksMap implements IMap {
             markers.info.setProperties({ altitude: altitude });
             markers.info.animate({ translate: [offset['x'], offset['y']] }, { duration: MaptalksMap.ANIMATION_DURATION });
 
+            // Change theme for dark mode
+            markers.info.setBoxStyle({
+                ...markers.info.getBoxStyle(),
+                symbol: {
+                    markerType: 'square',
+                    markerFill: this.isDark ? 'rgba(0, 0, 0)' : 'rgba(255, 255, 255)',
+                    markerFillOpacity: 0.2,
+                    markerLineWidth: 0
+                }
+            })
+            markers.info.setTextSymbol({
+                ...markers.info.getTextSymbol(),
+                textFill: this.isDark ? '#ddd' : '#34495e',
+            })
+
             if (isMe) {
                 const circleOffset = latlng.sub(this.visibleCircle.getCoordinates());
                 this.visibleCircle.setProperties({ altitude: altitude });
@@ -316,11 +335,13 @@ export default class MaptalksMap implements IMap {
 
             if (isMe) {
                 markers.aircraft.updateSymbol({
-                    polygonFill: 'rgb(135,196,240)'
+                    lineColor: this.isDark ? 'gold' : 'rgb(135,196,240)',
+                    polygonFill: this.isDark ? 'gold' : 'rgb(135,196,240)'
                 })
             } else {
                 markers.aircraft.updateSymbol({
-                    polygonFill: '#34495e'
+                    lineColor: this.isDark ? '#ddd' : '#34495e',
+                    polygonFill: this.isDark ? '#ddd' : '#34495e'
                 })
             }
 
