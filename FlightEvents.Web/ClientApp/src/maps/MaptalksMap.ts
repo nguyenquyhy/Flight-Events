@@ -300,7 +300,7 @@ export default class MaptalksMap implements IMap {
             }
 
             const body = isMoreInfo ?
-                `${aircraftStatus.callsign}\nALT ${Math.round(aircraftStatus.altitude)} ft\nHDG ${Math.round(aircraftStatus.heading)}\u00B0\nIAS ${Math.round(aircraftStatus.indicatedAirSpeed)} kts` :
+                `${aircraftStatus.callsign}\nALT ${Math.round(aircraftStatus.altitude)} ft\nHDG ${Math.round(aircraftStatus.heading)}\u00B0\nIAS ${Math.round(aircraftStatus.indicatedAirSpeed)} kts\nGS ${Math.round(aircraftStatus.groundSpeed)} kts` :
                 `${aircraftStatus.callsign}`
             markers.info.setContent(body);
         } else {

@@ -37,6 +37,8 @@ export interface AircraftStatus {
     altitudeAboveGround: number;
     indicatedAirSpeed: number;
 
+    groundSpeed: number;
+
     isOnGround: boolean;
 
     frequencyCom1: number;

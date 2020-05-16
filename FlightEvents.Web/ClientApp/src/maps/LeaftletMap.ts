@@ -145,7 +145,7 @@ export default class LeafletMap implements IMap {
             let iconSizeValue: L.PointExpression = [iconSize, 60];
 
             if (isMoreInfo) {
-                let htmlBody = `<div>${aircraftStatus.callsign}<br />ALT ${Math.round(aircraftStatus.altitude)} ft<br />HDG ${Math.round(aircraftStatus.heading)}\u00B0<br />IAS ${Math.round(aircraftStatus.indicatedAirSpeed)} kts</div>`
+                let htmlBody = `<div>${aircraftStatus.callsign}<br />ALT ${Math.round(aircraftStatus.altitude)} ft<br />HDG ${Math.round(aircraftStatus.heading)}\u00B0<br />IAS ${Math.round(aircraftStatus.indicatedAirSpeed)} kts<br />GS ${Math.round(aircraftStatus.groundSpeed)} kts</div>`
 
                 if (aircraftStatus.trueHeading >= 180) {
                     markers.info.setIcon(L.divIcon({
