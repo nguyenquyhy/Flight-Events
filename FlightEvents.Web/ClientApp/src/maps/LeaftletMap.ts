@@ -14,6 +14,7 @@ const ROUTE_GROUND_COLOR = 'brown';
 
 export default class LeafletMap implements IMap {
     mymap: L.Map;
+
     baseLayerGroup: L.LayerGroup;
     airportLayerGroup: L.LayerGroup;
     airportMarkers: { [indent: string]: L.Marker } = {};
@@ -30,6 +31,8 @@ export default class LeafletMap implements IMap {
     circleMarker: L.Circle;
 
     onViewChangedHandler: OnViewChangedFn | null = null;
+
+    isDark: boolean = false;
 
     public initialize(divId: string, view?: View) {
         this.mymap = L.map(divId).setView(view ? [view.latitude, view.longitude] : [51.505, -0.09], view ? view.zoom : 13);
@@ -51,6 +54,10 @@ export default class LeafletMap implements IMap {
     public deinitialize() {
         this.onViewChangedHandler = null;
         this.mymap.remove();
+    }
+
+    public changeMode(dark: boolean) {
+        this.isDark = dark;
     }
 
     public setTileLayer(type: MapTileType) {
@@ -141,6 +148,7 @@ export default class LeafletMap implements IMap {
 
             let className = 'divicon-aircraft-info';
             if (isMe) className += " me";
+            if (this.isDark) className += " dark";
 
             let iconSizeValue: L.PointExpression = [iconSize, 60];
 
@@ -182,6 +190,7 @@ export default class LeafletMap implements IMap {
         } else {
             const aircraft = L.marker(latlng, {
                 icon: L.icon({
+                    className: 'icon-aircraft-marker',
                     iconUrl: 'marker-aircraft.png',
                     iconSize: [10, 30],
                     iconAnchor: [5, 25],

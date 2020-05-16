@@ -31,10 +31,19 @@ code {
     padding: 0 4px;
 }
 
+.divicon-aircraft-info.dark div {
+    color: #ddd;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
 .divicon-aircraft-info.right div {
     text-align: right;
 }
 
 .divicon-aircraft-info.me div {
     color: darkblue;
+}
+
+.divicon-aircraft-info.me.dark div {
+    color: gold;
 }

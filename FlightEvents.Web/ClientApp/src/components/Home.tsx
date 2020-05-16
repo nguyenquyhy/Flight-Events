@@ -181,7 +181,9 @@ export class Home extends React.Component<any, State> {
     }
 
     private handleIsDarkChanged(isDark: boolean) {
-        this.setState({ isDark: isDark });
+        this.setState({ isDark: isDark }, () => {
+            this.map.changeMode(this.state.isDark);
+        });
     }
 
     private handleMapDimensionChanged(dimension: "2D" | "3D") {
@@ -273,7 +275,7 @@ export class Home extends React.Component<any, State> {
 
     render() {
         return <>
-            {this.state.isDark && <style dangerouslySetInnerHTML={{ __html: `.leaflet-container { background-color: black } .leaflet-tile { -webkit-filter: hue-rotate(180deg) invert(100%); }` }} />}
+            {this.state.isDark && <style dangerouslySetInnerHTML={{ __html: `.leaflet-container { background-color: black } .leaflet-tile, .icon-aircraft-marker { -webkit-filter: hue-rotate(180deg) invert(100%); }` }} />}
             <div id="mapid" style={{ height: '100%' }}></div>
             <Display
                 isDark={this.state.isDark} onIsDarkChanged={this.handleIsDarkChanged}

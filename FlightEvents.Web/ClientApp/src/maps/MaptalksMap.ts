@@ -119,6 +119,8 @@ export default class MaptalksMap implements IMap {
     routeLines: { [id: string]: LineString } = {};
     trackingStatuses: { [id: string]: AircraftStatusBrief } = {};
 
+    isDark: boolean = false;
+
     initialize(divId: string, view?: View) {
         const map: Map = new maptalks.Map(divId, {
             center: view ? [view.longitude, view.latitude] : [-0.09, 51.505],
@@ -161,6 +163,10 @@ export default class MaptalksMap implements IMap {
         if (this.map) {
             this.map.remove();
         }
+    }
+
+    changeMode(dark: boolean) {
+        this.isDark = dark;
     }
 
     setTileLayer(type: MapTileType) {
