@@ -21,7 +21,8 @@ interface Point {
 interface Map {
     panTo: (latlng: Coordinate) => void;
     setPitch: (pitch: number) => void;
-    setBaseLayer: (layer: any) => void;
+    getBaseLayer: () => TileLayer;
+    setBaseLayer: (layer: TileLayer) => void;
     remove: () => void;
     on: (events: string, handler: () => void) => void;
     getCenter: () => Coordinate;
@@ -35,10 +36,17 @@ interface Map {
     coordinateToContainerPoint: (coord: Coordinate, zoom?: number, point?: Point) => Point;
 }
 
-interface VectorLayer {
+interface Layer {
+    addTo: (map: Map) => void;
+}
+
+interface TileLayer extends Layer {
+
+}
+
+interface VectorLayer extends Layer {
     addGeometry: (markers: Geometry | Geometry[]) => void;
     clear: () => void;
-    addTo: (map: Map) => void;
     remove: () => void;
 }
 
@@ -120,6 +128,7 @@ export default class MaptalksMap implements IMap {
     trackingStatuses: { [id: string]: AircraftStatusBrief } = {};
 
     isDark: boolean = false;
+    type: MapTileType = MapTileType.OpenStreetMap;
 
     initialize(divId: string, view?: View) {
         const map: Map = new maptalks.Map(divId, {
@@ -167,10 +176,14 @@ export default class MaptalksMap implements IMap {
 
     changeMode(dark: boolean) {
         this.isDark = dark;
+        this.setTileLayer(this.type);
     }
 
     setTileLayer(type: MapTileType) {
         if (!this.map) return;
+
+        this.type = type;
+        const cssFilter = this.isDark ? 'hue-rotate(180deg) invert(100%)' : '';
 
         switch (type) {
             case MapTileType.OpenStreetMap:
@@ -179,6 +192,7 @@ export default class MaptalksMap implements IMap {
                     subdomains: ['a', 'b', 'c'],
                     maxZoom: 19,
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    cssFilter: cssFilter
                 }));
                 break;
             case MapTileType.OpenTopoMap:
@@ -186,32 +200,37 @@ export default class MaptalksMap implements IMap {
                     urlTemplate: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
                     subdomains: ['a', 'b', 'c'],
                     maxZoom: 17,
-                    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+                    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+                    cssFilter: cssFilter
                 }));
                 break;
             case MapTileType.EsriWorldImagery:
                 this.map.setBaseLayer(new maptalks.TileLayer('esri', {
                     urlTemplate: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                    cssFilter: cssFilter
                 }));
                 break;
             case MapTileType.EsriTopo:
                 this.map.setBaseLayer(new maptalks.TileLayer('esritopo', {
                     urlTemplate: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
-                    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+                    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community',
+                    cssFilter: cssFilter
                 }));
                 break;
             case MapTileType.Carto:
                 this.map.setBaseLayer(new maptalks.TileLayer('carto', {
                     urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
                     subdomains: ['a', 'b', 'c', 'd'],
-                    attribution: '&copy; <a href="http://osm.org">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/">CARTO</a>'
+                    attribution: '&copy; <a href="http://osm.org">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/">CARTO</a>',
+                    cssFilter: cssFilter
                 }));
                 break;
             case MapTileType.UsVfrSectional:
                 this.map.setBaseLayer(new maptalks.TileLayer('usvfrsection', {
                     urlTemplate: 'https://wms.chartbundle.com/tms/v1.0/sec/{z}/{x}/{y}.png?type=google',
-                    attribution: 'Map data: &copy; Federal Aviation Administration (FAA), <a href="http://chartbundle.com">ChartBundle.com</a>'
+                    attribution: 'Map data: &copy; Federal Aviation Administration (FAA), <a href="http://chartbundle.com">ChartBundle.com</a>',
+                    cssFilter: cssFilter
                 }));
                 break;
         }
