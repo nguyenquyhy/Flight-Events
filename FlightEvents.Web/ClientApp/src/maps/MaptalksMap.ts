@@ -480,15 +480,17 @@ export default class MaptalksMap implements IMap {
         this.onViewChangedHandler = handler;
     }
 
-    public track(id: string, status: AircraftStatusBrief) {
+    public track(id: string, status: AircraftStatus) {
         if (!this.routeLines[id] || !this.trackingStatuses[id] || this.trackingStatuses[id].isOnGround !== status.isOnGround) {
             this.routeLines[id] = this.createRouteLine(id, this.trackingStatuses[id] ? [this.trackingStatuses[id], status] : [status], status.isOnGround);
         } else {
-            const routeLine = this.routeLines[id];
-            routeLine.setCoordinates(routeLine.getCoordinates().concat([new maptalks.Coordinate([status.longitude, status.latitude])]));
-            routeLine.setProperties({
-                altitude: routeLine.getProperties().altitude.concat(status.altitude * MaptalksMap.FEET_TO_METER)
-            });
+            if (status.groundSpeed > 0.05) {
+                const routeLine = this.routeLines[id];
+                routeLine.setCoordinates(routeLine.getCoordinates().concat([new maptalks.Coordinate([status.longitude, status.latitude])]));
+                routeLine.setProperties({
+                    altitude: routeLine.getProperties().altitude.concat(status.altitude * MaptalksMap.FEET_TO_METER)
+                });
+            }
         }
         this.trackingStatuses[id] = status;
     }

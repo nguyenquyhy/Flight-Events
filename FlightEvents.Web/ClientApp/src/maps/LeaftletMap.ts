@@ -323,12 +323,15 @@ export default class LeafletMap implements IMap {
         this.onViewChangedHandler = handler;
     }
 
-    public track(id: string, status: AircraftStatusBrief) {
+    public track(id: string, status: AircraftStatus) {
         if (!this.routeLines[id] || !this.trackingStatuses[id] || this.trackingStatuses[id].isOnGround !== status.isOnGround) {
             this.routeLines[id] = this.createRouteLine(id, this.trackingStatuses[id] ? [this.trackingStatuses[id]] : [], status.isOnGround);
         }
         this.trackingStatuses[id] = status;
-        this.routeLines[id].addLatLng([status.latitude, status.longitude]);
+
+        if (status.groundSpeed > 0.05) {
+            this.routeLines[id].addLatLng([status.latitude, status.longitude]);
+        }
     }
 
     public prependTrack(id: string, route: AircraftStatusBrief[]) {

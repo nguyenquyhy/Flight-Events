@@ -15,7 +15,7 @@ export interface IMap {
 
     onViewChanged(handler: OnViewChangedFn);
 
-    track: (id: string, status: AircraftStatusBrief) => void;
+    track: (id: string, status: AircraftStatus) => void;
     prependTrack: (id: string, route: AircraftStatusBrief[]) => void;
     clearTrack: (id: string) => void;
 }
