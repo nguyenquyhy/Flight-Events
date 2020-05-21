@@ -9,6 +9,7 @@ import Display from './Display';
 import { IMap, MapTileType, View } from '../maps/IMap';
 import LeafletMap from '../maps/LeaftletMap';
 import MaptalksMap from '../maps/MaptalksMap';
+import Storage from '../Storage';
 
 interface State {
     aircrafts: { [clientId: string]: AircraftStatus };
@@ -26,6 +27,8 @@ interface State {
 export class Home extends React.Component<any, State> {
     static displayName = Home.name;
 
+    private storage = new Storage();
+
     private hub: signalr.HubConnection;
     private map: IMap;
     private currentView?: View;
@@ -35,6 +38,8 @@ export class Home extends React.Component<any, State> {
     constructor(props: any) {
         super(props);
 
+        const pref = this.storage.loadPreferences();
+
         this.state = {
             aircrafts: {},
             myClientId: null,
@@ -42,15 +47,12 @@ export class Home extends React.Component<any, State> {
             followingClientId: null,
             moreInfoClientIds: [],
             flightPlanClientId: null,
-            isDark: false,
-            map3D: false,
-            mapTileType: MapTileType.OpenStreetMap,
+            isDark: pref ? pref.isDark : false,
+            map3D: pref ? pref.map3D : false,
+            mapTileType: pref ? pref.mapTileType : MapTileType.OpenStreetMap,
         }
 
-        this.map = new LeafletMap();
-        this.map.onViewChanged(view => {
-            this.currentView = view;
-        });
+        this.map = !this.state.map3D ? new LeafletMap() : new MaptalksMap();
 
         this.hub = new signalr.HubConnectionBuilder()
             .withUrl('/FlightEventHub?clientType=Web')
@@ -140,8 +142,12 @@ export class Home extends React.Component<any, State> {
     }
 
     private initializeMap() {
+        this.map.onViewChanged(view => {
+            this.currentView = view;
+        });
         this.map.initialize('mapid', this.currentView);
         this.map.setTileLayer(this.state.mapTileType);
+        this.map.changeMode(this.state.isDark);
     }
 
     private cleanUp() {
@@ -180,29 +186,35 @@ export class Home extends React.Component<any, State> {
         }
     }
 
+    private savePreferences() {
+        this.storage.savePreferences({
+            isDark: this.state.isDark,
+            map3D: this.state.map3D,
+            mapTileType: this.state.mapTileType
+        });
+    }
+
     private handleIsDarkChanged(isDark: boolean) {
         this.setState({ isDark: isDark }, () => {
             this.map.changeMode(this.state.isDark);
+            this.savePreferences();
         });
     }
 
     private handleMapDimensionChanged(dimension: "2D" | "3D") {
-        this.setState({
-            map3D: dimension === "3D"
+        this.setState({ map3D: dimension === "3D" }, () => {
+            this.savePreferences();
         });
 
         this.map?.deinitialize();
         this.map = dimension === "2D" ? new LeafletMap() : new MaptalksMap();
-        this.map.onViewChanged(view => {
-            this.currentView = view;
-        });
         this.initializeMap();
     }
 
     private handleTileTypeChanged(tileType: MapTileType) {
-        this.setState({
-            mapTileType: tileType
-        })
+        this.setState({ mapTileType: tileType }, () => {
+            this.savePreferences();
+        });
         this.map.setTileLayer(tileType);
     }
 
