@@ -16,11 +16,11 @@ export interface IMap {
 
     onViewChanged(handler: OnViewChangedFn);
 
-    track: (id: string, status: AircraftStatus) => void;
-    prependTrack: (id: string, route: AircraftStatusBrief[]) => void;
-    clearTrack: (id: string) => void;
+    track(id: string, status: AircraftStatus);
+    prependTrack(id: string, route: AircraftStatusBrief[]);
+    clearTrack(id: string);
 
-    changeMode: (dark: boolean) => void;
+    changeMode(dark: boolean);
 }
 
 export type OnViewChangedFn = (view: View) => void;
