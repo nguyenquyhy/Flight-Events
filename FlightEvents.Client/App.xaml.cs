@@ -103,6 +103,15 @@ namespace FlightEvents.Client
             services.AddTransient(typeof(MainWindow));
         }
 
+        protected override void OnExit(ExitEventArgs e)
+        {
+            if (Log.Logger != null)
+            {
+                Log.CloseAndFlush();
+            }
+            base.OnExit(e);
+        }
+
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             // Initialize SimConnect
