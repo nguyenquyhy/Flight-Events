@@ -12,6 +12,8 @@
         <converters:BoolReversedConverter x:Key="BoolReversedConverter" />
         <converters:NullToVisibilityConverter x:Key="NullToVisibleConverter" Reversed="True" />
         <converters:NullToVisibilityConverter x:Key="NullToCollapsedConverter" />
+        <converters:ConnectionStateToBrushConverter x:Key="ConnectionStateToBrushConverter" />
+        
         <Style TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Padding" Value="3" />
@@ -43,7 +45,13 @@
         <TextBlock Text="{Binding HubConnectionState}" Grid.Row="0" Grid.Column="1" />
 
         <TabControl Grid.Row="1" Grid.ColumnSpan="2" VerticalAlignment="Stretch">
-            <TabItem Header="Flight Simulator">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Margin="2">
+                        <TextBlock Text="Simulator" Margin="0" />
+                        <Ellipse Fill="{Binding SimConnectionState, Converter={StaticResource ConnectionStateToBrushConverter}}" Width="10" Height="10" Margin="4,0,0,0" />
+                    </StackPanel>
+                </TabItem.Header>
                 <Grid Margin="5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -80,7 +88,13 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Discord">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Margin="2">
+                        <TextBlock Text="Discord" Margin="0" />
+                        <!--<Ellipse Fill="{Binding AtcConnectionState, Converter={StaticResource ConnectionStateToBrushConverter}}" Width="10" Height="10" Margin="4,0,0,0" />-->
+                    </StackPanel>
+                </TabItem.Header>
                 <Grid>
                     <Grid Margin="5" Visibility="{Binding DiscordConnection, Converter={StaticResource NullToVisibleConverter}}">
                         <Grid.ColumnDefinitions>
@@ -119,7 +133,13 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="ATC Radar">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Margin="2">
+                        <TextBlock Text="ATC Radar" Margin="0" />
+                        <Ellipse Fill="{Binding AtcConnectionState, Converter={StaticResource ConnectionStateToBrushConverter}}" Width="10" Height="10" Margin="4,0,0,0" />
+                    </StackPanel>
+                </TabItem.Header>
                 <Grid Margin="5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />

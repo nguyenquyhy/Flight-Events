@@ -32,6 +32,9 @@ namespace FlightEvents.Client
         private ConnectionState hubConnectionState = ConnectionState.Idle;
         public ConnectionState HubConnectionState { get => hubConnectionState; set => SetProperty(ref hubConnectionState, value); }
 
+        private ConnectionState atcConnectionState = ConnectionState.Idle;
+        public ConnectionState AtcConnectionState { get => atcConnectionState; set => SetProperty(ref atcConnectionState, value); }
+
         private string callsign = null;
         public string Callsign { get => callsign; set => SetProperty(ref callsign, value?.Replace("<", "").Replace(">", "")); }
 

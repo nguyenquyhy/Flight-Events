@@ -200,6 +200,7 @@ namespace FlightEvents.Client
             try
             {
                 atcServer.Start();
+                viewModel.AtcConnectionState = ConnectionState.Connecting;
             }
             catch (SocketException ex)
             {
@@ -457,6 +458,7 @@ namespace FlightEvents.Client
 
         private async void AtcServer_Connected(object sender, ConnectedEventArgs e)
         {
+            viewModel.AtcConnectionState = ConnectionState.Connected;
             viewModel.AtcCallsign = e.Callsign;
 
             // Register ATC specific events
@@ -527,6 +529,7 @@ namespace FlightEvents.Client
             Dispatcher.Invoke(() =>
             {
                 viewModel.AtcCallsign = null;
+                viewModel.AtcConnectionState = ConnectionState.Connecting;
                 ButtonStartATC.Visibility = Visibility.Visible;
                 ButtonStopATC.Visibility = Visibility.Collapsed;
             });
