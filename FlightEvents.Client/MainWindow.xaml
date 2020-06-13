@@ -12,6 +12,10 @@
         <converters:BoolReversedConverter x:Key="BoolReversedConverter" />
         <converters:NullToVisibilityConverter x:Key="NullToVisibleConverter" Reversed="True" />
         <converters:NullToVisibilityConverter x:Key="NullToCollapsedConverter" />
+        <Style TargetType="TextBox">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Padding" Value="3" />
+        </Style>
     </Window.Resources>
 
     <Grid Margin="10,0,10,2">
@@ -66,8 +70,13 @@
                     <TextBlock Text="Ident" Grid.Row="3" Grid.Column="0" />
                     <CheckBox IsChecked="{Binding TransponderIdent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="3" Grid.Column="1" />
 
-                    <Button x:Name="ButtonStartTrack" Content="Start Flight Tracking" Grid.Row="4" Grid.Column="1" Click="ButtonStartTrack_Click" />
-                    <Button x:Name="ButtonStopTrack" Content="Stop Flight Tracking" Grid.Row="4" Grid.Column="1" Click="ButtonStopTrack_Click" Visibility="Collapsed" />
+                    <TextBlock Text="ATC Remarks" Grid.Row="4"  />
+                    <TextBox Text="{Binding Remarks, Mode=TwoWay}" Grid.Row="4" Grid.Column="1" 
+                        IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}" />
+                    
+                    <Button x:Name="ButtonStartTrack" Content="Start Flight Tracking" Grid.Row="5" Grid.Column="1" Click="ButtonStartTrack_Click" />
+                    <Button x:Name="ButtonStopTrack" Content="Stop Flight Tracking" Grid.Row="5" Grid.Column="1" Click="ButtonStopTrack_Click" Visibility="Collapsed" />
+
                 </Grid>
             </TabItem>
 

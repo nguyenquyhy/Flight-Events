@@ -270,7 +270,7 @@ namespace FlightEvents.Client
                 var data = await flightConnector.RequestFlightPlanAsync();
                 if (data != null)
                 {
-                    var flightPlan = new FlightPlanCompact(data, viewModel.Callsign, aircraftData.Title, (int)aircraftData.EstimatedCruiseSpeed);
+                    var flightPlan = new FlightPlanCompact(data, viewModel.Callsign, aircraftData.Title, (int)aircraftData.EstimatedCruiseSpeed, viewModel.Remarks);
                     await hub.SendAsync("ReturnFlightPlan", hub.ConnectionId, flightPlan, new string[] { atcConnectionId });
                 }
             }
@@ -485,7 +485,8 @@ namespace FlightEvents.Client
                     flightPlan.Route,
                     flightPlan.CruisingSpeed,
                     flightPlan.CruisingAltitude,
-                    flightPlan.EstimatedEnroute);
+                    flightPlan.EstimatedEnroute,
+                    flightPlan.Remarks);
             });
             hub.On<string, string>("SendATC", async (to, message) =>
             {

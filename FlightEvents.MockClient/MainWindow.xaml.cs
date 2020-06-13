@@ -173,7 +173,7 @@ namespace FlightEvents.MockClient
             var reg = "AAAAA";
             var route = "NATEX";
 
-            await atcServer.SendFlightPlanAsync(callsign, true, type, reg, title, dep, arr, route, 200, 15000, TimeSpan.FromHours(1.5));
+            await atcServer.SendFlightPlanAsync(callsign, true, type, reg, title, dep, arr, route, 200, 15000, TimeSpan.FromHours(1.5), "Test");
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

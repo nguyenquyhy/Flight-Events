@@ -39,15 +39,18 @@ namespace FlightEvents.Client
         public AircraftStatus AircraftStatus { get => aircraftStatus; set => SetProperty(ref aircraftStatus, value); }
 
         private bool transponderIdent;
-        public bool TransponderIdent { get { return transponderIdent; } set { SetProperty(ref transponderIdent, value); } }
+        public bool TransponderIdent { get => transponderIdent; set => SetProperty(ref transponderIdent, value); }
+
+        private string remarks;
+        public string Remarks { get => remarks; set => SetProperty(ref remarks, value); }
 
         private string atcCallsign = null;
         public string AtcCallsign { get => atcCallsign; set => SetProperty(ref atcCallsign, value); }
 
         private bool isTracking;
-        public bool IsTracking { get { return isTracking; } set { SetProperty(ref isTracking, value); } }
+        public bool IsTracking { get => isTracking; set => SetProperty(ref isTracking, value); }
 
         private DiscordConnection discordConnection;
-        public DiscordConnection DiscordConnection { get { return discordConnection; } set { SetProperty(ref discordConnection, value); } }
+        public DiscordConnection DiscordConnection { get => discordConnection; set => SetProperty(ref discordConnection, value); }
     }
 }

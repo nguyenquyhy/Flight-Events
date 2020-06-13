@@ -10,7 +10,7 @@ namespace FlightEvents
 
         }
 
-        public FlightPlanCompact(FlightPlanData flightPlan, string callsign, string aircraftType, int? estimatedCruisingSpeed)
+        public FlightPlanCompact(FlightPlanData flightPlan, string callsign, string aircraftType, int? estimatedCruisingSpeed, string remarks)
         {
             Callsign = callsign;
             AircraftType = aircraftType;
@@ -34,6 +34,8 @@ namespace FlightEvents
                 }
                 EstimatedEnroute = TimeSpan.FromHours(dist / estimatedCruisingSpeed.Value);
             }
+
+            Remarks = remarks;
         }
 
         public string Callsign { get; set; }
@@ -49,5 +51,7 @@ namespace FlightEvents
         public string Destination { get; set; }
 
         public string Route { get; set; }
+
+        public string Remarks { get; set; }
     }
 }
