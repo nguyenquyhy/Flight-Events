@@ -47,6 +47,10 @@ const ListItem = styled.li`
 
 `
 
-const CustomButton = styled.button`
+interface CustomButtonProps {
+    endDateTime: Date;
+}
+
+const CustomButton = styled.button<CustomButtonProps>`
 ${props => isBefore(props.endDateTime, new Date()) && css`display: none`}
 `
