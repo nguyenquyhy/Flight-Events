@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "1.12.0",
+      "changes": "Pilot can set remarks to send to ATC"
+    },
+    {
       "id": "1.11.0",
       "changes": "Dynamic refresh rate"
     },
