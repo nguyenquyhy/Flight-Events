@@ -65,8 +65,15 @@ namespace FlightEvents.DiscordBot
 
             hub.On<string, int?, int?>("ChangeFrequency", async (clientId, from, to) =>
             {
-                logger.LogDebug("Got ChangeFrequency message from {clientId} to change from {fromFrequency} to {toFrequency}", clientId, from, to);
-                await CreateVoiceChannelAndMoveAsync(clientId, to);
+                try
+                {
+                    logger.LogDebug("Got ChangeFrequency message from {clientId} to change from {fromFrequency} to {toFrequency}", clientId, from, to);
+                    await CreateVoiceChannelAndMoveAsync(clientId, to);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cannot handle changing frequency of {0} from {1} to {2}!", clientId, from, to);
+                }
             });
         }
 
@@ -189,6 +196,15 @@ namespace FlightEvents.DiscordBot
                     props.CategoryId = serverOptions.ChannelCategoryId;
                     props.Bitrate = serverOptions.ChannelBitrate;
                 });
+
+                try
+                {
+                    await voiceChannel.AddPermissionOverwriteAsync(guild.EveryoneRole, new OverwritePermissions(useVoiceActivation: PermValue.Deny));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cannot change channel permission");
+                }
 
                 logger.LogInformation("Created new channel {channelName}", channelName);
 
