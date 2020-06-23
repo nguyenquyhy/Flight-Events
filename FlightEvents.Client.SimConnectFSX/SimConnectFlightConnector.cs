@@ -16,7 +16,8 @@ namespace FlightEvents.Client.SimConnectFSX
         public event EventHandler AircraftPositionChanged;
         public event EventHandler<FlightPlanUpdatedEventArgs> FlightPlanUpdated;
 
-        private TaskCompletionSource<FlightPlanData> requestFlightPlanTcs = null;
+        private TaskCompletionSource<FlightPlanData> flightPlanTcs = null;
+        private TaskCompletionSource<AircraftData> aircraftDataTcs = null;
 
         public event EventHandler Closed;
 
@@ -33,6 +34,8 @@ namespace FlightEvents.Client.SimConnectFSX
         {
             this.logger = logger;
         }
+
+        #region Public Methods
 
         // Simconnect client will send a win32 message when there is 
         // a packet to process. ReceiveMessage must be called to
@@ -121,6 +124,64 @@ namespace FlightEvents.Client.SimConnectFSX
                 logger.LogWarning(ex, $"Cannot unsubscribe events! Error: {ex.Message}");
             }
         }
+
+        public Task<FlightPlanData> RequestFlightPlanAsync(CancellationToken cancellationToken = default)
+        {
+            if (flightPlanTcs != null)
+            {
+                logger.LogInformation("Wait for existing flight plan request...");
+                return flightPlanTcs.Task;
+            }
+
+            var tcs = new TaskCompletionSource<FlightPlanData>();
+            flightPlanTcs = tcs;
+
+            cancellationToken.Register(() =>
+            {
+                if (tcs.TrySetCanceled())
+                {
+                    logger.LogWarning("Cannot get flight plan in time limit!");
+                    flightPlanTcs = null;
+                }
+            }, useSynchronizationContext: false);
+
+            logger.LogInformation("Requesting flight plan...");
+            simconnect.RequestSystemState(DATA_REQUESTS.FLIGHT_PLAN, "FlightPlan");
+
+            return flightPlanTcs.Task;
+        }
+
+        public Task<AircraftData> RequestAircraftDataAsync(CancellationToken cancellationToken = default)
+        {
+            if (aircraftDataTcs != null)
+            {
+                logger.LogInformation("Wait for existing aircraft data request...");
+                return aircraftDataTcs.Task;
+            }
+
+            var tcs = new TaskCompletionSource<AircraftData>();
+            aircraftDataTcs = tcs;
+
+            cancellationToken.Register(() =>
+            {
+                if (tcs.TrySetCanceled())
+                {
+                    logger.LogWarning("Cannot get aircraft data in time limit!");
+                    aircraftDataTcs = null;
+                }
+            }, useSynchronizationContext: false);
+
+            logger.LogInformation("Requesting aircraft data...");
+            simconnect.RequestDataOnSimObjectType(DATA_REQUESTS.AIRCRAFT_DATA, DEFINITIONS.AircraftData, 0, SIMCONNECT_SIMOBJECT_TYPE.USER);
+
+            return aircraftDataTcs.Task;
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        #region Register Data Definitions
 
         private void RegisterAircraftDataDefinition()
         {
@@ -316,6 +377,8 @@ namespace FlightEvents.Client.SimConnectFSX
             simconnect.RegisterDataDefineStruct<FlightStatusStruct>(DEFINITIONS.FlightStatus);
         }
 
+        #endregion
+
         private void Simconnect_OnRecvSimobjectData(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA data)
         {
             // Must be general SimObject information
@@ -371,17 +434,19 @@ namespace FlightEvents.Client.SimConnectFSX
 
                         if (aircraftData.HasValue)
                         {
-                            logger.LogDebug("Get Aircraft data");
+                            logger.LogInformation("Aircraft data received.");
 
-                            AircraftDataUpdated?.Invoke(this, new AircraftDataUpdatedEventArgs(new AircraftData
+                            var result = new AircraftData
                             {
                                 Type = aircraftData.Value.Type,
                                 Model = aircraftData.Value.Model,
                                 Title = aircraftData.Value.Title,
                                 EstimatedCruiseSpeed = aircraftData.Value.EstimatedCruiseSpeed
-                            }));
+                            };
+                            AircraftDataUpdated?.Invoke(this, new AircraftDataUpdatedEventArgs(result));
 
-                            simconnect.RequestSystemState(DATA_REQUESTS.FLIGHT_PLAN, "FlightPlan");
+                            aircraftDataTcs?.TrySetResult(result);
+                            aircraftDataTcs = null;
                         }
                     }
                     break;
@@ -417,7 +482,7 @@ namespace FlightEvents.Client.SimConnectFSX
                 case (int)DATA_REQUESTS.FLIGHT_PLAN:
                     if (!string.IsNullOrEmpty(data.szString))
                     {
-                        logger.LogInformation($"Receive flight plan {data.szString}");
+                        logger.LogInformation($"Received flight plan {data.szString}");
 
                         var planName = data.szString;
 
@@ -439,16 +504,16 @@ namespace FlightEvents.Client.SimConnectFSX
                                 var flightPlanData = flightPlan.FlightPlan.ToData();
                                 FlightPlanUpdated?.Invoke(this, new FlightPlanUpdatedEventArgs(flightPlanData));
 
-                                requestFlightPlanTcs?.TrySetResult(flightPlanData);
-                                requestFlightPlanTcs = null;
+                                flightPlanTcs?.TrySetResult(flightPlanData);
+                                flightPlanTcs = null;
                             }
                             else
                             {
                                 logger.LogWarning($"{planName} does not exist!");
 
                                 FlightPlanUpdated?.Invoke(this, new FlightPlanUpdatedEventArgs(null));
-                                requestFlightPlanTcs?.TrySetResult(null);
-                                requestFlightPlanTcs = null;
+                                flightPlanTcs?.TrySetResult(null);
+                                flightPlanTcs = null;
                             }
                         }
                     }
@@ -485,13 +550,6 @@ namespace FlightEvents.Client.SimConnectFSX
             Closed?.Invoke(this, new EventArgs());
         }
 
-        public Task<FlightPlanData> RequestFlightPlanAsync()
-        {
-            if (requestFlightPlanTcs != null) return requestFlightPlanTcs.Task;
-
-            requestFlightPlanTcs = new TaskCompletionSource<FlightPlanData>();
-            simconnect.RequestDataOnSimObjectType(DATA_REQUESTS.AIRCRAFT_DATA, DEFINITIONS.AircraftData, 0, SIMCONNECT_SIMOBJECT_TYPE.USER);
-            return requestFlightPlanTcs.Task;
-        }
+        #endregion
     }
 }

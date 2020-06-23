@@ -13,6 +13,7 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -41,8 +42,6 @@ namespace FlightEvents.Client
 
         private HubConnection hub;
 
-        private AircraftData aircraftData;
-
         public MainWindow(ILogger<MainWindow> logger, IFlightConnector flightConnector, MainViewModel viewModel,
             IOptionsMonitor<AppSettings> appSettings,
             ATCServer atcServer, UserPreferencesLoader userPreferencesLoader, VersionLogic versionLogic)
@@ -58,7 +57,6 @@ namespace FlightEvents.Client
             this.appSettings = appSettings.CurrentValue;
             this.lineSimplifier = new LineSimplifier();
 
-            flightConnector.AircraftDataUpdated += FlightConnector_AircraftDataUpdated;
             flightConnector.AircraftStatusUpdated += FlightConnector_AircraftStatusUpdated;
             flightConnector.AircraftPositionChanged += FlightConnector_AircraftPositionChanged;
 
@@ -268,11 +266,19 @@ namespace FlightEvents.Client
         {
             if (viewModel.Callsign == callsign)
             {
-                var data = await flightConnector.RequestFlightPlanAsync();
-                if (data != null)
+                try
                 {
-                    var flightPlan = new FlightPlanCompact(data, viewModel.Callsign, aircraftData.Title, (int)aircraftData.EstimatedCruiseSpeed, viewModel.Remarks);
-                    await hub.SendAsync("ReturnFlightPlan", hub.ConnectionId, flightPlan, new string[] { atcConnectionId });
+                    var aircraftData = await flightConnector.RequestAircraftDataAsync(new CancellationTokenSource(5000).Token);
+                    var data = await flightConnector.RequestFlightPlanAsync(new CancellationTokenSource(15000).Token);
+                    if (data != null)
+                    {
+                        var flightPlan = new FlightPlanCompact(data, viewModel.Callsign, aircraftData.Title, (int)aircraftData.EstimatedCruiseSpeed, viewModel.Remarks);
+                        await hub.SendAsync("ReturnFlightPlan", hub.ConnectionId, flightPlan, new string[] { atcConnectionId });
+                    }
+                }
+                catch (TaskCanceledException ex)
+                {
+                    logger.LogError(ex, "Cannot get flight plan for ATC!");
                 }
             }
         }
@@ -282,8 +288,15 @@ namespace FlightEvents.Client
         /// </summary>
         private async void Hub_OnRequestFlightPlanDetails(string webConnectionId)
         {
-            var data = await flightConnector.RequestFlightPlanAsync();
-            await hub.SendAsync("ReturnFlightPlanDetails", hub.ConnectionId, data, webConnectionId);
+            try
+            {
+                var data = await flightConnector.RequestFlightPlanAsync(new CancellationTokenSource(15000).Token);
+                await hub.SendAsync("ReturnFlightPlanDetails", hub.ConnectionId, data, webConnectionId);
+            }
+            catch (TaskCanceledException ex)
+            {
+                logger.LogError(ex, "Cannot get flight plan for map!");
+            }
         }
 
         /// <summary>
@@ -340,11 +353,6 @@ namespace FlightEvents.Client
         #endregion
 
         #region SimConnect
-
-        private void FlightConnector_AircraftDataUpdated(object sender, AircraftDataUpdatedEventArgs e)
-        {
-            aircraftData = e.AircraftData;
-        }
 
         DateTime lastStatusSent = DateTime.Now;
 
