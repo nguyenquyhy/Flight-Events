@@ -24,6 +24,7 @@ namespace FlightEvents
         public string ID { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
+        public double? Altitude { get; set; }
         public string Name { get; set; }
     }
 
@@ -33,6 +34,7 @@ namespace FlightEvents
         public string Type { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
+        public double? Altitude { get; set; }
         public string Airway { get; set; }
         [GraphQLName("icao")]
         public WaypointICAO ICAO { get; set; }

@@ -85,6 +85,7 @@ export interface FlightPlanPosition {
     name: string
     latitude: number
     longitude: number
+    altitude?: number
 }
 
 export interface FlightPlanWaypoint {
@@ -93,6 +94,7 @@ export interface FlightPlanWaypoint {
     type: string
     latitude: number
     longitude: number
+    altitude?: number
     icao: WaypointICAO
 }
 

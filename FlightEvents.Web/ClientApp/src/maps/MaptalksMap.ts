@@ -460,7 +460,9 @@ export default class MaptalksMap implements IMap {
                     [])
 
                 const altitudes = flightPlan.waypoints.reduce((prev: number[], curr, index) =>
-                    prev.concat(index === 0 || index === flightPlan.waypoints.length - 1 ? 0 : flightPlan.cruisingAltitude * MaptalksMap.FEET_TO_METER),
+                    prev.concat(MaptalksMap.FEET_TO_METER *
+                        (curr.altitude ||
+                        (index === 0 || index === flightPlan.waypoints.length - 1 ? 0 : flightPlan.cruisingAltitude))),
                     [])
 
                 new maptalks.LineString(latlngs, {

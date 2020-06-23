@@ -46,8 +46,8 @@ namespace FlightEvents
                 },
                 Waypoints = ATCWaypoint?.Select(o => o.ToData())
             };
-            (data.Departure.Latitude, data.Departure.Longitude) = GpsHelper.ConvertString(DepartureLLA);
-            (data.Destination.Latitude, data.Destination.Longitude) = GpsHelper.ConvertString(DestinationLLA);
+            (data.Departure.Latitude, data.Departure.Longitude, data.Departure.Altitude) = GpsHelper.ConvertString(DepartureLLA);
+            (data.Destination.Latitude, data.Destination.Longitude, data.Destination.Altitude) = GpsHelper.ConvertString(DestinationLLA);
             return data;
         }
 
@@ -90,7 +90,7 @@ namespace FlightEvents
                 Type = ATCWaypointType,
                 ICAO = ICAO?.ToData()
             };
-            (waypoint.Latitude, waypoint.Longitude) = GpsHelper.ConvertString(WorldPosition);
+            (waypoint.Latitude, waypoint.Longitude, waypoint.Altitude) = GpsHelper.ConvertString(WorldPosition);
             return waypoint;
         }
 
