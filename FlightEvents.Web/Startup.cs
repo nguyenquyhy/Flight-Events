@@ -6,12 +6,19 @@ using FlightEvents.Web.Logics;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 
 namespace FlightEvents.Web
 {
@@ -20,6 +27,9 @@ namespace FlightEvents.Web
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+#if DEBUG
+            IdentityModelEventSource.ShowPII = true;
+#endif
         }
 
         public IConfiguration Configuration { get; }
@@ -55,6 +65,61 @@ namespace FlightEvents.Web
                 configuration.RootPath = "ClientApp/build";
             });
 
+            services
+                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(config =>
+                {
+                    config.ForwardChallenge = "Microsoft";
+                })
+                .AddOpenIdConnect("Microsoft", config =>
+                {
+                    Configuration.Bind("Authentication:Microsoft", config);
+
+                    //config.Scope.Add("openid");
+                    //config.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+                    config.TokenValidationParameters.IssuerValidator = new IssuerValidator((issuer, token, parameters) =>
+                    {
+                        // Accepts any issuer of the form "https://login.microsoftonline.com/{tenantid}/v2.0",
+                        // where tenantid is the tid from the token.
+
+                        if (token is JwtSecurityToken jwt)
+                        {
+                            if (jwt.Payload.TryGetValue("tid", out var value) &&
+                                value is string tokenTenantId)
+                            {
+                                var issuers = (parameters.ValidIssuers ?? Enumerable.Empty<string>())
+                                    .Append(parameters.ValidIssuer)
+                                    .Where(i => !string.IsNullOrEmpty(i));
+
+                                if (issuers.Any(i => i.Replace("{tenantid}", tokenTenantId) == issuer))
+                                    return issuer;
+                            }
+                        }
+
+                        // Recreate the exception that is thrown by default
+                        // when issuer validation fails
+                        var validIssuer = parameters.ValidIssuer ?? "null";
+                        var validIssuers = parameters.ValidIssuers == null
+                            ? "null"
+                            : !parameters.ValidIssuers.Any()
+                                ? "empty"
+                                : string.Join(", ", parameters.ValidIssuers);
+                        string errorMessage = FormattableString.Invariant(
+                            $"IDX10205: Issuer validation failed. Issuer: '{issuer}'. Did not match: validationParameters.ValidIssuer: '{validIssuer}' or validationParameters.ValidIssuers: '{validIssuers}'.");
+
+                        throw new SecurityTokenInvalidIssuerException(errorMessage)
+                        {
+                            InvalidIssuer = issuer
+                        };
+                    });
+                });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Authenticated", policy => policy.RequireAuthenticatedUser());
+            });
+
             var builder = services.AddSignalR();
             if (!string.IsNullOrWhiteSpace(Configuration["Azure:SignalR:ConnectionString"]))
             {
@@ -86,6 +151,9 @@ namespace FlightEvents.Web
             app.UseSpaStaticFiles();
 
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app
                 .UseGraphQL("/graphql")
