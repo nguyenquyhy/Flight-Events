@@ -59,7 +59,7 @@ namespace FlightEvents.DiscordBot
                     services.AddTransient<IDiscordConnectionStorage, AzureTableDiscordConnectionStorage>();
                     services.AddHostedService<MovingWorker>();
                     services.AddHostedService<CleaningWorker>();
-                    services.AddHostedService<DmWorker>();
+                    services.AddHostedService<DiscordMessageWorker>();
                 });
     }
 }

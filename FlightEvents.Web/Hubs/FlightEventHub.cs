@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using FlightEvents.Data;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,6 +19,13 @@ namespace FlightEvents.Web.Hubs
         private static readonly ConcurrentDictionary<string, ATCStatus> connectionIdToAtcStatuses = new ConcurrentDictionary<string, ATCStatus>();
 
         private static readonly ConcurrentDictionary<string, ChannelWriter<AircraftStatusBrief>> clientIdToChannelWriter = new ConcurrentDictionary<string, ChannelWriter<AircraftStatusBrief>>();
+
+        private readonly IDiscordConnectionStorage discordConnectionStorage;
+
+        public FlightEventHub(IDiscordConnectionStorage discordConnectionStorage)
+        {
+            this.discordConnectionStorage = discordConnectionStorage;
+        }
 
         public override async Task OnConnectedAsync()
         {
@@ -113,6 +121,21 @@ namespace FlightEvents.Web.Hubs
                 }
                 await Clients.Groups("Map", "ATC").UpdateAircraft(clientId, status);
             }
+        }
+
+        public async Task RequestStatusFromDiscord(ulong discordUserId)
+        {
+            var clientIds = await discordConnectionStorage.GetClientIdsAsync(discordUserId);
+            foreach (var clientId in clientIds)
+            {
+                if (clientIdToConnectionIds.TryGetValue(clientId, out var connectionId) && 
+                    connectionIdToAircraftStatuses.TryGetValue(connectionId, out var status))
+                {
+                    await Clients.Caller.UpdateAircraftToDiscord(discordUserId, clientId, status);
+                    return;
+                }
+            }
+            await Clients.Caller.UpdateAircraftToDiscord(discordUserId, clientIds.FirstOrDefault(), null);
         }
 
         public async Task RequestFlightPlan(string callsign)

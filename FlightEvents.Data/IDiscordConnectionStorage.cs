@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FlightEvents.Data
 {
@@ -7,5 +8,6 @@ namespace FlightEvents.Data
         Task<DiscordConnection> GetConnectionAsync(string clientId);
         Task<DiscordConnection> StoreConnectionAsync(string clientId, ulong userId, string username, string discriminator);
         Task DeleteConnectionAsync(string clientId);
+        Task<List<string>> GetClientIdsAsync(ulong discordUserId);
     }
 }

@@ -15,7 +15,12 @@ namespace FlightEvents.Web.Hubs
         /// <summary>
         /// Send updated aircraft status to the map
         /// </summary>
-        Task UpdateAircraft(string connectionId, AircraftStatus status);
+        Task UpdateAircraft(string clientId, AircraftStatus status);
+
+        /// <summary>
+        /// Send updated aircraft status to the bot
+        /// </summary>
+        Task UpdateAircraftToDiscord(ulong discordUserId, string clientId, AircraftStatus status);
 
         /// <summary>
         /// Ask client to send back flight plan if the client has a particular callsign

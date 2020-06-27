@@ -37,6 +37,7 @@ namespace FlightEvents.DiscordBot
         public string LoungeChannelName { get; set; }
         [Required]
         public int ChannelBitrate { get; set; }
+        public ulong? FlightInfoRoleId { get; set; }
     }
 
     public class MovingWorker : BackgroundService

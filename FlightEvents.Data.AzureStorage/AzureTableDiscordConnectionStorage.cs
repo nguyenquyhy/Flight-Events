@@ -1,6 +1,8 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace FlightEvents.Data
@@ -22,6 +24,16 @@ namespace FlightEvents.Data
             var account = CloudStorageAccount.Parse(options.CurrentValue.ConnectionString);
             var tableClient = account.CreateCloudTableClient();
             table = tableClient.GetTableReference(options.CurrentValue.DiscordConnectionTable);
+        }
+
+        public async Task<List<string>> GetClientIdsAsync(ulong discordUserId)
+        {
+            await table.CreateIfNotExistsAsync();
+            var result = table.ExecuteQuery(
+                new TableQuery<ConnectionEntity>()
+                .Where(TableQuery.GenerateFilterConditionForLong(nameof(ConnectionEntity.UserId), QueryComparisons.Equal, (long)discordUserId)));
+
+            return result.Select(o => o.RowKey).ToList();
         }
 
         public async Task<DiscordConnection> GetConnectionAsync(string clientId)
