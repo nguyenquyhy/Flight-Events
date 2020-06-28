@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -114,7 +115,7 @@ namespace FlightEvents.Client.Logics
                         {
                             try
                             {
-                                var dataString = await httpClient.GetStringAsync($"http://iatageo.com/getCode/{e.AircraftStatus.Latitude}/{e.AircraftStatus.Longitude}");
+                                var dataString = await httpClient.GetStringAsync($"http://iatageo.com/getCode/{e.AircraftStatus.Latitude.ToString(CultureInfo.InvariantCulture)}/{e.AircraftStatus.Longitude.ToString(CultureInfo.InvariantCulture)}");
                                 var result = JsonConvert.DeserializeObject<IATAGeoResult>(dataString);
                                 icao = result.ICAO;
                                 airport = result.name;
