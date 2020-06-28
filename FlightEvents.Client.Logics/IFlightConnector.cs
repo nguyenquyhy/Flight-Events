@@ -10,6 +10,8 @@ namespace FlightEvents.Client.Logics
         event EventHandler<AircraftStatusUpdatedEventArgs> AircraftStatusUpdated;
         event EventHandler<FlightPlanUpdatedEventArgs> FlightPlanUpdated;
         event EventHandler AircraftPositionChanged;
+        event EventHandler Closed;
+        event EventHandler Connected;
 
         Task<AircraftData> RequestAircraftDataAsync(CancellationToken cancellationToken = default);
         Task<FlightPlanData> RequestFlightPlanAsync(CancellationToken cancellationToken = default);

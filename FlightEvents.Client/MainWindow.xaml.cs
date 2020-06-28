@@ -32,6 +32,7 @@ namespace FlightEvents.Client
         private readonly Random random = new Random();
 
         private readonly MainViewModel viewModel;
+        private readonly DiscordRichPresentLogic discordRichPresentLogic;
         private readonly AppSettings appSettings;
         private readonly LineSimplifier lineSimplifier;
         private readonly ATCServer atcServer;
@@ -44,16 +45,18 @@ namespace FlightEvents.Client
 
         public MainWindow(ILogger<MainWindow> logger, IFlightConnector flightConnector, MainViewModel viewModel,
             IOptionsMonitor<AppSettings> appSettings,
+            DiscordRichPresentLogic discordRichPresentLogic,
             ATCServer atcServer, UserPreferencesLoader userPreferencesLoader, VersionLogic versionLogic)
         {
             InitializeComponent();
-
+            
             this.logger = logger;
             this.flightConnector = flightConnector;
             this.atcServer = atcServer;
             this.userPreferencesLoader = userPreferencesLoader;
             this.versionLogic = versionLogic;
             this.viewModel = viewModel;
+            this.discordRichPresentLogic = discordRichPresentLogic;
             this.appSettings = appSettings.CurrentValue;
             this.lineSimplifier = new LineSimplifier();
 
@@ -142,6 +145,8 @@ namespace FlightEvents.Client
                 logger.LogWarning(ex, "Cannot get Discord connection!");
             }
 
+            discordRichPresentLogic.Initialize();
+
             while (true)
             {
                 try
@@ -181,6 +186,8 @@ namespace FlightEvents.Client
             {
                 // broken pipe
             }
+
+            discordRichPresentLogic.Start(viewModel.Callsign);
         }
 
         private void ButtonStopTrack_Click(object sender, RoutedEventArgs e)
@@ -190,6 +197,8 @@ namespace FlightEvents.Client
             viewModel.IsTracking = false;
             ButtonStopTrack.Visibility = Visibility.Collapsed;
             ButtonStartTrack.Visibility = Visibility.Visible;
+
+            discordRichPresentLogic.Stop();
         }
 
         private void ButtonStartATC_Click(object sender, RoutedEventArgs e)

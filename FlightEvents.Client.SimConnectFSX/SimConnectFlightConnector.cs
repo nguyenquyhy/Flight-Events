@@ -15,11 +15,12 @@ namespace FlightEvents.Client.SimConnectFSX
         public event EventHandler<AircraftStatusUpdatedEventArgs> AircraftStatusUpdated;
         public event EventHandler AircraftPositionChanged;
         public event EventHandler<FlightPlanUpdatedEventArgs> FlightPlanUpdated;
+        public event EventHandler Connected;
+        public event EventHandler Closed;
 
         private TaskCompletionSource<FlightPlanData> flightPlanTcs = null;
         private TaskCompletionSource<AircraftData> aircraftDataTcs = null;
 
-        public event EventHandler Closed;
 
         // User-defined win32 event
         const int WM_USER_SIMCONNECT = 0x0402;
@@ -92,6 +93,8 @@ namespace FlightEvents.Client.SimConnectFSX
             simconnect.OnRecvEvent += Simconnect_OnRecvEvent;
 
             simconnect.OnRecvSystemState += Simconnect_OnRecvSystemState;
+
+            Connected?.Invoke(this, new EventArgs());
         }
 
         public void Send(string message)

@@ -1,4 +1,5 @@
-﻿using FlightEvents.Client.ATC;
+﻿using DiscordRPC;
+using FlightEvents.Client.ATC;
 using FlightEvents.Client.Logics;
 using FlightEvents.Client.SimConnectFSX;
 using Microsoft.AppCenter;
@@ -101,6 +102,18 @@ namespace FlightEvents.Client
             services.AddSingleton(new VersionLogic("https://events-storage.flighttracker.tech/downloads/versions.json"));
 
             services.AddTransient(typeof(MainWindow));
+
+            var discordRpcClient = new DiscordRpcClient("688293497748455489");
+            discordRpcClient.OnReady += (sender, e) =>
+            {
+                Debug.WriteLine("Received Ready from user {0}", e.User.Username);
+            };
+            discordRpcClient.OnPresenceUpdate += (sender, e) =>
+            {
+                Debug.WriteLine("Received Update! {0}", e.Presence);
+            };
+            services.AddSingleton(discordRpcClient);
+            services.AddSingleton<DiscordRichPresentLogic>();
         }
 
         protected override void OnExit(ExitEventArgs e)
