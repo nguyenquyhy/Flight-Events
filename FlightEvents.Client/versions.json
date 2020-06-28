@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "1.15.0",
+      "changes": "Support Discord Rich Present"
+    },
+    {
       "id": "1.14.0",
       "changes": "Show flight plan waypoints' altitude"
     },
