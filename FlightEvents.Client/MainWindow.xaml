@@ -13,6 +13,8 @@
         <converters:NullToVisibilityConverter x:Key="NullToVisibleConverter" Reversed="True" />
         <converters:NullToVisibilityConverter x:Key="NullToCollapsedConverter" />
         <converters:ConnectionStateToBrushConverter x:Key="ConnectionStateToBrushConverter" />
+        <converters:NullToBrushConverter x:Key="NullToBrushConverter" />
+        <converters:StatesToBrushConverter x:Key="StatesToBrushConverter" />
         
         <Style TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -42,14 +44,21 @@
         </Grid.RowDefinitions>
 
         <TextBlock Text="Server" Grid.Row="0" Grid.Column="0" />
-        <TextBlock Text="{Binding HubConnectionState}" Grid.Row="0" Grid.Column="1" />
+        <TextBlock Text="{Binding HubConnectionState}" Foreground="{Binding HubConnectionState, Converter={StaticResource ConnectionStateToBrushConverter}}" Grid.Row="0" Grid.Column="1" />
 
         <TabControl Grid.Row="1" Grid.ColumnSpan="2" VerticalAlignment="Stretch">
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" Margin="2">
                         <TextBlock Text="Simulator" Margin="0" />
-                        <Ellipse Fill="{Binding SimConnectionState, Converter={StaticResource ConnectionStateToBrushConverter}}" Width="10" Height="10" Margin="4,0,0,0" />
+                        <Ellipse Width="10" Height="10" Margin="4,0,0,0">
+                            <Ellipse.Fill>
+                                <MultiBinding Converter="{StaticResource StatesToBrushConverter}">
+                                    <Binding Path="SimConnectionState" />
+                                    <Binding Path="IsTracking" />
+                                </MultiBinding>
+                            </Ellipse.Fill>
+                        </Ellipse>
                     </StackPanel>
                 </TabItem.Header>
                 <Grid Margin="5">
@@ -68,7 +77,7 @@
                     </Grid.RowDefinitions>
 
                     <TextBlock Text="SimConnect" Grid.Row="1" Grid.Column="0" />
-                    <TextBlock Text="{Binding SimConnectionState}" Grid.Row="1" Grid.Column="1" />
+                    <TextBlock Text="{Binding SimConnectionState}" Grid.Row="1" Grid.Column="1" Foreground="{Binding SimConnectionState, Converter={StaticResource ConnectionStateToBrushConverter}}" />
 
                     <TextBlock Text="Callsign" Grid.Row="2" Grid.Column="0" />
                     <TextBox Text="{Binding Callsign, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
@@ -92,7 +101,7 @@
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" Margin="2">
                         <TextBlock Text="Discord" Margin="0" />
-                        <!--<Ellipse Fill="{Binding AtcConnectionState, Converter={StaticResource ConnectionStateToBrushConverter}}" Width="10" Height="10" Margin="4,0,0,0" />-->
+                        <Ellipse Fill="{Binding DiscordConnection, Converter={StaticResource NullToBrushConverter}}" Width="10" Height="10" Margin="4,0,0,0" />
                     </StackPanel>
                 </TabItem.Header>
                 <Grid>
