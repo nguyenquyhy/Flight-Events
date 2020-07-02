@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap desktop6 rescap">
+
+  <Identity
+    Name="3917a06a-5a70-4aba-aa76-d124b5935352"
+    Publisher="CN=9C1B6056-D30C-4742-9654-F28620D581A8"
+    Version="1.0.2.0" />
+
+  <Properties>
+    <DisplayName>FlightEvents.Client</DisplayName>
+    <PublisherDisplayName>nguye</PublisherDisplayName>
+    <Logo>Images\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.14393.0" MaxVersionTested="10.0.14393.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate"/>
+  </Resources>
+
+  <Applications>
+    <Application Id="App"
+      Executable="$targetnametoken$.exe"
+      EntryPoint="$targetentrypoint$">
+      <uap:VisualElements
+        DisplayName="Flight Events"
+        Description="Flight Events Client"
+        BackgroundColor="transparent"
+        Square150x150Logo="Images\Square150x150Logo.png"
+        Square44x44Logo="Images\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Images\Wide310x150Logo.png" />
+        <uap:SplashScreen Image="Images\SplashScreen.png" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+
+  <Extensions>
+    <desktop6:Extension Category="windows.customInstall">
+      <desktop6:CustomInstall Folder="Installers">
+        <desktop6:InstallActions>
+          <desktop6:InstallAction File="SimConnect.msi" Name="AC_1" />
+        </desktop6:InstallActions>
+        <desktop6:RepairActions>
+          <desktop6:RepairAction File="SimConnect.msi" Name="AC_1" Arguments="/add /silent /force" />
+        </desktop6:RepairActions>
+        <desktop6:UninstallActions>
+          <desktop6:UninstallAction File="SimConnect.msi" Name="AC_1" Arguments="/remove /silent" />
+        </desktop6:UninstallActions>
+      </desktop6:CustomInstall>
+    </desktop6:Extension>
+  </Extensions>
+
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <rescap:Capability Name="customInstallActions"/>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>
