@@ -148,9 +148,11 @@ namespace FlightEvents.Client
                 {
                     ServiceProvider.GetService<ILogger<MainWindow>>().LogError(ex, "Cannot initialize SimConnect!");
 
-                    var result = MessageBox.Show(mainWindow, "SimConnect not found. This component is needed to connect to Flight Simulator.\n" +
-                        "Please download SimConnect from\n\nhttps://events-storage.flighttracker.tech/downloads/SimConnect.zip\n\n" +
-                        "follow the ReadMe.txt in the zip file and try to start again.\n\nThis program will now exit.\n\nDo you want to open the SimConnect link above?",
+                    var result = MessageBox.Show(mainWindow,
+                        @"SimConnect not found. This component is needed to connect to Flight Simulator.
+
+Do you want to install SimConnect? 
+Please restart the client afterward.",
                         "Needed component is missing",
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Error);
@@ -161,7 +163,7 @@ namespace FlightEvents.Client
                         {
                             Process.Start(new ProcessStartInfo
                             {
-                                FileName = "https://events-storage.flighttracker.tech/downloads/SimConnect.zip",
+                                FileName = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "SimConnect.msi"),
                                 UseShellExecute = true
                             });
                         }

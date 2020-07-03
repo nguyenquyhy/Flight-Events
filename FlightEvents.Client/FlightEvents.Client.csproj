@@ -7,7 +7,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>icon.ico</ApplicationIcon>
-    <Version>1.15.1</Version>
+    <Version>1.15.2</Version>
     <Authors>Nguyen Quy Hy</Authors>
     <Product>Client for Flight Events</Product>
     <PackageProjectUrl>https://github.com/nguyenquyhy/Flight-Events</PackageProjectUrl>
@@ -51,6 +51,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="FlightEvents.Client.exe.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="SimConnect.msi">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="icon.png">
