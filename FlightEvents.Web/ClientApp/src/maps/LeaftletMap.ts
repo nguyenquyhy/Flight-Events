@@ -1,6 +1,7 @@
 ﻿import { IMap, MapTileType, OnViewChangedFn, View } from './IMap';
 import * as L from 'leaflet';
 import 'leaflet-rotatedmarker';
+import 'overpass-layer/dist/overpass-layer';
 import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
 
 
@@ -45,6 +46,40 @@ export default class LeafletMap implements IMap {
         });
 
         this.baseLayerGroup = L.layerGroup().addTo(this.mymap);
+
+        //L.OverPassLayer({
+        //    'query': '[out:json][timeout:25];(way["aeroway"="taxiway"]({{bbox}}););out body;>;out skel qt;'
+        //}).addTo(this.mymap);
+        var overpassFrontend = new (window as any).OverpassFrontend('//overpass-api.de/api/interpreter')
+
+        new (window as any).OverpassLayer({
+            query: '(way[aeroway=runway];)',
+            minZoom: 14,
+            overpassFrontend: overpassFrontend,
+            feature: {
+                markerSymbol: (o: any) => {
+                    return o.tags.ref ? `<strong height="20" anchorY="10" style="font-size: 1.3em;background-color: rgba(255, 255, 255, 0.7);padding: 3px;border-radius: 3px">${o.tags.ref}</strong>` : null;
+                },
+                style: {
+                    stroke: true
+                }
+            }
+        }).addTo(this.mymap);
+        new (window as any).OverpassLayer({
+            query: '(way[aeroway=taxiway];way[aeroway=taxilane];way[aeroway=parking_position];)',
+            minZoom: 15,
+            overpassFrontend: overpassFrontend,
+            feature: {
+                markerSymbol: (o: any) => {
+                    return o.tags.ref ? `<strong height="20" anchorY="10" style="background-color: rgba(255, 255, 255, 0.7);padding: 3px;border-radius: 3px">${o.tags.ref}</strong>` : null;
+                },
+                style: {
+                    width: 2,
+                    color: '#0CBBC9'
+                }
+            }
+        }).addTo(this.mymap);
+
         this.airportLayerGroup = L.layerGroup().addTo(this.mymap);
         this.flightPlanLayerGroup = L.layerGroup().addTo(this.mymap);
 
