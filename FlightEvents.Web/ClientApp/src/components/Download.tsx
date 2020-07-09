@@ -33,10 +33,9 @@ export default class Download extends React.Component<any, State> {
                     <a className="btn btn-primary" href="https://events-storage.flighttracker.tech/downloads/FlightEvents.Client.zip" target="_blank" rel="noopener noreferrer">Download Client</a>
 
                     <hr />
-                    <p>When you start the client, it might also ask you to install the following prerequisites:</p>
+                    <p>When you start the client, it might also ask you to download &amp; install the following prerequisites:</p>
                     <ul>
-                        <li><a href="https://dotnet.microsoft.com/download/dotnet-core/thank-you/runtime-desktop-3.1.3-windows-x86-installer" target="_blank" rel="noopener noreferrer">.NET Core Windows Runtime (x86)</a></li>
-                        <li><a href="https://events-storage.flighttracker.tech/downloads/SimConnect.zip" target="_blank" rel="noopener noreferrer">SimConnect</a></li>
+                        <li><a href="https://dotnet.microsoft.com/download/dotnet-core/thank-you/runtime-desktop-3.1.5-windows-x86-installer" target="_blank" rel="noopener noreferrer">.NET Core Windows Runtime (x86)</a></li>
                     </ul>
 
                     <hr />
