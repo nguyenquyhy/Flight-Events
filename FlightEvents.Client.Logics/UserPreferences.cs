@@ -10,6 +10,7 @@ namespace FlightEvents.Client.Logics
     {
         public string LastCallsign { get; set; }
         public string ClientId { get; set; }
+        public bool DisableDiscordRP { get; set; }
     }
 
     public class UserPreferencesLoader

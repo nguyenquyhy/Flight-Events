@@ -49,7 +49,7 @@ namespace FlightEvents.Client
             ATCServer atcServer, UserPreferencesLoader userPreferencesLoader, VersionLogic versionLogic)
         {
             InitializeComponent();
-            
+
             this.logger = logger;
             this.flightConnector = flightConnector;
             this.atcServer = atcServer;
@@ -72,6 +72,8 @@ namespace FlightEvents.Client
         {
             var currentVersion = versionLogic.GetVersion();
             var pref = await userPreferencesLoader.LoadAsync();
+
+            viewModel.DisableDiscordRP = pref.DisableDiscordRP;
 
             var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
             hub = new HubConnectionBuilder()
@@ -187,7 +189,10 @@ namespace FlightEvents.Client
                 // broken pipe
             }
 
-            discordRichPresentLogic.Start(viewModel.Callsign);
+            if (!viewModel.DisableDiscordRP)
+            {
+                discordRichPresentLogic.Start(viewModel.Callsign);
+            }
         }
 
         private void ButtonStopTrack_Click(object sender, RoutedEventArgs e)
@@ -198,7 +203,10 @@ namespace FlightEvents.Client
             ButtonStopTrack.Visibility = Visibility.Collapsed;
             ButtonStartTrack.Visibility = Visibility.Visible;
 
-            discordRichPresentLogic.Stop();
+            if (!viewModel.DisableDiscordRP)
+            {
+                discordRichPresentLogic.Stop();
+            }
         }
 
         private void ButtonStartATC_Click(object sender, RoutedEventArgs e)
@@ -642,6 +650,46 @@ namespace FlightEvents.Client
         {
             if (e.ChangedButton == MouseButton.Left)
                 this.DragMove();
+        }
+
+        #endregion
+
+        #region Settings
+
+        private async void DisableDiscordRP_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await userPreferencesLoader.UpdateAsync(pref => pref.DisableDiscordRP = true);
+
+                if (viewModel.IsTracking)
+                {
+                    discordRichPresentLogic.Stop();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot check Disable Discord RP!");
+                viewModel.DisableDiscordRP = false;
+            }
+        }
+
+        private async void DisableDiscordRP_Unchecked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await userPreferencesLoader.UpdateAsync(pref => pref.DisableDiscordRP = false);
+
+                if (viewModel.IsTracking)
+                {
+                    discordRichPresentLogic.Start(viewModel.Callsign);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot uncheck Disable Discord RP!");
+                viewModel.DisableDiscordRP = true;
+            }
         }
 
         #endregion

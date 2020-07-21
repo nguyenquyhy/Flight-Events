@@ -55,5 +55,8 @@ namespace FlightEvents.Client
 
         private DiscordConnection discordConnection;
         public DiscordConnection DiscordConnection { get => discordConnection; set => SetProperty(ref discordConnection, value); }
+
+        private bool disableDiscordRP;
+        public bool DisableDiscordRP { get => disableDiscordRP; set => SetProperty(ref disableDiscordRP, value); }
     }
 }
