@@ -97,6 +97,7 @@ namespace FlightEvents.Client
 
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<IFlightConnector, SimConnectFlightConnector>();
+            services.AddSingleton<UdpBroadcastLogic>();
             services.AddSingleton<ATCServer>();
             services.AddSingleton(new UserPreferencesLoader("preferences.json"));
             services.AddSingleton(new VersionLogic("https://events-storage.flighttracker.tech/downloads/versions.json"));
@@ -106,11 +107,11 @@ namespace FlightEvents.Client
             var discordRpcClient = new DiscordRpcClient("688293497748455489");
             discordRpcClient.OnReady += (sender, e) =>
             {
-                Debug.WriteLine("Received Ready from user {0}", e.User.Username);
+                Debug.WriteLine(string.Format("Received Ready from user {0}", e.User.Username));
             };
             discordRpcClient.OnPresenceUpdate += (sender, e) =>
             {
-                Debug.WriteLine("Received Update! {0}", e.Presence);
+                Debug.WriteLine(string.Format("Received Update! {0}", e.Presence));
             };
             services.AddSingleton(discordRpcClient);
             services.AddSingleton<DiscordRichPresentLogic>();

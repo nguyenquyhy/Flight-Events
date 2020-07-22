@@ -58,5 +58,11 @@ namespace FlightEvents.Client
 
         private bool disableDiscordRP;
         public bool DisableDiscordRP { get => disableDiscordRP; set => SetProperty(ref disableDiscordRP, value); }
+
+        private bool broadcastUDP;
+        public bool BroadcastUDP { get => broadcastUDP; set => SetProperty(ref broadcastUDP, value); }
+
+        private string broadcastIP = null;
+        public string BroadcastIP { get => broadcastIP; set => SetProperty(ref broadcastIP, value); }
     }
 }

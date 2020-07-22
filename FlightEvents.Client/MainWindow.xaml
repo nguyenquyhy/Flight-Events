@@ -20,6 +20,36 @@
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Padding" Value="3" />
         </Style>
+        
+        <Style x:Key="PlaceHolder" TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TextBox}">
+                        <Grid>
+                            <TextBox Text="{Binding Path=Text,
+                                                RelativeSource={RelativeSource TemplatedParent}, 
+                                                Mode=TwoWay,
+                                                UpdateSourceTrigger=PropertyChanged}"
+                                 x:Name="textSource" 
+                                 Background="Transparent" 
+                                 Panel.ZIndex="2" />
+                            <TextBox Text="{TemplateBinding Tag}" Background="{TemplateBinding Background}" Panel.ZIndex="1">
+                                <TextBox.Style>
+                                    <Style TargetType="{x:Type TextBox}">
+                                        <Setter Property="Foreground" Value="Transparent"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Path=Text, Source={x:Reference textSource}}" Value="">
+                                                <Setter Property="Foreground" Value="LightGray"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid Margin="10,0,10,2">
@@ -176,6 +206,10 @@
                 </TabItem.Header>
 
                 <StackPanel Margin="5">
+                    <CheckBox Content="Broadcast data to local network" IsChecked="{Binding BroadcastUDP, Mode=TwoWay}" Checked="BroadcastUDP_Checked" Unchecked="BroadcastUDP_Unchecked" />
+                    <TextBox Text="{Binding BroadcastIP, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" Width="200" LostFocus="BroadcastIP_LostFocus" HorizontalAlignment="Left" Margin="20,0,0,10" 
+                             Style="{StaticResource PlaceHolder}" Tag="IP Address or empty (for broadcast)"
+                             IsEnabled="{Binding BroadcastUDP, Converter={StaticResource BoolReversedConverter}}"/>
                     <CheckBox Content="Disable Discord Rich Present" IsChecked="{Binding DisableDiscordRP, Mode=TwoWay}" Checked="DisableDiscordRP_Checked" Unchecked="DisableDiscordRP_Unchecked" />
                 </StackPanel>
             </TabItem>

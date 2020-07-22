@@ -119,7 +119,7 @@ namespace FlightEvents.Web.Hubs
                         await Clients.Groups("Bot").ChangeFrequency(clientId, fromFrequency == 0 ? null : (int?)fromFrequency, toFrequency == 0 ? null : (int?)toFrequency);
                     }
                 }
-                await Clients.Groups("Map", "ATC").UpdateAircraft(clientId, status);
+                await Clients.Groups("Map", "ATC", "ClientMap").UpdateAircraft(clientId, status);
             }
         }
 

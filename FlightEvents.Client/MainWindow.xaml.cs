@@ -38,6 +38,7 @@ namespace FlightEvents.Client
         private readonly ATCServer atcServer;
         private readonly UserPreferencesLoader userPreferencesLoader;
         private readonly VersionLogic versionLogic;
+        private readonly UdpBroadcastLogic udpBroadcastLogic;
         private readonly ILogger<MainWindow> logger;
         private readonly IFlightConnector flightConnector;
 
@@ -46,7 +47,8 @@ namespace FlightEvents.Client
         public MainWindow(ILogger<MainWindow> logger, IFlightConnector flightConnector, MainViewModel viewModel,
             IOptionsMonitor<AppSettings> appSettings,
             DiscordRichPresentLogic discordRichPresentLogic,
-            ATCServer atcServer, UserPreferencesLoader userPreferencesLoader, VersionLogic versionLogic)
+            ATCServer atcServer, UserPreferencesLoader userPreferencesLoader, VersionLogic versionLogic,
+            UdpBroadcastLogic udpBroadcastLogic)
         {
             InitializeComponent();
 
@@ -55,6 +57,7 @@ namespace FlightEvents.Client
             this.atcServer = atcServer;
             this.userPreferencesLoader = userPreferencesLoader;
             this.versionLogic = versionLogic;
+            this.udpBroadcastLogic = udpBroadcastLogic;
             this.viewModel = viewModel;
             this.discordRichPresentLogic = discordRichPresentLogic;
             this.appSettings = appSettings.CurrentValue;
@@ -74,6 +77,8 @@ namespace FlightEvents.Client
             var pref = await userPreferencesLoader.LoadAsync();
 
             viewModel.DisableDiscordRP = pref.DisableDiscordRP;
+            viewModel.BroadcastUDP = pref.BroadcastUDP;
+            viewModel.BroadcastIP = pref.BroadcastIP;
 
             var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
             hub = new HubConnectionBuilder()
@@ -91,6 +96,7 @@ namespace FlightEvents.Client
             hub.On<string>("RequestFlightRoute", Hub_OnRequestFlightRoute);
             hub.On<string, string, string>("SendMessage", Hub_OnMessageSent);
             hub.On<string, int>("ChangeUpdateRateByCallsign", Hub_OnChangeUpdateRateByCallsign);
+            hub.On<string, AircraftStatus>("UpdateAircraft", Hub_OnAircraftUpdated);
 
             TextURL.Text = this.appSettings.WebServerUrl;
 
@@ -166,6 +172,11 @@ namespace FlightEvents.Client
                     logger.LogWarning(ex, "Cannot connect to SignalR server! Retry in 5s...");
                     await Task.Delay(5000);
                 }
+            }
+
+            if (viewModel.BroadcastUDP)
+            {
+                await StartUDPConnectionAsync();
             }
         }
 
@@ -367,6 +378,26 @@ namespace FlightEvents.Client
             }
         }
 
+        private async void Hub_OnAircraftUpdated(string clientId, AircraftStatus status)
+        {
+            if (viewModel.IsTracking && viewModel.AircraftStatus != null && 
+                GpsHelper.CalculateDistance(status.Latitude, status.Longitude, viewModel.AircraftStatus.Latitude, viewModel.AircraftStatus.Longitude) < 10000)
+            {
+                try
+                {
+                    var pref = await userPreferencesLoader.LoadAsync();
+                    if (pref.ClientId != clientId)
+                    {
+                        await udpBroadcastLogic.SendTrafficAsync(status);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cannot send network package!");
+                }
+            }
+        }
+
         #endregion
 
         #region SimConnect
@@ -394,6 +425,19 @@ namespace FlightEvents.Client
                 }
 
                 viewModel.AircraftStatus = e.AircraftStatus;
+
+                try
+                {
+                    if (viewModel.BroadcastUDP)
+                    {
+                        await udpBroadcastLogic.SendGpsAsync(e.AircraftStatus);
+                        await udpBroadcastLogic.SendAttitudeAsync(e.AircraftStatus);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cannot send network package!");
+                }
             }
         }
 
@@ -611,6 +655,18 @@ namespace FlightEvents.Client
             return builder.ToString();
         }
 
+        private async Task StartUDPConnectionAsync()
+        {
+            await udpBroadcastLogic.StartAsync(viewModel.BroadcastIP);
+            await hub.SendAsync("Join", "ClientMap");
+        }
+
+        private async Task StopUDPConnectionAsync()
+        {
+            await hub.SendAsync("Leave", "ClientMap");
+            await udpBroadcastLogic.StopAsync();
+        }
+
         #endregion
 
         #region Minimize to System Tray
@@ -689,6 +745,51 @@ namespace FlightEvents.Client
             {
                 logger.LogError(ex, "Cannot uncheck Disable Discord RP!");
                 viewModel.DisableDiscordRP = true;
+            }
+        }
+
+        private async void BroadcastUDP_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await userPreferencesLoader.UpdateAsync(pref => pref.BroadcastUDP = true);
+
+                if (hub != null)
+                {
+                    await StartUDPConnectionAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot check BroadcastUDP!");
+                viewModel.BroadcastUDP = false;
+            }
+        }
+
+        private async void BroadcastUDP_Unchecked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await userPreferencesLoader.UpdateAsync(pref => pref.BroadcastUDP = false);
+
+                await StopUDPConnectionAsync();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot uncheck BroadcastUDP!");
+                viewModel.BroadcastUDP = true;
+            }
+        }
+
+        private async void BroadcastIP_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await userPreferencesLoader.UpdateAsync(pref => pref.BroadcastIP = viewModel.BroadcastIP);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot update Broadcast IP!");
             }
         }
 
