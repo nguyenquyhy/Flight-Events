@@ -53,11 +53,12 @@ namespace FlightEvents.Web
                 configuration.RootPath = "ClientApp/build";
             });
 
-            services.AddSignalR()
-#if !DEBUG
-                .AddAzureSignalR()
-#endif
-                .AddMessagePackProtocol();
+            var builder = services.AddSignalR();
+            if (!string.IsNullOrWhiteSpace(Configuration["Azure:SignalR:ConnectionString"]))
+            {
+                builder.AddAzureSignalR();
+            }
+            builder.AddMessagePackProtocol();
 
             services.AddHttpClient<DiscordLogic>();
         }
