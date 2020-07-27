@@ -4,8 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
-    <PlatformTarget>x86</PlatformTarget>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <PlatformTarget>x64</PlatformTarget>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <Version>1.17.2</Version>
     <Authors>Nguyen Quy Hy</Authors>
@@ -50,10 +49,7 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="FlightEvents.Client.exe.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="SimConnect.msi">
+    <None Update="SimConnect.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="icon.png">
