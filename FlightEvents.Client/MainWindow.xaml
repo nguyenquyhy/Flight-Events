@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:FlightEvents.Client"
         xmlns:converters="clr-namespace:FlightEvents.Client.Converters"
         mc:Ignorable="d" Loaded="Window_Loaded" StateChanged="Window_StateChanged"
-        Title="Flight Events" Height="270" Width="340" ResizeMode="CanMinimize">
+        Title="Flight Events" Height="290" Width="340" ResizeMode="CanMinimize">
 
     <Window.Resources>
         <converters:BoolReversedConverter x:Key="BoolReversedConverter" />
@@ -103,6 +103,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
@@ -123,6 +124,8 @@
                     
                     <Button x:Name="ButtonStartTrack" Content="Start Flight Tracking" Grid.Row="5" Grid.Column="1" Click="ButtonStartTrack_Click" />
                     <Button x:Name="ButtonStopTrack" Content="Stop Flight Tracking" Grid.Row="5" Grid.Column="1" Click="ButtonStopTrack_Click" Visibility="Collapsed" />
+
+                    <Button x:Name="ButtonTeleport" Content="Teleport Aircraft" Margin="0,5,0,0" Grid.Row="6" Grid.Column="1" Click="ButtonTeleport_Click" />
 
                 </Grid>
             </TabItem>

@@ -1,4 +1,4 @@
-﻿import { IMap, MapTileType, OnViewChangedFn, View } from './IMap';
+﻿import { IMap, MapTileType, OnViewChangedFn, View, OnAircraftMovedFn } from './IMap';
 import * as maptalks from 'maptalks';
 import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
 
@@ -526,6 +526,10 @@ export default class MaptalksMap implements IMap {
 
     public onViewChanged(handler: OnViewChangedFn) {
         this.onViewChangedHandler = handler;
+    }
+
+    public onAircraftMoved(handler: OnAircraftMovedFn) {
+
     }
 
     public track(id: string, status: AircraftStatus) {

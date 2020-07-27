@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "1.17.0",
+      "changes": "Teleport aircraft to arbitrary point on map"
+    },
+    {
       "id": "1.16.0",
       "changes": "Allow broadcasting data to port UDP 49002 for ForeFlight or similar software"
     },

@@ -88,6 +88,7 @@ namespace FlightEvents.Client.SimConnectFSX
             simconnect.OnRecvSimobjectData += Simconnect_OnRecvSimobjectData;
             RegisterAircraftDataDefinition();
             RegisterFlightStatusDefinition();
+            RegisterAircraftPositionDefinition();
 
             simconnect.SubscribeToSystemEvent(EVENTS.POSITION_CHANGED, "PositionChanged");
             simconnect.OnRecvEvent += Simconnect_OnRecvEvent;
@@ -100,6 +101,12 @@ namespace FlightEvents.Client.SimConnectFSX
         public void Send(string message)
         {
             simconnect?.Text(SIMCONNECT_TEXT_TYPE.PRINT_BLACK, 3, EVENTS.MESSAGE_RECEIVED, message);
+        }
+
+        public void Teleport(double latitude, double longitude, double altitude)
+        {
+            simconnect.SetDataOnSimObject(DEFINITIONS.AircraftPosition, 0, SIMCONNECT_DATA_SET_FLAG.DEFAULT,
+                new AircraftPositionStruct { Latitude = latitude, Longitude = longitude, Altitude = altitude });
         }
 
         public void CloseConnection()
@@ -378,6 +385,32 @@ namespace FlightEvents.Client.SimConnectFSX
             // IMPORTANT: register it with the simconnect managed wrapper marshaller
             // if you skip this step, you will only receive a uint in the .dwData field.
             simconnect.RegisterDataDefineStruct<FlightStatusStruct>(DEFINITIONS.FlightStatus);
+        }
+
+        private void RegisterAircraftPositionDefinition()
+        {
+            simconnect.AddToDataDefinition(DEFINITIONS.AircraftPosition,
+                "PLANE LATITUDE",
+                "Degrees",
+                SIMCONNECT_DATATYPE.FLOAT64,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+            simconnect.AddToDataDefinition(DEFINITIONS.AircraftPosition,
+                "PLANE LONGITUDE",
+                "Degrees",
+                SIMCONNECT_DATATYPE.FLOAT64,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+            simconnect.AddToDataDefinition(DEFINITIONS.AircraftPosition,
+                "PLANE ALTITUDE",
+                "Feet",
+                SIMCONNECT_DATATYPE.FLOAT64,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+
+            // IMPORTANT: register it with the simconnect managed wrapper marshaller
+            // if you skip this step, you will only receive a uint in the .dwData field.
+            simconnect.RegisterDataDefineStruct<FlightStatusStruct>(DEFINITIONS.AircraftPosition);
         }
 
         #endregion

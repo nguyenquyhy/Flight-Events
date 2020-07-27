@@ -20,6 +20,9 @@ namespace FlightEvents.Web.Hubs
 
         private static readonly ConcurrentDictionary<string, ChannelWriter<AircraftStatusBrief>> clientIdToChannelWriter = new ConcurrentDictionary<string, ChannelWriter<AircraftStatusBrief>>();
 
+        private static readonly ConcurrentDictionary<string, (string, AircraftPosition)> connectionIdToTeleportRequest = new ConcurrentDictionary<string, (string, AircraftPosition)>();
+        private static readonly ConcurrentDictionary<string, string> teleportTokenToConnectionId = new ConcurrentDictionary<string, string>();
+
         private readonly IDiscordConnectionStorage discordConnectionStorage;
 
         public FlightEventHub(IDiscordConnectionStorage discordConnectionStorage)
@@ -230,5 +233,19 @@ namespace FlightEvents.Web.Hubs
         }
 
         #endregion
+
+        public void RequestTeleport(string token, AircraftPosition position)
+        {
+            connectionIdToTeleportRequest[Context.ConnectionId] = (token, position);
+            teleportTokenToConnectionId[token] = Context.ConnectionId;
+        }
+
+        public async Task AcceptTeleport(string token)
+        {
+            if (teleportTokenToConnectionId.TryGetValue(token, out string connectionId) && connectionIdToTeleportRequest.TryGetValue(connectionId, out var request))
+            {
+                await Clients.Caller.Teleport(connectionId, request.Item2);
+            }
+        }
     }
 }

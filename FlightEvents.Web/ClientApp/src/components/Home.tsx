@@ -10,6 +10,7 @@ import { IMap, MapTileType, View } from '../maps/IMap';
 import LeafletMap from '../maps/LeaftletMap';
 import MaptalksMap from '../maps/MaptalksMap';
 import Storage from '../Storage';
+import { Modal, ModalBody, ModalHeader } from 'reactstrap';
 
 interface State {
     aircrafts: { [clientId: string]: AircraftStatus };
@@ -22,6 +23,8 @@ interface State {
     isDark: boolean;
     map3D: boolean;
     mapTileType: MapTileType;
+
+    teleportToken: string | null;
 }
 
 export class Home extends React.Component<any, State> {
@@ -50,6 +53,7 @@ export class Home extends React.Component<any, State> {
             isDark: pref ? pref.isDark : false,
             map3D: pref ? pref.map3D : false,
             mapTileType: pref ? pref.mapTileType : MapTileType.OpenStreetMap,
+            teleportToken: null
         }
 
         this.map = !this.state.map3D ? new LeafletMap() : new MaptalksMap();
@@ -144,6 +148,15 @@ export class Home extends React.Component<any, State> {
     private initializeMap() {
         this.map.onViewChanged(view => {
             this.currentView = view;
+        });
+        this.map.onAircraftMoved(position => {
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += String.fromCharCode(Math.floor(Math.random() * 26) + 65);
+            }
+            this.hub.send('RequestTeleport', code, position);
+
+            this.setState({ teleportToken: code });
         });
         this.map.initialize('mapid', this.currentView);
         this.map.setTileLayer(this.state.mapTileType);
@@ -301,6 +314,16 @@ export class Home extends React.Component<any, State> {
                 onFlightPlanChanged={this.handleFlightPlanChanged} flightPlanClientId={this.state.flightPlanClientId}
             />
             <EventList onAirportsLoaded={this.handleAirportsLoaded} onFlightPlansLoaded={this.handleFlightPlansLoaded} />
+
+            <Modal isOpen={!!this.state.teleportToken} toggle={() => this.setState({ teleportToken: null })}>
+                <ModalHeader>
+                    Teleport Aircraft
+                </ModalHeader>
+                <ModalBody>
+                    <div>Please enter the following token to your Flight Events client.</div>
+                    <strong>{this.state.teleportToken}</strong>
+                </ModalBody>
+            </Modal>
         </>;
     }
 }

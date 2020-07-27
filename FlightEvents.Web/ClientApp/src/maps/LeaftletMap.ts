@@ -1,7 +1,9 @@
-﻿import { IMap, MapTileType, OnViewChangedFn, View } from './IMap';
+﻿import { IMap, MapTileType, OnViewChangedFn, View, OnAircraftMovedFn } from './IMap';
 import * as L from 'leaflet';
 import 'leaflet-rotatedmarker';
 import 'overpass-layer/dist/overpass-layer';
+import 'leaflet-contextmenu';
+import 'leaflet-contextmenu/dist/leaflet.contextmenu.css';
 import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
 
 
@@ -12,6 +14,27 @@ interface Markers {
 
 const ROUTE_AIR_COLOR = 'blue';
 const ROUTE_GROUND_COLOR = 'brown';
+
+// Augment types of leaflet-contextmenu
+declare module 'leaflet' {
+    interface MapOptions {
+        contextmenu: boolean;
+        contextmenuWidth: number;
+        contextmenuItems: (string | ContextMenuItem)[]
+    }
+
+    interface ContextMenuItem {
+        text: string;
+        icon?: string;
+        callback?: (ContextMenuEventArgs) => void;
+    }
+
+    interface ContextMenuEventArgs {
+        containerPoint: L.Point;
+        latlng: L.LatLng;
+        layerPoint: L.Point;
+    }
+}
 
 export default class LeafletMap implements IMap {
     mymap?: L.Map;
@@ -31,12 +54,22 @@ export default class LeafletMap implements IMap {
 
     circleMarker?: L.Circle;
 
-    onViewChangedHandler: OnViewChangedFn | null = null;
+    onViewChangedHandler: (OnViewChangedFn | null) = null;
+    onAircraftMovedHandler: (OnAircraftMovedFn | null) = null;
 
     isDark: boolean = false;
 
     public initialize(divId: string, view?: View) {
-        const map = this.mymap = L.map(divId).setView(view ? [view.latitude, view.longitude] : [51.505, -0.09], view ? view.zoom : 13);
+        const map = this.mymap =
+            L.map(divId, {
+                contextmenu: true,
+                contextmenuWidth: 140,
+                contextmenuItems: [{
+                    text: 'Teleport aircraft here',
+                    callback: this.moveAircraft.bind(this)
+                }]
+            })
+            .setView(view ? [view.latitude, view.longitude] : [51.505, -0.09], view ? view.zoom : 13);
         this.mymap.on('moveend', (e) => {
             const zoom = map.getZoom();
             const center = map.getCenter();
@@ -369,6 +402,10 @@ export default class LeafletMap implements IMap {
         this.onViewChangedHandler = handler;
     }
 
+    public onAircraftMoved(handler: OnAircraftMovedFn) {
+        this.onAircraftMovedHandler = handler;
+    }
+
     public track(id: string, status: AircraftStatus) {
         if (!this.routeLines[id] || !this.trackingStatuses[id] || this.trackingStatuses[id].isOnGround !== status.isOnGround) {
             this.routeLines[id] = this.createRouteLine(id, this.trackingStatuses[id] ? [this.trackingStatuses[id]] : [], status.isOnGround);
@@ -412,5 +449,16 @@ export default class LeafletMap implements IMap {
             delete this.routeLayerGroups[id];
         }
         delete this.routeLines[id];
+    }
+
+    private moveAircraft(e: L.ContextMenuEventArgs) {
+        if (this.onAircraftMovedHandler) {
+            const altitude = Number(prompt('Please enter the altitude (ft) to move your aircraft to', "10000"));
+            if (isNaN(altitude)) {
+                alert('Please enter valid altitude in ft');
+            } else {
+                this.onAircraftMovedHandler({ latitude: e.latlng.lat, longitude: e.latlng.lng, altitude: altitude });
+            }
+        }
     }
 }

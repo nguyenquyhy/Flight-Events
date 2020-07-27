@@ -71,5 +71,12 @@ namespace FlightEvents.Web.Hubs
         Task ChangeUpdateRateByCallsign(string callsign, int hz);
 
         Task NotifyUpdateRateChanged(string clientId, int hz);
+
+        /// <summary>
+        /// Instruct client to teleport the aircraft to a certain position
+        /// </summary>
+        /// <param name="connectionId">Connection ID of the requesting map</param>
+        /// <param name="position"></param>
+        Task Teleport(string connectionId, AircraftPosition position);
     }
 }

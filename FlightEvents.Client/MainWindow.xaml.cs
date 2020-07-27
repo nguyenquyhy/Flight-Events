@@ -1,4 +1,5 @@
 ﻿using FlightEvents.Client.ATC;
+using FlightEvents.Client.Dialogs;
 using FlightEvents.Client.Logics;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -97,6 +98,7 @@ namespace FlightEvents.Client
             hub.On<string, string, string>("SendMessage", Hub_OnMessageSent);
             hub.On<string, int>("ChangeUpdateRateByCallsign", Hub_OnChangeUpdateRateByCallsign);
             hub.On<string, AircraftStatus>("UpdateAircraft", Hub_OnAircraftUpdated);
+            hub.On<string, AircraftPosition>("Teleport", Hub_OnTeleport);
 
             TextURL.Text = this.appSettings.WebServerUrl;
 
@@ -397,6 +399,10 @@ namespace FlightEvents.Client
                 }
             }
         }
+        private void Hub_OnTeleport(string connectionId, AircraftPosition position)
+        {
+            flightConnector.Teleport(position.Latitude, position.Longitude, position.Altitude);
+        }
 
         #endregion
 
@@ -637,6 +643,24 @@ namespace FlightEvents.Client
         private async void AtcServer_AtcMessageSent(object sender, AtcMessageSentEventArgs e)
         {
             await hub.SendAsync("SendATC", e.To, e.Message);
+        }
+
+        #endregion
+
+        #region Teleport
+
+        private async void ButtonTeleport_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new TeleportDialog
+            {
+                Owner = this,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                var token = dialog.TextToken.Text;
+                await hub.SendAsync("AcceptTeleport", token);
+            }
         }
 
         #endregion

@@ -10,7 +10,8 @@ namespace FlightEvents.Client.SimConnectFSX
     enum DEFINITIONS
     {
         AircraftData,
-        FlightStatus
+        FlightStatus,
+        AircraftPosition
     }
 
     internal enum DATA_REQUESTS
@@ -75,5 +76,13 @@ namespace FlightEvents.Client.SimConnectFSX
         public int Transponder;
         public int Com1;
         public int Com2;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    struct AircraftPositionStruct
+    {
+        public double Latitude;
+        public double Longitude;
+        public double Altitude;
     }
 }

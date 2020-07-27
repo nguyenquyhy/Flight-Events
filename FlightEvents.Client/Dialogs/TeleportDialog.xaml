@@ -1,0 +1,41 @@
+﻿<Window x:Class="FlightEvents.Client.Dialogs.TeleportDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FlightEvents.Client.Dialogs"
+        mc:Ignorable="d" WindowStyle="ToolWindow"
+        Title="Teleport Aircraft" Height="200" Width="300">
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,0,0,5" />
+        </Style>
+    </Window.Resources>
+    
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="40" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Step 1." />
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="Open the map at events.flighttracker.tech" />
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Step 2." />
+        <TextBlock Grid.Row="1" Grid.Column="1" Text="Right click where you want to teleport to and click 'Teleport aircraft here'" />
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Step 3." />
+        <TextBlock Grid.Row="2" Grid.Column="1" Text="Enter altitude to teleport to and click Ok" />
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Step 4." />
+        <TextBlock Grid.Row="3" Grid.Column="1" Text="Enter the displayed token to the box below" />
+        <TextBox Grid.Row="4" Grid.Column="1" x:FieldModifier="public" x:Name="TextToken" />
+        <Button x:Name="ButtonTeleport" Content="Teleport" Grid.Row="5" Grid.Column="1" Click="ButtonTeleport_Click" />
+    </Grid>
+</Window>

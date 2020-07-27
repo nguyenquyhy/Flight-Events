@@ -15,6 +15,7 @@ export interface IMap {
     setTileLayer(type: MapTileType)
 
     onViewChanged(handler: OnViewChangedFn);
+    onAircraftMoved(handler: OnAircraftMovedFn);
 
     track(id: string, status: AircraftStatus);
     prependTrack(id: string, route: AircraftStatusBrief[]);
@@ -24,6 +25,8 @@ export interface IMap {
 }
 
 export type OnViewChangedFn = (view: View) => void;
+
+export type OnAircraftMovedFn = (position: { latitude: number, longitude: number, altitude: number }) => void;
 
 export interface View {
     latitude: number

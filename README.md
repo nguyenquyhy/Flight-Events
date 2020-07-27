@@ -24,10 +24,10 @@ https://discordapp.com/api/oauth2/authorize?client_id={BOT_CLIENT_ID}&scope=bot&
 - [X] Dark mode on map
 - [X] Show flight status on Discord
   - [X] Bot command !finfo
+- [X] Colors for connection states
+- [X] Teleport aircraft using map
 - [ ] Setting for minimize to Task bar
-- [ ] Teleport aircraft using map
 - [ ] MSIX packaging
 - [ ] Gamebar integration
-- [ ] Colors for connection states
 - [ ] Gradient for altitude
 - [ ] 3D terrain
