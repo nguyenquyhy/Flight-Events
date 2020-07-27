@@ -14,38 +14,38 @@ const ROUTE_AIR_COLOR = 'blue';
 const ROUTE_GROUND_COLOR = 'brown';
 
 export default class LeafletMap implements IMap {
-    mymap: L.Map;
+    mymap?: L.Map;
 
-    baseLayerGroup: L.LayerGroup;
-    airportLayerGroup: L.LayerGroup;
+    baseLayerGroup: L.LayerGroup = L.layerGroup();
+    airportLayerGroup: L.LayerGroup = L.layerGroup();
     airportMarkers: { [indent: string]: L.Marker } = {};
 
     markers: { [connectionId: string]: Markers } = {};
     atcMarkers: { [connectionId: string]: L.Marker } = {};
 
-    flightPlanLayerGroup: L.LayerGroup;
+    flightPlanLayerGroup: L.LayerGroup = L.layerGroup();
 
     routeLayerGroups: { [id: string]: L.LayerGroup } = {};
     routeLines: { [id: string]: L.Polyline } = {};
     trackingStatuses: { [id: string]: AircraftStatusBrief } = {};
 
-    circleMarker: L.Circle;
+    circleMarker?: L.Circle;
 
     onViewChangedHandler: OnViewChangedFn | null = null;
 
     isDark: boolean = false;
 
     public initialize(divId: string, view?: View) {
-        this.mymap = L.map(divId).setView(view ? [view.latitude, view.longitude] : [51.505, -0.09], view ? view.zoom : 13);
+        const map = this.mymap = L.map(divId).setView(view ? [view.latitude, view.longitude] : [51.505, -0.09], view ? view.zoom : 13);
         this.mymap.on('moveend', (e) => {
-            const zoom = this.mymap.getZoom();
-            const center = this.mymap.getCenter();
+            const zoom = map.getZoom();
+            const center = map.getCenter();
             if (this.onViewChangedHandler) {
                 this.onViewChangedHandler({ latitude: center.lat, longitude: center.lng, zoom: zoom });
             }
         });
 
-        this.baseLayerGroup = L.layerGroup().addTo(this.mymap);
+        this.baseLayerGroup.addTo(this.mymap);
 
         //L.OverPassLayer({
         //    'query': '[out:json][timeout:25];(way["aeroway"="taxiway"]({{bbox}}););out body;>;out skel qt;'
@@ -80,15 +80,15 @@ export default class LeafletMap implements IMap {
             }
         }).addTo(this.mymap);
 
-        this.airportLayerGroup = L.layerGroup().addTo(this.mymap);
-        this.flightPlanLayerGroup = L.layerGroup().addTo(this.mymap);
+        this.airportLayerGroup.addTo(this.mymap);
+        this.flightPlanLayerGroup.addTo(this.mymap);
 
         setInterval(this.cleanUp, 2000);
     }
 
     public deinitialize() {
         this.onViewChangedHandler = null;
-        this.mymap.remove();
+        this.mymap?.remove();
     }
 
     public changeMode(dark: boolean) {
@@ -130,7 +130,7 @@ export default class LeafletMap implements IMap {
     }
 
     public moveATCMarker(connectionId: string, status: ATCStatus | null, info: ATCInfo | null) {
-        if (status && info) {
+        if (status && info && this.mymap) {
             const latlng: L.LatLngExpression = [status.latitude, status.longitude];
 
             const marker = this.atcMarkers[connectionId];
@@ -162,6 +162,8 @@ export default class LeafletMap implements IMap {
     }
 
     public moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isMoreInfo: boolean) {
+        if (!this.mymap) return;
+
         const iconSize = 12
         const infoBoxWidth = 100
 
@@ -345,7 +347,7 @@ export default class LeafletMap implements IMap {
     }
 
     public addRangeCircle() {
-        if (!this.circleMarker) {
+        if (this.mymap && !this.circleMarker) {
             this.circleMarker = L.circle([0, 0], {
                 radius: 5029,
                 opacity: 0.5,
@@ -357,9 +359,9 @@ export default class LeafletMap implements IMap {
     }
 
     public removeRangeCircle() {
-        if (this.circleMarker) {
+        if (this.mymap && this.circleMarker) {
             this.circleMarker.removeFrom(this.mymap);
-            this.circleMarker = null;
+            this.circleMarker = undefined;
         }
     }
 
@@ -397,7 +399,7 @@ export default class LeafletMap implements IMap {
     }
 
     private createRouteLine(id: string, route: AircraftStatusBrief[], isOnGround: boolean) {
-        if (!this.routeLayerGroups[id]) {
+        if (this.mymap && !this.routeLayerGroups[id]) {
             this.routeLayerGroups[id] = L.layerGroup().addTo(this.mymap);
         }
         return L.polyline(route.map(r => [r.latitude, r.longitude]), { color: isOnGround ? ROUTE_GROUND_COLOR : ROUTE_AIR_COLOR }).addTo(this.routeLayerGroups[id]);
