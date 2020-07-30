@@ -6,11 +6,11 @@ import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo
 import AircraftList from './AircraftList';
 import EventList from './EventList';
 import Display from './Display';
-import { IMap, MapTileType, View } from '../maps/IMap';
+import { IMap, MapTileType, View, MapPosition } from '../maps/IMap';
 import LeafletMap from '../maps/LeaftletMap';
 import MaptalksMap from '../maps/MaptalksMap';
 import Storage from '../Storage';
-import { Modal, ModalBody, ModalHeader } from 'reactstrap';
+import TeleportDialog from './Dialogs/TeleportDialog';
 
 interface State {
     aircrafts: { [clientId: string]: AircraftStatus };
@@ -24,7 +24,7 @@ interface State {
     map3D: boolean;
     mapTileType: MapTileType;
 
-    teleportToken: string | null;
+    movingPosition: MapPosition | null;
 }
 
 export class Home extends React.Component<any, State> {
@@ -53,7 +53,7 @@ export class Home extends React.Component<any, State> {
             isDark: pref ? pref.isDark : false,
             map3D: pref ? pref.map3D : false,
             mapTileType: pref ? pref.mapTileType : MapTileType.OpenStreetMap,
-            teleportToken: null
+            movingPosition: null
         }
 
         this.map = !this.state.map3D ? new LeafletMap() : new MaptalksMap();
@@ -78,6 +78,8 @@ export class Home extends React.Component<any, State> {
 
         this.handleAirportsLoaded = this.handleAirportsLoaded.bind(this);
         this.handleFlightPlansLoaded = this.handleFlightPlansLoaded.bind(this);
+        this.handleTeleportCompleted = this.handleTeleportCompleted.bind(this);
+
         this.cleanUp = this.cleanUp.bind(this);
     }
 
@@ -150,13 +152,7 @@ export class Home extends React.Component<any, State> {
             this.currentView = view;
         });
         this.map.onAircraftMoved(position => {
-            let code = '';
-            for (let i = 0; i < 6; i++) {
-                code += String.fromCharCode(Math.floor(Math.random() * 26) + 65);
-            }
-            this.hub.send('RequestTeleport', code, position);
-
-            this.setState({ teleportToken: code });
+            this.setState({ movingPosition: position })
         });
         this.map.initialize('mapid', this.currentView);
         this.map.setTileLayer(this.state.mapTileType);
@@ -298,6 +294,10 @@ export class Home extends React.Component<any, State> {
         this.map.drawFlightPlans(flightPlans.map(o => o.data));
     }
 
+    public handleTeleportCompleted() {
+        this.setState({ movingPosition: null });
+    }
+
     render() {
         return <>
             {this.state.isDark && <style dangerouslySetInnerHTML={{ __html: `.leaflet-container { background-color: black } .leaflet-tile, .icon-aircraft-marker { -webkit-filter: hue-rotate(180deg) invert(100%); }` }} />}
@@ -315,15 +315,7 @@ export class Home extends React.Component<any, State> {
             />
             <EventList onAirportsLoaded={this.handleAirportsLoaded} onFlightPlansLoaded={this.handleFlightPlansLoaded} />
 
-            <Modal isOpen={!!this.state.teleportToken} toggle={() => this.setState({ teleportToken: null })}>
-                <ModalHeader>
-                    Teleport Aircraft
-                </ModalHeader>
-                <ModalBody>
-                    <div>Please enter the following token to your Flight Events client.</div>
-                    <strong>{this.state.teleportToken}</strong>
-                </ModalBody>
-            </Modal>
+            <TeleportDialog hub={this.hub} selectedPosition={this.state.movingPosition} onComplete={this.handleTeleportCompleted} />
         </>;
     }
 }

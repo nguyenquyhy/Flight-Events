@@ -453,12 +453,7 @@ export default class LeafletMap implements IMap {
 
     private moveAircraft(e: L.ContextMenuEventArgs) {
         if (this.onAircraftMovedHandler) {
-            const altitude = Number(prompt('Please enter the altitude (ft) to move your aircraft to', "10000"));
-            if (isNaN(altitude)) {
-                alert('Please enter valid altitude in ft');
-            } else {
-                this.onAircraftMovedHandler({ latitude: e.latlng.lat, longitude: e.latlng.lng, altitude: altitude });
-            }
+            this.onAircraftMovedHandler({ latitude: e.latlng.lat, longitude: e.latlng.lng });
         }
     }
 }
