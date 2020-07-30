@@ -17,6 +17,7 @@ namespace FlightEvents.Client.SimConnectFSX
         public event EventHandler<FlightPlanUpdatedEventArgs> FlightPlanUpdated;
         public event EventHandler Connected;
         public event EventHandler Closed;
+        public event EventHandler<ConnectorErrorEventArgs> Error;
 
         private TaskCompletionSource<FlightPlanData> flightPlanTcs = null;
         private TaskCompletionSource<AircraftData> aircraftDataTcs = null;
@@ -574,7 +575,10 @@ namespace FlightEvents.Client.SimConnectFSX
 
         void Simconnect_OnRecvException(SimConnect sender, SIMCONNECT_RECV_EXCEPTION data)
         {
-            logger.LogError("Exception received: {error}", (SIMCONNECT_EXCEPTION)data.dwException);
+            var error = (SIMCONNECT_EXCEPTION)data.dwException;
+            logger.LogError("Exception received: {error}", error);
+
+            Error?.Invoke(this, new ConnectorErrorEventArgs(error.ToString()));
         }
 
         private void RecoverFromError(Exception exception)

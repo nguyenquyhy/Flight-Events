@@ -66,6 +66,7 @@ namespace FlightEvents.Client
 
             flightConnector.AircraftStatusUpdated += FlightConnector_AircraftStatusUpdated;
             flightConnector.AircraftPositionChanged += FlightConnector_AircraftPositionChanged;
+            flightConnector.Error += FlightConnector_Error;
 
             DataContext = viewModel;
         }
@@ -450,6 +451,11 @@ namespace FlightEvents.Client
         private void FlightConnector_AircraftPositionChanged(object sender, EventArgs e)
         {
             route.Clear();
+        }
+
+        private void FlightConnector_Error(object sender, ConnectorErrorEventArgs e)
+        {
+            MessageBox.Show("Error connecting to simulator: " + e.SimConnectError, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         #endregion
