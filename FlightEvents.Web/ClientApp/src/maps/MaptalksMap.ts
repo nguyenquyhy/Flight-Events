@@ -34,6 +34,7 @@ interface Map {
     fitExtent: (extent: any, zoomOffset: number, option?: any) => void;
     getProjection: () => any;
     coordinateToContainerPoint: (coord: Coordinate, zoom?: number, point?: Point) => Point;
+    setMenu: (menu: any) => void;
 }
 
 interface Layer {
@@ -105,6 +106,7 @@ export default class MaptalksMap implements IMap {
     atcMarkers: { [connectionId: string]: Marker } = {};
 
     onViewChangedHandler: OnViewChangedFn | null = null;
+    onAircraftMovedHandler: (OnAircraftMovedFn | null) = null;
 
     visibleCircle: Circle = new maptalks.Circle([0, 0], 5029, {
         symbol: {
@@ -140,6 +142,12 @@ export default class MaptalksMap implements IMap {
             zoom: view ? view.zoom : 13,
             pitch: 30
         });
+        var options = {
+            'items': [
+                { item: 'Teleport aircraft here', click: this.moveAircraft.bind(this) }
+            ]
+        };
+        map.setMenu(options)
 
         map.on('zoomend', () => this.handleZoom());
         map.on('moveend', () => {
@@ -529,7 +537,7 @@ export default class MaptalksMap implements IMap {
     }
 
     public onAircraftMoved(handler: OnAircraftMovedFn) {
-
+        this.onAircraftMovedHandler = handler;
     }
 
     public track(id: string, status: AircraftStatus) {
@@ -622,5 +630,12 @@ export default class MaptalksMap implements IMap {
     private determineAircraftSize() {
         if (!this.map) return MaptalksMap.AIRCRAFT_SIZE;
         return Math.pow(2, 14 - this.map.getZoom()) * MaptalksMap.AIRCRAFT_SIZE;
+    }
+
+    private moveAircraft(e: { coordinate: Coordinate }) {
+        if (this.onAircraftMovedHandler) {
+            this.onAircraftMovedHandler({ latitude: e.coordinate.y, longitude: e.coordinate.x });
+        }
+        return true;
     }
 }
