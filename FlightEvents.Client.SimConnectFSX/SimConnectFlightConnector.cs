@@ -76,7 +76,7 @@ namespace FlightEvents.Client.SimConnectFSX
         // Set up the SimConnect event handlers
         public void Initialize(IntPtr Handle)
         {
-            simconnect = new SimConnect("Flight Broadcaster", Handle, WM_USER_SIMCONNECT, null, 0);
+            simconnect = new SimConnect("Flight Events", Handle, WM_USER_SIMCONNECT, null, 0);
 
             // listen to connect and quit msgs
             simconnect.OnRecvOpen += new SimConnect.RecvOpenEventHandler(Simconnect_OnRecvOpen);
