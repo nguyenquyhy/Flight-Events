@@ -15,7 +15,7 @@
     "leaflet-contextmenu": "^1.4.0",
     "leaflet-overpass-layer": "^2.8.3",
     "leaflet-rotatedmarker": "^0.2.0",
-    "maptalks": "^0.47.5",
+    "maptalks": "^0.48.0",
     "merge": "^1.2.1",
     "msgpack5": "^4.2.1",
     "oidc-client": "^1.10.1",
@@ -33,7 +33,7 @@
   "devDependencies": {
     "@types/leaflet": "^1.5.17",
     "@types/leaflet-rotatedmarker": "^0.2.1",
-    "@types/react": "^16.9.41",
+    "@types/react": "^16.9.43",
     "ajv": "^6.12.3",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
@@ -41,8 +41,8 @@
     "eslint-plugin-flowtype": "^4.7.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jsx-a11y": "^6.3.1",
-    "eslint-plugin-react": "^7.20.4",
-    "typescript": "^3.9.6"
+    "eslint-plugin-react": "^7.20.5",
+    "typescript": "^3.9.7"
   },
   "eslintConfig": {
     "extends": "react-app"
