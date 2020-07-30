@@ -84,8 +84,10 @@ namespace FlightEvents.Client
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.Debug()
-                .MinimumLevel.Information()
-                .WriteTo.File("flightevents.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3, buffered: true)
+                .WriteTo.Logger(config => config
+                    .MinimumLevel.Information()
+                    .WriteTo.File("flightevents.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3, buffered: true)
+                )
                 .CreateLogger();
 
             services.AddOptions<AppSettings>().Bind(Configuration).ValidateDataAnnotations();
