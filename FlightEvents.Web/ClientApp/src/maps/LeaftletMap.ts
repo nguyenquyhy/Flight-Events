@@ -332,14 +332,83 @@ export default class LeafletMap implements IMap {
             let index = 0;
             const colors = ['red', 'blue'];
 
-            for (var flightPlan of flightPlans) {
-                const latlngs = flightPlan.waypoints.reduce((prev: L.LatLngTuple[], curr) =>
-                    prev.concat([[curr.latitude, curr.longitude]]),
+             for (var flightPlan of flightPlans) {
+                    const latlngs = flightPlan.waypoints.reduce((prev: L.LatLngTuple[], curr) =>
+                    prev.concat([[curr.latitude, curr.longitude]]), 
                     [])
 
-                const polyline = L.polyline(latlngs, { color: colors[(index++ % colors.length)] });
-                this.flightPlanLayerGroup.addLayer(polyline);
 
+
+                    var latlngArray: any[] = [];
+                    var latlngPrev = latlngs[0];
+                    var over180Line = false;
+                    var loopcounter = 0;
+
+                    console.log(latlngs);
+
+                    for (var latlng of latlngs) {
+                        if (180 > Math.abs(latlng[1] - latlngPrev[1])) {
+                            latlngArray.push(latlng);
+                        }
+                        else {
+
+
+                            if (latlngPrev[1] > 0) {
+                                var distance180 = 180 - latlngPrev[1];
+                                var differenceLng = (360 - latlngPrev[1]) + latlng[1];
+                                var line180 = 180;
+                            }
+                            else {
+                                var distance180 = -180 - latlngPrev[1];
+                                var differenceLng = (-360 - latlngPrev[1]) + latlng[1];
+                                var line180 = -180;
+                            }
+
+                                var differenceLat = ((latlng[0] + 90) - (latlngPrev[0] + 90)) / differenceLng;
+
+
+
+                            latlngArray.push([latlngPrev[0] + differenceLat * distance180, line180]);
+                           // console.log((latlng[0] + 90) - (latlngPrev[0] + 90));
+                            console.log(differenceLng);
+                            console.log(distance180);
+                            console.log(differenceLat);
+
+                            const polyline = L.polyline(latlngArray, { color: colors[(index % colors.length)] });
+                            this.flightPlanLayerGroup.addLayer(polyline);
+                            latlngArray = [];
+                            latlngArray.push([latlngPrev[0] + differenceLat * distance180, -line180]);
+                            latlngArray.push(latlng);
+                            over180Line = true;
+                            console.log(differenceLat * distance180);
+                        }
+                        if (loopcounter == latlngs.length - 1) {
+                            const polyline = L.polyline(latlngArray, { color: colors[(index % colors.length)] });
+                            this.flightPlanLayerGroup.addLayer(polyline);
+                            latlngArray = [];
+                        }
+                        latlngPrev = latlng;
+                        loopcounter++;
+                    }
+                    index++;
+
+                    if (over180Line == true) {
+                        var latlngNegative180 = [
+                            [90, -180],
+                            [-90, -180]
+                        ];
+                        var latlngPositive180 = [
+                            [90, 180],
+                            [-90, 180]
+                        ];
+
+                        console.log(latlngNegative180);
+
+                        const polyline0 = L.polyline(latlngNegative180, { color: 'black', dashArray: '5, 10' });
+                        this.flightPlanLayerGroup.addLayer(polyline0);
+                        const polyline1 = L.polyline(latlngPositive180, { color: 'black', dashArray: '5, 10' });
+                        this.flightPlanLayerGroup.addLayer(polyline1);
+                    }
                 for (let waypoint of flightPlan.waypoints) {
                     const marker = L.marker([waypoint.latitude, waypoint.longitude], {
                         title: waypoint.id,
