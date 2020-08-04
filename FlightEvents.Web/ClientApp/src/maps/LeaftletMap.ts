@@ -69,7 +69,7 @@ export default class LeafletMap implements IMap {
                     callback: this.moveAircraft.bind(this)
                 }]
             })
-            .setView(view ? [view.latitude, view.longitude] : [51.505, -0.09], view ? view.zoom : 13);
+                .setView(view ? [view.latitude, view.longitude] : [51.505, -0.09], view ? view.zoom : 13);
         this.mymap.on('moveend', (e) => {
             const zoom = map.getZoom();
             const center = map.getCenter();
@@ -332,83 +332,54 @@ export default class LeafletMap implements IMap {
             let index = 0;
             const colors = ['red', 'blue'];
 
-             for (var flightPlan of flightPlans) {
-                    const latlngs = flightPlan.waypoints.reduce((prev: L.LatLngTuple[], curr) =>
-                    prev.concat([[curr.latitude, curr.longitude]]), 
-                    [])
+            let over180Line = false;
 
+            for (var flightPlan of flightPlans) {
+                let latlngArray: L.LatLngTuple[] = [];
 
+                for (let i = 0; i < flightPlan.waypoints.length; i++) {
+                    const waypoint = flightPlan.waypoints[i];
+                    const latlng: L.LatLngTuple = [waypoint.latitude, waypoint.longitude];
 
-                    var latlngArray: any[] = [];
-                    var latlngPrev = latlngs[0];
-                    var over180Line = false;
-                    var loopcounter = 0;
-
-                    console.log(latlngs);
-
-                    for (var latlng of latlngs) {
-                        if (180 > Math.abs(latlng[1] - latlngPrev[1])) {
-                            latlngArray.push(latlng);
-                        }
-                        else {
-
-
-                            if (latlngPrev[1] > 0) {
-                                var distance180 = 180 - latlngPrev[1];
-                                var differenceLng = (360 - latlngPrev[1]) + latlng[1];
-                                var line180 = 180;
-                            }
-                            else {
-                                var distance180 = -180 - latlngPrev[1];
-                                var differenceLng = (-360 - latlngPrev[1]) + latlng[1];
-                                var line180 = -180;
-                            }
-
-                                var differenceLat = ((latlng[0] + 90) - (latlngPrev[0] + 90)) / differenceLng;
-
-
-
-                            latlngArray.push([latlngPrev[0] + differenceLat * distance180, line180]);
-                           // console.log((latlng[0] + 90) - (latlngPrev[0] + 90));
-                            console.log(differenceLng);
-                            console.log(distance180);
-                            console.log(differenceLat);
-
-                            const polyline = L.polyline(latlngArray, { color: colors[(index % colors.length)] });
-                            this.flightPlanLayerGroup.addLayer(polyline);
-                            latlngArray = [];
-                            latlngArray.push([latlngPrev[0] + differenceLat * distance180, -line180]);
-                            latlngArray.push(latlng);
-                            over180Line = true;
-                            console.log(differenceLat * distance180);
-                        }
-                        if (loopcounter == latlngs.length - 1) {
-                            const polyline = L.polyline(latlngArray, { color: colors[(index % colors.length)] });
-                            this.flightPlanLayerGroup.addLayer(polyline);
-                            latlngArray = [];
-                        }
-                        latlngPrev = latlng;
-                        loopcounter++;
+                    if (i === 0 || 180 > Math.abs(waypoint.longitude - flightPlan.waypoints[i - 1].longitude)) {
+                        latlngArray.push(latlng);
                     }
-                    index++;
+                    else {
+                        // If the path take more than half the earth, draw the other half
+                        over180Line = true;
 
-                    if (over180Line == true) {
-                        var latlngNegative180 = [
-                            [90, -180],
-                            [-90, -180]
+                        const prevWaypoint = flightPlan.waypoints[i - 1];
+
+                        let distance180 = 180 - prevWaypoint.longitude;
+                        let differenceLng = (360 - prevWaypoint.longitude) + waypoint.longitude;
+                        let line180 = 180;
+                        if (prevWaypoint.longitude < 0) {
+                            distance180 = -180 - prevWaypoint.longitude;
+                            differenceLng = (-360 - prevWaypoint.longitude) + waypoint.longitude;
+                            line180 = -180;
+                        }
+
+                        const differenceLat = ((waypoint.latitude + 90) - (prevWaypoint.latitude + 90)) / differenceLng;
+
+                        latlngArray.push([prevWaypoint.latitude + differenceLat * distance180, line180]);
+
+                        // Break new line
+                        const polyline = L.polyline(latlngArray, { color: colors[(index % colors.length)] });
+                        this.flightPlanLayerGroup.addLayer(polyline);
+
+                        latlngArray = [
+                            [prevWaypoint.latitude + differenceLat * distance180, -line180],
+                            latlng
                         ];
-                        var latlngPositive180 = [
-                            [90, 180],
-                            [-90, 180]
-                        ];
-
-                        console.log(latlngNegative180);
-
-                        const polyline0 = L.polyline(latlngNegative180, { color: 'black', dashArray: '5, 10' });
-                        this.flightPlanLayerGroup.addLayer(polyline0);
-                        const polyline1 = L.polyline(latlngPositive180, { color: 'black', dashArray: '5, 10' });
-                        this.flightPlanLayerGroup.addLayer(polyline1);
                     }
+
+                    if (i === flightPlan.waypoints.length - 1) {
+                        // Last item
+                        const polyline = L.polyline(latlngArray, { color: colors[(index % colors.length)] });
+                        this.flightPlanLayerGroup.addLayer(polyline);
+                    }
+                }
+                index++;
                 for (let waypoint of flightPlan.waypoints) {
                     const marker = L.marker([waypoint.latitude, waypoint.longitude], {
                         title: waypoint.id,
@@ -423,6 +394,24 @@ export default class LeafletMap implements IMap {
                     this.flightPlanLayerGroup.addLayer(marker);
                 }
             }
+
+            if (over180Line) {
+                // Draw some dotted line to indicate that the flight plan wrap around
+                const latlngNegative180: L.LatLngTuple[] = [
+                    [90, -180],
+                    [-90, -180]
+                ];
+                const latlngPositive180: L.LatLngTuple[] = [
+                    [90, 180],
+                    [-90, 180]
+                ];
+
+                const polyline0 = L.polyline(latlngNegative180, { color: 'black', dashArray: '5, 10' });
+                this.flightPlanLayerGroup.addLayer(polyline0);
+                const polyline1 = L.polyline(latlngPositive180, { color: 'black', dashArray: '5, 10' });
+                this.flightPlanLayerGroup.addLayer(polyline1);
+            }
+
         }
     }
 
