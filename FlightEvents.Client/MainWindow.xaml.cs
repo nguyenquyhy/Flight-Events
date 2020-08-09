@@ -76,7 +76,17 @@ namespace FlightEvents.Client
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var currentVersion = versionLogic.GetVersion();
-            var pref = await userPreferencesLoader.LoadAsync();
+            UserPreferences pref;
+            try
+            {
+                pref = await userPreferencesLoader.LoadAsync();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                MessageBox.Show("Please extract Flight Events before running.\n\nIf you have done so, please try to extract to another folder that does not require Administrator right.", "Cannot Save Preference", MessageBoxButton.OK, MessageBoxImage.Error);
+                Application.Current.Shutdown();
+                return;
+            }
 
             viewModel.DisableDiscordRP = pref.DisableDiscordRP;
             viewModel.BroadcastUDP = pref.BroadcastUDP;
