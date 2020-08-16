@@ -6,6 +6,7 @@ import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo
 import AircraftList from './AircraftList';
 import EventList from './EventList';
 import Display from './Display';
+import Hud from './Hud';
 import { IMap, MapTileType, View, MapPosition } from '../maps/IMap';
 import LeafletMap from '../maps/LeaftletMap';
 import MaptalksMap from '../maps/MaptalksMap';
@@ -302,17 +303,28 @@ export class Home extends React.Component<any, State> {
         return <>
             {this.state.isDark && <style dangerouslySetInnerHTML={{ __html: `.leaflet-container { background-color: black } .leaflet-tile, .icon-aircraft-marker { -webkit-filter: hue-rotate(180deg) invert(100%); }` }} />}
             <div id="mapid" style={{ height: '100%' }}></div>
+
             <Display
                 isDark={this.state.isDark} onIsDarkChanged={this.handleIsDarkChanged}
                 dimension={this.state.map3D ? "3D" : "2D"} onDimensionChanged={this.handleMapDimensionChanged}
                 tileType={this.state.mapTileType} onTileTypeChanged={this.handleTileTypeChanged} />
-            <AircraftList aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
+
+            <Hud
+                aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
                 onMeChanged={this.handleMeChanged} myClientId={this.state.myClientId}
-                onShowPathChanged={this.handleShowPathChanged} showPathClientIds={this.state.showPathClientIds}
                 onFollowingChanged={this.handleFollowingChanged} followingClientId={this.state.followingClientId}
-                onMoreInfoChanged={this.handleMoreInfoChanged} moreInfoClientIds={this.state.moreInfoClientIds}
                 onFlightPlanChanged={this.handleFlightPlanChanged} flightPlanClientId={this.state.flightPlanClientId}
             />
+
+            <AircraftList
+                aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
+                myClientId={this.state.myClientId}
+                followingClientId={this.state.followingClientId}
+                flightPlanClientId={this.state.flightPlanClientId}
+                onShowPathChanged={this.handleShowPathChanged} showPathClientIds={this.state.showPathClientIds}
+                onMoreInfoChanged={this.handleMoreInfoChanged} moreInfoClientIds={this.state.moreInfoClientIds}
+            />
+
             <EventList onAirportsLoaded={this.handleAirportsLoaded} onFlightPlansLoaded={this.handleFlightPlansLoaded} />
 
             <TeleportDialog hub={this.hub} selectedPosition={this.state.movingPosition} onComplete={this.handleTeleportCompleted} />

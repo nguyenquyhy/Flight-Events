@@ -1,30 +1,22 @@
 ﻿import * as React from 'react';
-import { UncontrolledTooltip } from 'reactstrap';
+import { Button, UncontrolledTooltip, Modal, ModalHeader, ModalBody } from 'reactstrap';
 import styled from 'styled-components';
-import { css } from 'styled-components';
 import { AircraftStatus } from '../Models';
-import Panel from './Controls/Panel';
 import AircraftListItem from './AircraftListItem';
-import Download from './Download';
 
 interface Props {
+    myClientId: string | null;
+    followingClientId: string | null;
+    flightPlanClientId: string | null;
+
     aircrafts: { [clientId: string]: AircraftStatus };
     onAircraftClick: (clientId: string) => void;
-
-    myClientId: string | null;
-    onMeChanged: (clientId: string | null) => void;
 
     showPathClientIds: string[];
     onShowPathChanged: (clientId: string) => void;
 
-    followingClientId: string | null;
-    onFollowingChanged: (clientId: string | null) => void;
-
     moreInfoClientIds: string[];
     onMoreInfoChanged: (clientId: string) => void;
-
-    flightPlanClientId: string | null;
-    onFlightPlanChanged: (clientId: string | null) => void;
 }
 
 interface State {
@@ -72,55 +64,52 @@ export default class AircraftList extends React.Component<Props, State> {
                     isReady={this.props.aircrafts[clientId].isReady}
 
                     isMe={this.props.myClientId === clientId}
-                    onMeChanged={this.props.onMeChanged}
+                    isFollowing={this.props.followingClientId === clientId}
+                    isFlightPlan={this.props.flightPlanClientId === clientId}
+
                     isShowPath={this.props.showPathClientIds.includes(clientId)}
                     onShowPathChanged={this.props.onShowPathChanged}
-                    isFollowing={this.props.followingClientId === clientId}
-                    onFollowingChanged={this.props.onFollowingChanged}
                     isMoreInfo={this.props.moreInfoClientIds.includes(clientId)}
                     onMoreInfoChanged={this.props.onMoreInfoChanged}
-                    isFlightPlan={this.props.flightPlanClientId === clientId}
-                    onFlightPlanChanged={this.props.onFlightPlanChanged}
                 />));
 
-        return <Wrapper collapsed={this.state.collapsed}>
-            <Download />
-            <ListWrapper>
-                <List>
-                    <thead>
-                        <tr>
-                            <th><Title>Aircraft {(clientIds.length === 0 ? "" : `(${clientIds.length})`)}</Title></th>
-                            <th>
-                                <div id="txtMe">Own</div>
-                                <UncontrolledTooltip placement="right" target="txtMe">Own aircraft. Will display the visible range circle for multiplayer</UncontrolledTooltip>
-                            </th>
-                            <th>
-                                <div id="txtFollow">Flw</div>
-                                <UncontrolledTooltip placement="right" target="txtFollow">Keep the map centered on this aircraft</UncontrolledTooltip>
-                            </th>
-                            <th>
-                                <div id="txtMore">Nfo</div>
-                                <UncontrolledTooltip placement="right" target="txtMore">Show more info</UncontrolledTooltip>
-                            </th>
-                            <th>
-                                <div id="txtMore">Pln</div>
-                                <UncontrolledTooltip placement="right" target="txtMore">Show flight plan</UncontrolledTooltip>
-                            </th>
-                            <th>
-                                <div id="txtMore">Rte</div>
-                                <UncontrolledTooltip placement="right" target="txtMore">Show flight route</UncontrolledTooltip>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {list}
-                    </tbody>
-                </List>
-                <Button className="btn" onClick={this.handleToggle}><i className={"fas " + (this.state.collapsed ? "fa-chevron-left" : "fa-chevron-right")}></i></Button>
-            </ListWrapper>
-        </Wrapper>
+        return <>
+            <StyledButton color="secondary" onClick={this.handleToggle}>Aircraft List {(clientIds.length === 0 ? "" : `(${clientIds.length})`)}</StyledButton>
+            <Modal isOpen={this.state.collapsed} toggle={this.handleToggle}>
+                <ModalHeader>
+                    Aircraft List {(clientIds.length === 0 ? "" : `(${clientIds.length})`)}
+                </ModalHeader>
+                <ModalBody>
+                    <List>
+                        <thead>
+                            <tr>
+                                <th><Title>Callsign</Title></th>
+                                <th>
+                                    <div id="txtMore">Show Info</div>
+                                    <UncontrolledTooltip placement="right" target="txtMore">Show more info</UncontrolledTooltip>
+                                </th>
+                                <th>
+                                    <div id="txtMore">Show Route</div>
+                                    <UncontrolledTooltip placement="right" target="txtMore">Show flight route</UncontrolledTooltip>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {list}
+                        </tbody>
+                    </List>
+                </ModalBody>
+            </Modal>
+        </>
     }
 }
+
+const StyledButton = styled(Button)`
+position: fixed;
+top: 10px;
+right: 170px;
+z-index: 1000;
+`
 
 const Title = styled.div`
 margin-left: 8px;
@@ -134,24 +123,6 @@ const NoneText = styled.div`
 margin: 0 8px 10px 8px;
 `
 
-const Wrapper = styled<any>(Panel)`
-position: absolute;
-top: 10px;
-right: 10px;
-z-index: 1000;
-max-height: calc(100% - 200px);
-overflow-y: auto;
-
-${props => props.collapsed && css`
-width: 78px;
-overflow-x: hidden;
-`}
-`
-
-const ListWrapper = styled.div`
-position: relative;
-`
-
 const List = styled.table`
 margin-top: 10px;
 margin-right: 5px;
@@ -162,21 +133,5 @@ padding: 0;
 th div {
 min-width: 20px;
 text-align: center;
-}
-`
-
-const Button = styled.button`
-position: absolute;
-top: 0;
-bottom: 0;
-padding: 0;
-width: 12px;
-
-i {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 8px;
 }
 `
