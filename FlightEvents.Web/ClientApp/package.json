@@ -3,12 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@craco/craco": "^5.6.4",
     "@microsoft/signalr": "^3.1.6",
     "@microsoft/signalr-protocol-msgpack": "^3.1.6",
-    "babel-eslint": "^10.1.0",
     "bootstrap": "^4.5.0",
-    "craco-workbox": "^0.1.0",
     "date-fns": "^2.15.0",
     "jquery": "^3.5.1",
     "leaflet": "^1.6.0",
@@ -25,16 +22,18 @@
     "react-markdown": "^4.3.1",
     "react-router-bootstrap": "^0.25.0",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "^3.4.1",
+    "react-scripts": "^3.4.3",
     "reactstrap": "^8.5.1",
-    "rimraf": "^3.0.2",
     "styled-components": "^5.1.1"
   },
   "devDependencies": {
+    "@craco/craco": "^5.6.4",
     "@types/leaflet": "^1.5.17",
     "@types/leaflet-rotatedmarker": "^0.2.1",
     "@types/react": "^16.9.43",
     "ajv": "^6.12.3",
+    "babel-eslint": "^10.1.0",
+    "craco-workbox": "^0.1.0",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
     "eslint-config-react-app": "^5.2.1",
@@ -42,6 +41,7 @@
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jsx-a11y": "^6.3.1",
     "eslint-plugin-react": "^7.20.5",
+    "rimraf": "^3.0.2",
     "typescript": "^3.9.7"
   },
   "eslintConfig": {
