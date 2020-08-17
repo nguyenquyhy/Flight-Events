@@ -28,15 +28,14 @@ export default class Download extends React.Component<any, State> {
             <Modal isOpen={this.state.modal} toggle={this.toggle}>
                 <ModalHeader toggle={this.toggle}>Flight Events Client</ModalHeader>
                 <ModalBody>
-                    <p>In order to connect your flight simulator to this map, you have to run a small client software on your computer.</p>
+                    <p>In order to connect Microsoft Flight Simulator to this map, you have to run a client software on your computer.</p>
 
-                    <a className="btn btn-primary" href="https://events-storage.flighttracker.tech/downloads/FlightEvents.Client.zip" target="_blank" rel="noopener noreferrer">Download Client</a>
+                    <a className="btn btn-primary" href="https://events-storage.flighttracker.tech/downloads/FlightEvents.Client.zip" target="_blank" rel="noopener noreferrer">Download MSFS Client</a>
 
                     <hr />
-                    <p>When you start the client, it might also ask you to download &amp; install the following prerequisites:</p>
-                    <ul>
-                        <li><a href="https://dotnet.microsoft.com/download/dotnet-core/thank-you/runtime-desktop-3.1.5-windows-x86-installer" target="_blank" rel="noopener noreferrer">.NET Core Windows Runtime (x86)</a></li>
-                    </ul>
+                    <p>If you want to use Flight Events with FSX or P3D, you can try to use this legacy client (unsupported).</p>
+                    <a className="btn btn-primary" href="https://events-storage.flighttracker.tech/downloads/FlightEvents.Client-FSX.zip" target="_blank" rel="noopener noreferrer">Download Legacy Client</a>
+                    <p>This client might also ask you to download &amp; install the following prerequisites: <a href="https://dotnet.microsoft.com/download/dotnet-core/thank-you/runtime-desktop-3.1.7-windows-x86-installer" target="_blank" rel="noopener noreferrer">.NET Core Windows Runtime (x86)</a></p>
 
                     <hr />
                     <h5>Flight Tracking</h5>

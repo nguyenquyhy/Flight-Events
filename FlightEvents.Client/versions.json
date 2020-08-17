@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "2.0.0",
+      "changes": "Update to bundle .NET runtime and MSFS SimConnect"
+    },
+    {
       "id": "1.17.0",
       "changes": "Teleport aircraft to arbitrary point on map"
     },

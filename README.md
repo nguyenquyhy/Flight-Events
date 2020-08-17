@@ -26,6 +26,8 @@ https://discordapp.com/api/oauth2/authorize?client_id={BOT_CLIENT_ID}&scope=bot&
   - [X] Bot command !finfo
 - [X] Colors for connection states
 - [X] Teleport aircraft using map
+- [X] x64 SimConnect from MSFS
+- [ ] Search airport on map
 - [ ] Setting for minimize to Task bar
 - [ ] MSIX packaging
 - [ ] Gamebar integration
