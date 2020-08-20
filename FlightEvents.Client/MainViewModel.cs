@@ -64,5 +64,8 @@ namespace FlightEvents.Client
 
         private string broadcastIP = null;
         public string BroadcastIP { get => broadcastIP; set => SetProperty(ref broadcastIP, value); }
+
+        private bool slowMode;
+        public bool SlowMode { get => slowMode; set => SetProperty(ref slowMode, value); }
     }
 }

@@ -91,6 +91,7 @@ namespace FlightEvents.Client
             viewModel.DisableDiscordRP = pref.DisableDiscordRP;
             viewModel.BroadcastUDP = pref.BroadcastUDP;
             viewModel.BroadcastIP = pref.BroadcastIP;
+            viewModel.SlowMode = pref.SlowMode;
 
             var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
             hub = new HubConnectionBuilder()
@@ -830,6 +831,32 @@ namespace FlightEvents.Client
             catch (Exception ex)
             {
                 logger.LogError(ex, "Cannot update Broadcast IP!");
+            }
+        }
+
+        private async void SlowMode_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await userPreferencesLoader.UpdateAsync(pref => pref.SlowMode = true);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot check SlowMode!");
+                viewModel.SlowMode = false;
+            }
+        }
+
+        private async void SlowMode_Unchecked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await userPreferencesLoader.UpdateAsync(pref => pref.SlowMode = false);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot uncheck SlowMode!");
+                viewModel.SlowMode = true;
             }
         }
 

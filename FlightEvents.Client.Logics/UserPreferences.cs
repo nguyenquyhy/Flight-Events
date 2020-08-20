@@ -13,6 +13,7 @@ namespace FlightEvents.Client.Logics
         public bool DisableDiscordRP { get; set; }
         public bool BroadcastUDP { get; set; }
         public string BroadcastIP { get; set; }
+        public bool SlowMode { get; set; }
     }
 
     public class UserPreferencesLoader

@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "2.1.0",
+      "changes": "Add slow mode"
+    },
+    {
       "id": "2.0.0",
       "changes": "Update to bundle .NET runtime and MSFS SimConnect"
     },

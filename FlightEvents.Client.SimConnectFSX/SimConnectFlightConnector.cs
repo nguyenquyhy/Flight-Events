@@ -11,6 +11,8 @@ namespace FlightEvents.Client.SimConnectFSX
 {
     public class SimConnectFlightConnector : IFlightConnector
     {
+        public bool SlowMode { get; private set; }
+
         public event EventHandler<AircraftDataUpdatedEventArgs> AircraftDataUpdated;
         public event EventHandler<AircraftStatusUpdatedEventArgs> AircraftStatusUpdated;
         public event EventHandler AircraftPositionChanged;
@@ -74,8 +76,10 @@ namespace FlightEvents.Client.SimConnectFSX
         }
 
         // Set up the SimConnect event handlers
-        public void Initialize(IntPtr Handle)
+        public void Initialize(IntPtr Handle, bool slowMode)
         {
+            SlowMode = slowMode;
+
             simconnect = new SimConnect("Flight Events", Handle, WM_USER_SIMCONNECT, null, 0);
 
             // listen to connect and quit msgs
@@ -562,7 +566,9 @@ namespace FlightEvents.Client.SimConnectFSX
         {
             logger.LogInformation("Connected to Flight Simulator");
 
-            simconnect.RequestDataOnSimObject(DATA_REQUESTS.FLIGHT_STATUS, DEFINITIONS.FlightStatus, 0, SIMCONNECT_PERIOD.SIM_FRAME, SIMCONNECT_DATA_REQUEST_FLAG.DEFAULT, 0, 0, 0);
+            simconnect.RequestDataOnSimObject(DATA_REQUESTS.FLIGHT_STATUS, DEFINITIONS.FlightStatus, 0, 
+                SlowMode ? SIMCONNECT_PERIOD.SECOND : SIMCONNECT_PERIOD.SIM_FRAME, 
+                SIMCONNECT_DATA_REQUEST_FLAG.DEFAULT, 0, 0, 0);
         }
 
         // The case where the user closes Flight Simulator

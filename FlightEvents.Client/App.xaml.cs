@@ -184,8 +184,11 @@ Please restart the client afterward.",
             {
                 try
                 {
+                    var userPrefLoader = ServiceProvider.GetService<UserPreferencesLoader>();
+                    var userPref = await userPrefLoader.LoadAsync();
+
                     viewModel.SimConnectionState = ConnectionState.Connecting;
-                    simConnect.Initialize(Handle);
+                    simConnect.Initialize(Handle, userPref?.SlowMode == true);
                     viewModel.SimConnectionState = ConnectionState.Connected;
                     break;
                 }
