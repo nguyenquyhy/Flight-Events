@@ -184,11 +184,20 @@ Please restart the client afterward.",
             {
                 try
                 {
-                    var userPrefLoader = ServiceProvider.GetService<UserPreferencesLoader>();
-                    var userPref = await userPrefLoader.LoadAsync();
+                    var slowMode = false;
+                    try
+                    {
+                        var userPrefLoader = ServiceProvider.GetService<UserPreferencesLoader>();
+                        var userPref = await userPrefLoader.LoadAsync();
+                        slowMode = userPref?.SlowMode == true;
+                    }
+                    catch
+                    {
+                        // Ignore error and just defaut to false
+                    }
 
                     viewModel.SimConnectionState = ConnectionState.Connecting;
-                    simConnect.Initialize(Handle, userPref?.SlowMode == true);
+                    simConnect.Initialize(Handle, slowMode);
                     viewModel.SimConnectionState = ConnectionState.Connected;
                     break;
                 }
