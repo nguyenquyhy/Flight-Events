@@ -112,7 +112,7 @@ namespace FlightEvents.Client
             hub.On<string, AircraftStatus>("UpdateAircraft", Hub_OnAircraftUpdated);
             hub.On<string, AircraftPosition>("Teleport", Hub_OnTeleport);
 
-            TextURL.Text = this.appSettings.WebServerUrl;
+            TextURL.Text = this.appSettings.WebServerUrl ?? DefaultWebServerUrl;
 
             atcServer.FlightPlanRequested += AtcServer_FlightPlanRequested;
             atcServer.Connected += AtcServer_Connected;
@@ -152,7 +152,7 @@ namespace FlightEvents.Client
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync(appSettings.WebServerUrl + "/Discord/Connection/" + pref.ClientId);
+                    var response = await httpClient.GetAsync($"{appSettings.WebServerUrl ?? DefaultWebServerUrl}/Discord/Connection/{pref.ClientId}");
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -481,7 +481,7 @@ namespace FlightEvents.Client
                 await Task.Delay(500);
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = $"{appSettings.WebServerUrl}/Discord/Connect",
+                    FileName = $"{appSettings.WebServerUrl ?? DefaultWebServerUrl}/Discord/Connect",
                     UseShellExecute = true
                 });
             }
@@ -501,7 +501,7 @@ namespace FlightEvents.Client
                 var userPref = await userPreferencesLoader.LoadAsync();
 
                 using var httpClient = new HttpClient();
-                var response = await httpClient.PostAsync($"{appSettings.WebServerUrl}/discord/confirm?clientId={userPref.ClientId}&code={TextDiscordConfirm.Text}", null);
+                var response = await httpClient.PostAsync($"{appSettings.WebServerUrl ?? DefaultWebServerUrl}/Discord/Confirm?clientId={userPref.ClientId}&code={TextDiscordConfirm.Text}", null);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -533,7 +533,7 @@ namespace FlightEvents.Client
                     var userPref = await userPreferencesLoader.LoadAsync();
                     using (var httpClient = new HttpClient())
                     {
-                        await httpClient.DeleteAsync(appSettings.WebServerUrl + "/Discord/Connection/" + userPref.ClientId);
+                        await httpClient.DeleteAsync($"{appSettings.WebServerUrl ?? DefaultWebServerUrl }/Discord/Connection/{userPref.ClientId}");
                     }
                     viewModel.DiscordConnection = null;
                 }
