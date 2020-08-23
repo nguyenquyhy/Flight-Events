@@ -6,40 +6,12 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace FlightEvents.DiscordBot
 {
-    public class AppOptions
-    {
-        [Required]
-        public string WebServerUrl { get; set; }
-    }
-
-    public class DiscordOptions
-    {
-        [Required]
-        public string BotToken { get; set; }
-        [Required]
-        public DiscordServerOptions[] Servers { get; set; }
-    }
-
-    public class DiscordServerOptions
-    {
-        [Required]
-        public ulong ServerId { get; set; }
-        [Required]
-        public ulong ChannelCategoryId { get; set; }
-        [Required]
-        public string LoungeChannelName { get; set; }
-        [Required]
-        public int ChannelBitrate { get; set; }
-        public ulong? FlightInfoRoleId { get; set; }
-    }
-
     public class MovingWorker : BackgroundService
     {
         private readonly ILogger<MovingWorker> logger;
@@ -185,8 +157,8 @@ namespace FlightEvents.DiscordBot
 
             var guild = guildUser.Guild;
 
-            var channelName = toFrequency.HasValue ? 
-                (toFrequency.Value / 1000d).ToString("N3") :
+            var channelName = toFrequency.HasValue ?
+                CreateChannelNameFromFrequency(serverOptions, toFrequency) :
                 serverOptions.LoungeChannelName;
 
             var channel = guild.Channels.FirstOrDefault(c => c.Name == channelName);
@@ -216,6 +188,9 @@ namespace FlightEvents.DiscordBot
                 await MoveMemberAsync(guildUser, channel);
             }
         }
+
+        private static string CreateChannelNameFromFrequency(DiscordServerOptions serverOptions, int? toFrequency)
+            => (toFrequency.Value / 1000d).ToString("N3") + (serverOptions.ChannelNameSuffix ?? "");
 
         private async Task MoveMemberAsync(SocketGuildUser guildUser, IGuildChannel channel)
         {
