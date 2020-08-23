@@ -74,7 +74,7 @@ namespace FlightEvents.Client.ATC
             tcpListener = null;
         }
 
-        public async Task SendPositionAsync(string callsign, string squawk, double latitude, double longitude, double altitude, double groundSpeed, AtcTransponderMode transponderMode)
+        public async Task SendPositionAsync(string callsign, string squawk, double latitude, double longitude, double altitude, double groundSpeed, double pitch, double bank, double heading, AtcTransponderMode transponderMode)
         {
             var modeString = transponderMode switch
             {
@@ -85,7 +85,13 @@ namespace FlightEvents.Client.ATC
             };
             var rating = 1;
 
-            var pos = $"@{modeString}:{callsign}:{squawk}:{rating}:{latitude}:{longitude}:{altitude}:{groundSpeed}:62905944:5";
+            //bitwise operation to convert to PBH value (Pitch, Bank, Heading)
+            uint hdg = Convert.ToUInt32(heading) * 1024 / 360;
+            uint pit = Convert.ToUInt32(0);// pitch); // NOTE: handle negative numbers
+            uint bnk = Convert.ToUInt32(0);// bank); // NOTE: handle negative numbers
+            uint pbh = ((pit & 0x3FF) << 22) | (bnk & 0x3FF) << 12 | ((hdg & 0x3FF) << 2); //62905944
+
+            var pos = $"@{modeString}:{callsign}:{squawk}:{rating}:{latitude}:{longitude}:{altitude}:{groundSpeed}:{pbh}:5";
             if (writer != null)
             {
                 await writer.WriteLineAsync(pos);

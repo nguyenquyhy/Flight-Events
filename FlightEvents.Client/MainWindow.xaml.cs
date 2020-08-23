@@ -558,6 +558,7 @@ namespace FlightEvents.Client
             {
                 await atcServer.SendPositionAsync(aircraftStatus.Callsign, aircraftStatus.Transponder,
                     aircraftStatus.Latitude, aircraftStatus.Longitude, aircraftStatus.Altitude, aircraftStatus.GroundSpeed,
+                    aircraftStatus.Pitch, aircraftStatus.Bank, aircraftStatus.TrueHeading,
                     aircraftStatus.TransponderMode switch
                     {
                         TransponderMode.Standby => AtcTransponderMode.Standby,
