@@ -415,7 +415,7 @@ namespace FlightEvents.Client.SimConnectFSX
 
             // IMPORTANT: register it with the simconnect managed wrapper marshaller
             // if you skip this step, you will only receive a uint in the .dwData field.
-            simconnect.RegisterDataDefineStruct<FlightStatusStruct>(DEFINITIONS.AircraftPosition);
+            simconnect.RegisterDataDefineStruct<AircraftPositionStruct>(DEFINITIONS.AircraftPosition);
         }
 
         #endregion
