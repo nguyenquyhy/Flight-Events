@@ -37,7 +37,12 @@ export default class EventItem extends React.Component<Props, State> {
 
     public render() {
         return <ListItem>
-            <CustomButton className={"btn btn-link"} endDateTime={addHours(parseJSON(this.props.flightEvent.startDateTime), 4)} onClick={this.handleToggle}>{this.props.flightEvent.name} ({formatRelative(parseJSON(this.props.flightEvent.startDateTime), new Date())})</CustomButton>
+            <CustomButton className={"btn btn-link"} endDateTime={addHours(parseJSON(this.props.flightEvent.startDateTime), 4)} onClick={this.handleToggle}>
+                <EventTitle>{this.props.flightEvent.name}</EventTitle>
+                <EventSubtitle>
+                    ({formatRelative(parseJSON(this.props.flightEvent.startDateTime), new Date())})
+                </EventSubtitle>
+            </CustomButton>
             <EventModal isOpen={this.state.isOpen} toggle={this.handleToggle} flightEvent={this.props.flightEvent} onAirportLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />
         </ListItem>
     }
@@ -47,10 +52,24 @@ const ListItem = styled.li`
 
 `
 
-interface CustomButtonProps {
-    endDateTime: Date;
-}
+const EventTitle = styled.h3`
+font-size: 1.1em;
+font-weight: semi-bold;
+margin-bottom: 0;
+`
 
-const CustomButton = styled.button<CustomButtonProps>`
+const EventSubtitle = styled.div`
+font-size: 0.9em;
+text-align: right;
+`
+
+const CustomButton = styled.button<{ endDateTime: Date }>`
 ${props => isBefore(props.endDateTime, new Date()) && css`display: none`}
+:hover, :focus {
+    text-decoration: none;
+
+    ${EventTitle} {
+        text-decoration: underline;
+    }
+}
 `

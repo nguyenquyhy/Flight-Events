@@ -70,10 +70,10 @@ export default class EventModal extends React.Component<Props, State> {
             <>
                 <div><StyledTime>{parseJSON(this.state.flightEvent.startDateTime).toLocaleString()}</StyledTime></div>
                 <div><ReactMarkdown>{this.state.flightEvent.description}</ReactMarkdown></div>
-                {!!this.state.flightEvent.url && <div>URL: <a href={this.state.flightEvent.url} target="_blank" rel="noopener noreferrer">{this.state.flightEvent.url}</a></div>}
+                {!!this.state.flightEvent.url && <><h6>Read more at:</h6><a href={this.state.flightEvent.url} target="_blank" rel="noopener noreferrer">{this.state.flightEvent.url}</a></>}
 
                 {this.state.flightPlans && <>
-                    <h4>Flight Plans</h4>
+                    <Header>Flight Plans</Header>
                     {this.state.flightPlans.length === 0 ?
                         <p><em>No flight plan is available for this event.</em></p> :
                         <ul>
@@ -104,3 +104,7 @@ const StyledTime = styled.span`
 border-bottom: 1px dashed #909090;
 margin-bottom: 10px;
 `
+
+const Header = styled.h5`
+margin-top: 12px;
+`;

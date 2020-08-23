@@ -62,6 +62,7 @@ export default class LeafletMap implements IMap {
     public initialize(divId: string, view?: View) {
         const map = this.mymap =
             L.map(divId, {
+                attributionControl: false,
                 contextmenu: true,
                 contextmenuWidth: 140,
                 contextmenuItems: [{
@@ -70,6 +71,10 @@ export default class LeafletMap implements IMap {
                 }]
             })
                 .setView(view ? [view.latitude, view.longitude] : [51.505, -0.09], view ? view.zoom : 13);
+        L.control.attribution({
+            position: 'bottomleft'
+        }).addTo(map);
+
         this.mymap.on('moveend', (e) => {
             const zoom = map.getZoom();
             const center = map.getCenter();
