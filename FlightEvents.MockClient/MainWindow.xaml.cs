@@ -125,7 +125,7 @@ namespace FlightEvents.MockClient
 
             atcServer = new ATCServer(loggerFactory.CreateLogger<ATCServer>());
             atcServer.Connected += AtcServer_Connected;
-            atcServer.Start();
+            atcServer.Start(false);
         }
 
         private void AtcServer_Connected(object sender, ConnectedEventArgs e)

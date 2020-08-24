@@ -15,12 +15,12 @@
         <converters:ConnectionStateToBrushConverter x:Key="ConnectionStateToBrushConverter" />
         <converters:NullToBrushConverter x:Key="NullToBrushConverter" />
         <converters:StatesToBrushConverter x:Key="StatesToBrushConverter" />
-        
+
         <Style TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Padding" Value="3" />
         </Style>
-        
+
         <Style x:Key="PlaceHolder" TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -121,7 +121,7 @@
                     <TextBlock Text="ATC Remarks" Grid.Row="4"  />
                     <TextBox Text="{Binding Remarks, Mode=TwoWay}" Grid.Row="4" Grid.Column="1" 
                         IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}" />
-                    
+
                     <Button x:Name="ButtonStartTrack" Content="Start Flight Tracking" Grid.Row="5" Grid.Column="1" Click="ButtonStartTrack_Click" />
                     <Button x:Name="ButtonStopTrack" Content="Stop Flight Tracking" Grid.Row="5" Grid.Column="1" Click="ButtonStopTrack_Click" Visibility="Collapsed" />
 
@@ -182,23 +182,27 @@
                         <Ellipse Fill="{Binding AtcConnectionState, Converter={StaticResource ConnectionStateToBrushConverter}}" Width="10" Height="10" Margin="4,0,0,0" />
                     </StackPanel>
                 </TabItem.Header>
-                <Grid Margin="5">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+                <GroupBox Header="For controllers">
+                    <StackPanel Margin="5">
+                        <CheckBox IsChecked="{Binding VatsimMode, Mode=TwoWay}" Content="VATSIM Mode" />
 
-                    <Button x:Name="ButtonStartATC" Content="Start ATC Mode" Grid.Row="0" Grid.ColumnSpan="2" Click="ButtonStartATC_Click" IsEnabled="False" />
-                    <Button x:Name="ButtonStopATC" Content="Stop ATC Mode" Grid.Row="0" Grid.ColumnSpan="2" Click="ButtonStopATC_Click" Visibility="Collapsed" />
+                        <Button x:Name="ButtonStartATC" Content="Start ATC Server" Click="ButtonStartATC_Click" IsEnabled="False" />
+                        <Button x:Name="ButtonStopATC" Content="Stop ATC Server" Click="ButtonStopATC_Click" Visibility="Collapsed" />
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                    <TextBlock Text="Callsign" Grid.Row="1" Grid.Column="0" />
-                    <TextBlock Text="{Binding AtcCallsign}" Grid.Row="1" Grid.Column="1" />
-                </Grid>
+                            <TextBlock Text="Callsign" Grid.Column="0" />
+                            <TextBlock Text="{Binding AtcCallsign}" Grid.Column="1" />
+                        </Grid>
+                    </StackPanel>
+                </GroupBox>
             </TabItem>
 
             <TabItem>

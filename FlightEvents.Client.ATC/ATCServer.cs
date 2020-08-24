@@ -25,8 +25,6 @@ namespace FlightEvents.Client.ATC
         private readonly HttpClient httpClient;
 
         private StreamWriter writer;
-        private bool vrc = false;
-        private bool atc = false;
         private string callsign;
         private TcpListener tcpListener;
         private TcpClient tcpClient;
@@ -48,7 +46,7 @@ namespace FlightEvents.Client.ATC
             this.httpClient = new HttpClient();
         }
 
-        public void Start()
+        public void Start(bool vatsimMode)
         {
             tcpListener = new TcpListener(IPAddress.Any, 6809);
             tcpListener.Start();
@@ -57,7 +55,7 @@ namespace FlightEvents.Client.ATC
             {
                 try
                 {
-                    await AcceptAndProcessAsync(tcpListener);
+                    await AcceptAndProcessAsync(tcpListener, vatsimMode);
                 }
                 catch (Exception ex)
                 {
@@ -116,7 +114,7 @@ namespace FlightEvents.Client.ATC
             logger.LogInformation("Sent Flight Plan: " + fp);
         }
 
-        private async Task AcceptAndProcessAsync(TcpListener tcpListener)
+        private async Task AcceptAndProcessAsync(TcpListener tcpListener, bool vatsimMode)
         {
             while (true)
             {
@@ -133,6 +131,11 @@ namespace FlightEvents.Client.ATC
                     {
                         AutoFlush = true
                     };
+
+                    if (vatsimMode)
+                    {
+                        await SendAsync($"$DISERVER:CLIENT:VATSIM FSD V3.13:3ef36a24");
+                    }
 
                     while (true)
                     {
@@ -161,20 +164,6 @@ namespace FlightEvents.Client.ATC
             if (info == null) throw new ArgumentNullException(nameof(info));
 
             logger.LogInformation($"Receive: {info}");
-
-            if (info.Contains("VRC") && !atc)
-            {
-                vrc = true;
-                atc = true;
-                await SendAsync($"$DI{ClientCode}:CLIENT:client V1.00:3ef36a24");
-                logger.LogInformation("Sent VRC Hello");
-            }
-            //else if (!this.atc && !this.es)
-            //{
-            //    this.es = true;
-            //    this.atc = true;
-            //    Console.WriteLine("Sent EuroScope Hello");
-            //}
 
             if (info.StartsWith("%" + callsign))
             {
@@ -309,36 +298,24 @@ namespace FlightEvents.Client.ATC
                 AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs("*", info));
             }
 
-            if (this.vrc)
+            if (info.StartsWith("#AA"))
             {
-                if (info.Contains($"$CQ{callsign}:SERVER:ATC:{callsign}") && !this.atc)
-                {
-                    logger.LogInformation("Send VRC");
-                    await SendAsync($"$CR{ClientCode}:{callsign}:ATC:Y:{callsign}");
-                    this.atc = true;
-                }
-            }
-            else
-            {
-                if (info.StartsWith("#AA"))
-                {
-                    // #AACYVR_TWR:SERVER:HY:NA:123:3:9:1:0:49.19470:-123.18397:100
-                    // #AAEGHQ_ATIS:SERVER:Daniel Button:1343255::4:100
-                    logger.LogInformation("Connected");
+                // #AACYVR_TWR:SERVER:HY:NA:123:3:9:1:0:49.19470:-123.18397:100
+                // #AAEGHQ_ATIS:SERVER:Daniel Button:1343255::4:100
+                logger.LogInformation("Connected");
 
-                    var tokens = info.Substring("#AA".Length).Split(":");
-                    callsign = tokens[0];
-                    var to = tokens[1];
-                    var realName = tokens[2];
-                    var certificate = tokens[3];
-                    var password = tokens[4];
-                    var rating = tokens[5];
-                    var lat = tokens.Length > 9 ? double.Parse(tokens[9], CultureInfo.InvariantCulture) : (double?)null;
-                    var lon = tokens.Length > 10 ? double.Parse(tokens[10], CultureInfo.InvariantCulture) : (double?)null;
-                    await SendAsync($"#TM{ClientCode}:{callsign}:Connected to {ClientName}.");
+                var tokens = info.Substring("#AA".Length).Split(":");
+                callsign = tokens[0];
+                var to = tokens[1];
+                var realName = tokens[2];
+                var certificate = tokens[3];
+                var password = tokens[4];
+                var rating = tokens[5];
+                var lat = tokens.Length > 9 ? double.Parse(tokens[9], CultureInfo.InvariantCulture) : (double?)null;
+                var lon = tokens.Length > 10 ? double.Parse(tokens[10], CultureInfo.InvariantCulture) : (double?)null;
+                await SendAsync($"#TM{ClientCode}:{callsign}:Connected to {ClientName}.");
 
-                    Connected?.Invoke(this, new ConnectedEventArgs(callsign, realName, certificate, rating, lat, lon));
-                }
+                Connected?.Invoke(this, new ConnectedEventArgs(callsign, realName, certificate, rating, lat, lon));
             }
 
             return false;

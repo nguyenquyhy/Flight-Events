@@ -239,7 +239,7 @@ namespace FlightEvents.Client
             ButtonStartATC.IsEnabled = false;
             try
             {
-                atcServer.Start();
+                atcServer.Start(viewModel.VatsimMode);
                 viewModel.AtcConnectionState = ConnectionState.Connecting;
             }
             catch (SocketException ex)

@@ -47,6 +47,9 @@ namespace FlightEvents.Client
         private string remarks;
         public string Remarks { get => remarks; set => SetProperty(ref remarks, value); }
 
+        private bool vatsimMode = false;
+        public bool VatsimMode { get => vatsimMode; set => SetProperty(ref vatsimMode, value); }
+
         private string atcCallsign = null;
         public string AtcCallsign { get => atcCallsign; set => SetProperty(ref atcCallsign, value); }
 
