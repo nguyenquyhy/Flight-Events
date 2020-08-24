@@ -120,8 +120,6 @@ export default class LeafletMap implements IMap {
 
         this.airportLayerGroup.addTo(this.mymap);
         this.flightPlanLayerGroup.addTo(this.mymap);
-
-        setInterval(this.cleanUp, 2000);
     }
 
     public deinitialize() {
