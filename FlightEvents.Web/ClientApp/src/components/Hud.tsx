@@ -52,15 +52,15 @@ export default (props: Props) => {
     }
 
     return <StyledWrapper>
-        <Input type="select" name="ownAircraft" id="ownAircraft" defaultValue="" onChange={handleMeChanged}>
+        <Input type="select" name="ownAircraft" id="ownAircraft" value={props.myClientId ?? ''} onChange={handleMeChanged}>
             <option value="">Select your aircraft</option>
             {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId].callsign}</option>)}
         </Input>
-        <Input type="select" name="followAircraft" id="followAircraft" defaultValue="" onChange={handleFollowChanged}>
+        <Input type="select" name="followAircraft" id="followAircraft" value={props.followingClientId ?? ''} onChange={handleFollowChanged}>
             <option value="">Follow an aircraft</option>
             {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId].callsign}</option>)}
         </Input>
-        <Input type="select" name="flightplanAircraft" id="flightplanAircraft" defaultValue="" onChange={handleFlightPlanChanged}>
+        <Input type="select" name="flightplanAircraft" id="flightplanAircraft" value={props.flightPlanClientId ?? ''} onChange={handleFlightPlanChanged}>
             <option value="">Show Flight Plan</option>
             {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId].callsign}</option>)}
         </Input>

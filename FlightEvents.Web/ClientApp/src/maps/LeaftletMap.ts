@@ -1,4 +1,4 @@
-﻿import { IMap, MapTileType, OnViewChangedFn, View, OnAircraftMovedFn } from './IMap';
+﻿import { IMap, MapTileType, OnViewChangedFn, View, OnAircraftMovedFn, OnSetClientIdFn, OnSetOptionalClientIdFn } from './IMap';
 import * as L from 'leaflet';
 import 'leaflet-rotatedmarker';
 import 'overpass-layer/dist/overpass-layer';
@@ -56,6 +56,11 @@ export default class LeafletMap implements IMap {
 
     onViewChangedHandler: (OnViewChangedFn | null) = null;
     onAircraftMovedHandler: (OnAircraftMovedFn | null) = null;
+    onSetMeHandler: (OnSetOptionalClientIdFn | null) = null;
+    onSetFollowHandler: (OnSetOptionalClientIdFn | null) = null;
+    onSetShowPlanHandler: (OnSetOptionalClientIdFn | null) = null;
+    onSetShowInfoHandler: (OnSetClientIdFn | null) = null;
+    onSetShowRouteHandler: (OnSetClientIdFn | null) = null;
 
     isDark: boolean = false;
 
@@ -197,7 +202,7 @@ export default class LeafletMap implements IMap {
         }
     }
 
-    public moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isMoreInfo: boolean) {
+    public moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isShowingPlan: boolean, isMoreInfo: boolean, isShowingRoute: boolean) {
         if (!this.mymap) return;
 
         const iconSize = 12
@@ -286,17 +291,34 @@ export default class LeafletMap implements IMap {
             this.markers[connectionId] = markers;
         }
 
-        let popup = `Altitude: ${Math.floor(aircraftStatus.altitude)}<br />Airspeed: ${Math.floor(aircraftStatus.indicatedAirSpeed)}`;
+        const popupDiv = L.DomUtil.create('div');
+        let popup = `Altitude: ${Math.floor(aircraftStatus.altitude)}<br />Airspeed: ${Math.floor(aircraftStatus.indicatedAirSpeed)}<br />`;
         if (aircraftStatus.callsign) {
             popup = `<b>${aircraftStatus.callsign}</b><br />${popup}`;
         }
+        popupDiv.innerHTML = popup;
 
-        markers.info.bindPopup(popup, {
+        const popupBtnGroup = L.DomUtil.create('div', 'btn-group-vertical');
+        popupDiv.appendChild(popupBtnGroup);
+
+        const setMeButton = this.createToggleButton(popupBtnGroup, 'My aircraft', isMe);
+        const setFollowButton = this.createToggleButton(popupBtnGroup, 'Follow', isFollowing);
+        const setFlightPlanButton = this.createToggleButton(popupBtnGroup, 'Show Plan', isShowingPlan);
+        const setShowInfoButton = this.createToggleButton(popupBtnGroup, 'Show Info', isMoreInfo);
+        const setShowRouteButton = this.createToggleButton(popupBtnGroup, 'Show Route', isShowingRoute);
+
+        L.DomEvent.on(setMeButton, 'click', () => { this.onSetMeHandler && this.onSetMeHandler(isMe ? null : connectionId); this.mymap?.closePopup(); });
+        L.DomEvent.on(setFollowButton, 'click', () => { this.onSetFollowHandler && this.onSetFollowHandler(isFollowing ? null : connectionId); this.mymap?.closePopup(); });
+        L.DomEvent.on(setFlightPlanButton, 'click', () => { this.onSetShowPlanHandler && this.onSetShowPlanHandler(isShowingPlan ? null : connectionId); this.mymap?.closePopup(); });
+        L.DomEvent.on(setShowInfoButton, 'click', () => { this.onSetShowInfoHandler && this.onSetShowInfoHandler(connectionId); this.mymap?.closePopup(); });
+        L.DomEvent.on(setShowRouteButton, 'click', () => { this.onSetShowRouteHandler && this.onSetShowRouteHandler(connectionId); this.mymap?.closePopup(); });
+
+        markers.info.bindPopup(popupDiv, {
             autoPan: false
         });
         markers.info.setIcon(markers.info.getIcon());
         markers.aircraft
-            .bindPopup(popup)
+            .bindPopup(popupDiv)
             .setRotationAngle(aircraftStatus.trueHeading);
 
         if (this.circleMarker && isMe) {
@@ -467,6 +489,22 @@ export default class LeafletMap implements IMap {
         this.onAircraftMovedHandler = handler;
     }
 
+    public onSetMe(handler: OnSetOptionalClientIdFn) {
+        this.onSetMeHandler = handler;
+    }
+    public onSetFollow(handler: OnSetOptionalClientIdFn) {
+        this.onSetFollowHandler = handler;
+    }
+    public onSetShowPlan(handler: OnSetOptionalClientIdFn) {
+        this.onSetShowPlanHandler = handler;
+    }
+    public onSetShowInfo(handler: OnSetClientIdFn) {
+        this.onSetShowInfoHandler = handler;
+    }
+    public onSetShowRoute(handler: OnSetClientIdFn) {
+        this.onSetShowRouteHandler = handler;
+    }
+
     public track(id: string, status: AircraftStatus) {
         if (!this.routeLines[id] || !this.trackingStatuses[id] || this.trackingStatuses[id].isOnGround !== status.isOnGround) {
             this.routeLines[id] = this.createRouteLine(id, this.trackingStatuses[id] ? [this.trackingStatuses[id]] : [], status.isOnGround);
@@ -516,5 +554,14 @@ export default class LeafletMap implements IMap {
         if (this.onAircraftMovedHandler) {
             this.onAircraftMovedHandler({ latitude: e.latlng.lat, longitude: e.latlng.lng });
         }
+    }
+
+    private createToggleButton(container: HTMLElement, content: string, isToggled: boolean) {
+        const button = L.DomUtil.create('button', 'btn btn-sm btn-info' + (isToggled ? ' active' : ''), container);
+        button.innerHTML = content;
+        button.setAttribute('data-toggle', 'button');
+        if (isToggled) button.setAttribute('aria-pressed', 'true');
+        container.appendChild(button);
+        return button;
     }
 }

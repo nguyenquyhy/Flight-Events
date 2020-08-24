@@ -1,4 +1,4 @@
-﻿import { IMap, MapTileType, OnViewChangedFn, View, OnAircraftMovedFn } from './IMap';
+﻿import { IMap, MapTileType, OnViewChangedFn, View, OnAircraftMovedFn, OnSetClientIdFn, OnSetOptionalClientIdFn } from './IMap';
 import * as maptalks from 'maptalks';
 import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
 
@@ -107,6 +107,11 @@ export default class MaptalksMap implements IMap {
 
     onViewChangedHandler: OnViewChangedFn | null = null;
     onAircraftMovedHandler: (OnAircraftMovedFn | null) = null;
+    onSetMeHandler: (OnSetOptionalClientIdFn | null) = null;
+    onSetFollowHandler: (OnSetOptionalClientIdFn | null) = null;
+    onSetShowPlanHandler: (OnSetOptionalClientIdFn | null) = null;
+    onSetShowInfoHandler: (OnSetClientIdFn | null) = null;
+    onSetShowRouteHandler: (OnSetClientIdFn | null) = null;
 
     visibleCircle: Circle = new maptalks.Circle([0, 0], 5029, {
         symbol: {
@@ -288,7 +293,7 @@ export default class MaptalksMap implements IMap {
         }
     }
 
-    moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isMoreInfo: boolean) {
+    moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isShowingPlan: boolean, isMoreInfo: boolean, isShowingRoute: boolean) {
         if (!this.map || !this.aircraftLayer) return;
 
         let latlng: Coordinate = new maptalks.Coordinate([aircraftStatus.longitude, aircraftStatus.latitude]);
@@ -538,6 +543,22 @@ export default class MaptalksMap implements IMap {
 
     public onAircraftMoved(handler: OnAircraftMovedFn) {
         this.onAircraftMovedHandler = handler;
+    }
+
+    public onSetMe(handler: OnSetOptionalClientIdFn) {
+        this.onSetMeHandler = handler;
+    }
+    public onSetFollow(handler: OnSetOptionalClientIdFn) {
+        this.onSetFollowHandler = handler;
+    }
+    public onSetShowPlan(handler: OnSetOptionalClientIdFn) {
+        this.onSetShowPlanHandler = handler;
+    }
+    public onSetShowInfo(handler: OnSetClientIdFn) {
+        this.onSetShowInfoHandler = handler;
+    }
+    public onSetShowRoute(handler: OnSetClientIdFn) {
+        this.onSetShowRouteHandler = handler;
     }
 
     public track(id: string, status: AircraftStatus) {

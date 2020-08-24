@@ -120,7 +120,12 @@ export class Home extends React.Component<any, State> {
                 };
 
                 if (aircraftStatus.isReady) {
-                    this.map.moveMarker(clientId, aircraftStatus, this.state.myClientId === clientId, clientId === this.state.followingClientId, this.state.moreInfoClientIds.includes(clientId));
+                    this.map.moveMarker(clientId, aircraftStatus, 
+                        this.state.myClientId === clientId, 
+                        this.state.followingClientId === clientId, 
+                        this.state.flightPlanClientId === clientId,
+                        this.state.moreInfoClientIds.includes(clientId),
+                        this.state.showPathClientIds.includes(clientId));
 
                     if (this.state.showPathClientIds.includes(clientId)) {
                         this.map.track(clientId, aircraftStatus);
@@ -154,6 +159,21 @@ export class Home extends React.Component<any, State> {
         });
         this.map.onAircraftMoved(position => {
             this.setState({ movingPosition: position })
+        });
+        this.map.onSetMe(clientId => {
+            this.handleMeChanged(clientId);
+        });
+        this.map.onSetFollow(clientId => {
+            this.handleFollowingChanged(clientId);
+        });
+        this.map.onSetShowPlan(clientId => {
+            this.handleFlightPlanChanged(clientId);
+        });
+        this.map.onSetShowInfo(clientId => {
+            this.handleMoreInfoChanged(clientId);
+        });
+        this.map.onSetShowRoute(clientId => {
+            this.handleShowPathChanged(clientId);
         });
         this.map.initialize('mapid', this.currentView);
         this.map.setTileLayer(this.state.mapTileType);
