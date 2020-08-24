@@ -43,7 +43,6 @@ namespace FlightEvents.Web
                     .AddType<FlightEventType>()
                     );
 
-
             services.AddControllersWithViews();
             services.AddRazorPages();
 
@@ -61,6 +60,8 @@ namespace FlightEvents.Web
             builder.AddMessagePackProtocol();
 
             services.AddHttpClient<DiscordLogic>();
+
+            services.AddHostedService<StatusBroadcastService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

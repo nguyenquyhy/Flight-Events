@@ -11,6 +11,9 @@ namespace FlightEvents.Web.Hubs
 {
     public class FlightEventHub : Hub<IFlightEventHub>
     {
+        public static ConcurrentDictionary<string, string> ConnectionIdToClientIds => connectionIdToClientIds;
+        public static ConcurrentDictionary<string, AircraftStatus> ConnectionIdToAircraftStatuses => connectionIdToAircraftStatuses;
+
         private static readonly ConcurrentDictionary<string, string> connectionIdToClientIds = new ConcurrentDictionary<string, string>();
         private static readonly ConcurrentDictionary<string, string> clientIdToConnectionIds = new ConcurrentDictionary<string, string>();
 
@@ -39,6 +42,11 @@ namespace FlightEvents.Web.Hubs
             if (clientId != null)
             {
                 connectionIdToClientIds[Context.ConnectionId] = clientId;
+                // When a user reconnect, old connection ID is still in the list and need to be removed
+                if (clientIdToConnectionIds.TryGetValue(clientId, out var oldConnectionId))
+                {
+                    connectionIdToClientIds.TryRemove(oldConnectionId, out _);
+                }
                 clientIdToConnectionIds[clientId] = Context.ConnectionId;
             }
             switch (clientType)
@@ -62,8 +70,7 @@ namespace FlightEvents.Web.Hubs
                 clientIdToConnectionIds.TryRemove(clientId, out _);
                 await Clients.Groups("Map", "ATC").UpdateATC(clientId, null, null);
             }
-            connectionIdToAircraftStatuses.TryRemove(Context.ConnectionId, out _);
-            connectionIdToAtcStatuses.TryRemove(Context.ConnectionId, out _);
+            RemoveCacheOnConnectionId(Context.ConnectionId);
             await base.OnDisconnectedAsync(exception);
         }
 
@@ -105,24 +112,24 @@ namespace FlightEvents.Web.Hubs
                     status.FrequencyCom1 = 0;
                 }
 
+                // Cache latest status
+                int fromFrequency = 0;
+                if (connectionIdToAircraftStatuses.TryGetValue(Context.ConnectionId, out var lastStatus))
+                {
+                    fromFrequency = lastStatus.FrequencyCom1;
+                }
+                connectionIdToAircraftStatuses[Context.ConnectionId] = status;
+
                 if (!connectionIdToAtcStatuses.TryGetValue(Context.ConnectionId, out _))
                 {
-                    // Detect COM1 change if ATC is not active
-                    int fromFrequency = 0;
-                    if (connectionIdToAircraftStatuses.TryGetValue(Context.ConnectionId, out var lastStatus))
-                    {
-                        fromFrequency = lastStatus.FrequencyCom1;
-                    }
+                    // Switch Discord channel based on COM1 change if ATC Mode is not active
                     var toFrequency = status.FrequencyCom1;
-
-                    connectionIdToAircraftStatuses[Context.ConnectionId] = status;
-
                     if (fromFrequency != toFrequency)
                     {
                         await Clients.Groups("Bot").ChangeFrequency(clientId, fromFrequency == 0 ? null : (int?)fromFrequency, toFrequency == 0 ? null : (int?)toFrequency);
                     }
                 }
-                await Clients.Groups("Map", "ATC", "ClientMap").UpdateAircraft(clientId, status);
+                await Clients.Groups("ATC").UpdateAircraft(clientId, status);
             }
         }
 
@@ -246,6 +253,12 @@ namespace FlightEvents.Web.Hubs
             {
                 await Clients.Caller.Teleport(connectionId, request.Item2);
             }
+        }
+
+        public static void RemoveCacheOnConnectionId(string connectionId)
+        {
+            connectionIdToAircraftStatuses.TryRemove(connectionId, out _);
+            connectionIdToAtcStatuses.TryRemove(connectionId, out _);
         }
     }
 }
