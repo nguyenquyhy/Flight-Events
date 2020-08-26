@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
@@ -14,15 +15,33 @@ namespace FlightEvents.Client.Logics
         public bool BroadcastUDP { get; set; }
         public string BroadcastIP { get; set; }
         public bool SlowMode { get; set; }
+        public bool MinimizeToTaskbar { get; set; }
     }
 
     public class UserPreferencesLoader
     {
-        private readonly string filePath;
+        private const string filePath = "preferences.json";
+        
+        private readonly ILogger<UserPreferencesLoader> logger;
 
-        public UserPreferencesLoader(string filePath)
+        public UserPreferencesLoader(ILogger<UserPreferencesLoader> logger)
         {
-            this.filePath = filePath;
+            this.logger = logger;
+        }
+
+        public async Task<T> GetSettingsAsync<T>(Func<UserPreferences, T> extractFunc, T defaultValue = default)
+        {
+            try
+            {
+                var pref = await LoadAsync();
+                if (pref == null) return defaultValue;
+                return extractFunc(pref);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Cannot get settings");
+                return defaultValue;
+            }
         }
 
         private static readonly SemaphoreSlim sm = new SemaphoreSlim(1);

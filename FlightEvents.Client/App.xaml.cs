@@ -101,7 +101,7 @@ namespace FlightEvents.Client
             services.AddSingleton<IFlightConnector, SimConnectFlightConnector>();
             services.AddSingleton<UdpBroadcastLogic>();
             services.AddSingleton<ATCServer>();
-            services.AddSingleton(new UserPreferencesLoader("preferences.json"));
+            services.AddSingleton<UserPreferencesLoader>();
             services.AddSingleton(new VersionLogic("https://events-storage.flighttracker.tech/downloads/versions.json"));
 
             services.AddTransient(typeof(MainWindow));
@@ -184,17 +184,8 @@ Please restart the client afterward.",
             {
                 try
                 {
-                    var slowMode = false;
-                    try
-                    {
-                        var userPrefLoader = ServiceProvider.GetService<UserPreferencesLoader>();
-                        var userPref = await userPrefLoader.LoadAsync();
-                        slowMode = userPref?.SlowMode == true;
-                    }
-                    catch
-                    {
-                        // Ignore error and just defaut to false
-                    }
+                    var userPrefLoader = ServiceProvider.GetService<UserPreferencesLoader>();
+                    var slowMode = await userPrefLoader.GetSettingsAsync(o => o.SlowMode);
 
                     viewModel.SimConnectionState = ConnectionState.Connecting;
                     simConnect.Initialize(Handle, slowMode);

@@ -219,6 +219,7 @@
                              IsEnabled="{Binding BroadcastUDP, Converter={StaticResource BoolReversedConverter}}"/>
                     <CheckBox Content="Disable Discord Rich Present" IsChecked="{Binding DisableDiscordRP, Mode=TwoWay}" Checked="DisableDiscordRP_Checked" Unchecked="DisableDiscordRP_Unchecked" />
                     <CheckBox Content="Slow Mode (require restart)" IsChecked="{Binding SlowMode, Mode=TwoWay}" Checked="SlowMode_Checked" Unchecked="SlowMode_Unchecked" />
+                    <CheckBox Content="Minimize to Taskbar" IsChecked="{Binding MinimizeToTaskbar, Mode=TwoWay}" Checked="MinimizeToTaskbar_Checked" Unchecked="MinimizeToTaskbar_Unchecked" />
                 </StackPanel>
             </TabItem>
         </TabControl>

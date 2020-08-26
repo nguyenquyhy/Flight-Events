@@ -70,5 +70,8 @@ namespace FlightEvents.Client
 
         private bool slowMode;
         public bool SlowMode { get => slowMode; set => SetProperty(ref slowMode, value); }
+
+        private bool minimizeToTaskbar;
+        public bool MinimizeToTaskbar { get => minimizeToTaskbar; set => SetProperty(ref minimizeToTaskbar, value); }
     }
 }

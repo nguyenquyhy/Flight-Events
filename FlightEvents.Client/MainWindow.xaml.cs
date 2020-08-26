@@ -92,8 +92,9 @@ namespace FlightEvents.Client
             viewModel.BroadcastUDP = pref.BroadcastUDP;
             viewModel.BroadcastIP = pref.BroadcastIP;
             viewModel.SlowMode = pref.SlowMode;
+            viewModel.MinimizeToTaskbar = pref.MinimizeToTaskbar;
 
-            var clientId = (await userPreferencesLoader.LoadAsync()).ClientId;
+            var clientId = pref.ClientId;
             hub = new HubConnectionBuilder()
                 .WithUrl($"{this.appSettings.WebServerUrl ?? DefaultWebServerUrl}/FlightEventHub?clientType=Client&clientVersion={currentVersion}&clientId={clientId}")
                 .WithAutomaticReconnect()
@@ -717,7 +718,9 @@ namespace FlightEvents.Client
 
         private async void Window_StateChanged(object sender, EventArgs e)
         {
-            if (WindowState == WindowState.Minimized)
+            var minimizeToTaskbar = await userPreferencesLoader.GetSettingsAsync(o => o.MinimizeToTaskbar);
+
+            if (!minimizeToTaskbar && WindowState == WindowState.Minimized)
             {
                 Hide();
                 myNotifyIcon.Visibility = Visibility.Visible;
@@ -858,6 +861,32 @@ namespace FlightEvents.Client
             {
                 logger.LogError(ex, "Cannot uncheck SlowMode!");
                 viewModel.SlowMode = true;
+            }
+        }
+
+        private async void MinimizeToTaskbar_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await userPreferencesLoader.UpdateAsync(pref => pref.MinimizeToTaskbar = true);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot check SlowMode!");
+                viewModel.MinimizeToTaskbar = false;
+            }
+        }
+
+        private async void MinimizeToTaskbar_Unchecked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await userPreferencesLoader.UpdateAsync(pref => pref.MinimizeToTaskbar = false);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot uncheck SlowMode!");
+                viewModel.MinimizeToTaskbar = true;
             }
         }
 
