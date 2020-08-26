@@ -253,11 +253,11 @@ export default class MaptalksMap implements IMap {
         }
     }
 
-    moveATCMarker(connectionId: string, status: ATCStatus | null, info: ATCInfo | null) {
+    moveATCMarker(clientId: string, status: ATCStatus | null, info: ATCInfo | null) {
         if (status && info) {
             const latlng: Coordinate = new maptalks.Coordinate([status.longitude, status.latitude]);
 
-            const marker = this.atcMarkers[connectionId];
+            const marker = this.atcMarkers[clientId];
             if (marker) {
                 // Existing marker
                 marker
@@ -268,7 +268,7 @@ export default class MaptalksMap implements IMap {
                     })
                     .setCoordinates(latlng);
             } else {
-                this.atcMarkers[connectionId] = new maptalks.Marker(latlng, {
+                this.atcMarkers[clientId] = new maptalks.Marker(latlng, {
                     symbol: {
                         markerFile: 'marker-tower.png',
                         markerWidth: 30,
@@ -284,12 +284,7 @@ export default class MaptalksMap implements IMap {
             }
         } else {
             // Remove
-            const marker = this.atcMarkers[connectionId];
-            if (marker) {
-                // Existing marker
-                marker.remove();
-                delete this.atcMarkers[connectionId];
-            }
+            this.cleanUpController(clientId);
         }
     }
 
@@ -507,24 +502,30 @@ export default class MaptalksMap implements IMap {
         }
     }
 
-    focusAircraft(aircraftStatus: AircraftStatus) {
+    focus(location: { longitude: number, latitude: number }) {
         if (this.map) {
-            this.map.panTo(new maptalks.Coordinate([aircraftStatus.longitude, aircraftStatus.latitude]));
+            this.map.panTo(new maptalks.Coordinate([location.longitude, location.latitude]));
         }
     }
 
-    cleanUp(connectionId: string, isMe: boolean) {
-        if (this.map) {
-            const marker = this.markers[connectionId];
-            if (marker) {
-                delete this.markers[connectionId];
+    cleanUpController(clientId: string) {
+        const marker = this.atcMarkers[clientId];
+        if (marker) {
+            marker.remove();
+            delete this.atcMarkers[clientId];
+        }
+    }
 
-                marker.aircraft.remove();
-                marker.aircraftLine.remove();
-                marker.info.remove();
-                if (isMe) {
-                    this.removeRangeCircle();
-                }
+    cleanUpAircraft(clientId: string, isMe: boolean) {
+        const marker = this.markers[clientId];
+        if (marker) {
+            delete this.markers[clientId];
+
+            marker.aircraft.remove();
+            marker.aircraftLine.remove();
+            marker.info.remove();
+            if (isMe) {
+                this.removeRangeCircle();
             }
         }
     }

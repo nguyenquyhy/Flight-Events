@@ -74,7 +74,7 @@ export default class AircraftList extends React.Component<Props, State> {
                 />));
 
         return <>
-            <StyledButton color="secondary" onClick={this.handleToggle}>Aircraft List {(clientIds.length === 0 ? "" : `(${clientIds.length})`)}</StyledButton>
+            <StyledButton color="secondary" onClick={this.handleToggle}>Aircraft {(clientIds.length === 0 ? "" : `(${clientIds.length})`)}</StyledButton>
             <Modal isOpen={this.state.collapsed} toggle={this.handleToggle}>
                 <ModalHeader>
                     Aircraft List {(clientIds.length === 0 ? "" : `(${clientIds.length})`)}
@@ -107,7 +107,8 @@ export default class AircraftList extends React.Component<Props, State> {
 const StyledButton = styled(Button)`
 position: fixed;
 top: 10px;
-right: 170px;
+right: 150px;
+width: 130px;
 z-index: 1000;
 `
 

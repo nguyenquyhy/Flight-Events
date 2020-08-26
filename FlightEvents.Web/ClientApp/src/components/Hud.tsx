@@ -24,7 +24,7 @@ export default (props: Props) => {
         .sort((a, b) => (a[1].callsign || a[0].substring(5)).localeCompare((b[1].callsign || b[0].substring(5))))
         .map(o => o[0]);
 
-    const handleMeChanged = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const handleMeChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.value) {
             props.onMeChanged(null);
         } else {
@@ -33,7 +33,7 @@ export default (props: Props) => {
         }
     }
 
-    const handleFollowChanged = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const handleFollowChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.value) {
             props.onFollowingChanged(null);
         } else {
@@ -42,7 +42,7 @@ export default (props: Props) => {
         }
     }
 
-    const handleFlightPlanChanged = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const handleFlightPlanChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.value) {
             props.onFlightPlanChanged(null);
         } else {

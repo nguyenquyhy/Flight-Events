@@ -4,6 +4,7 @@ import 'msgpack5';
 //import * as protocol from '@microsoft/signalr-protocol-msgpack';
 import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
 import AircraftList from './AircraftList';
+import ControllerList from './ControllerList';
 import EventList from './EventList';
 import Display from './Display';
 import Hud from './Hud';
@@ -13,7 +14,12 @@ import MaptalksMap from '../maps/MaptalksMap';
 import Storage from '../Storage';
 import TeleportDialog from './Dialogs/TeleportDialog';
 
+const CONTROLLER_TIMEOUT_MILLISECONDS = 30000;
+const AIRCRAFT_TIMEOUT_MILLISECONDS = 10000;
+
 interface State {
+    controllers: { [clientId: string]: ATCInfo & ATCStatus };
+
     aircrafts: { [clientId: string]: AircraftStatus };
     myClientId: string | null;
     showPathClientIds: string[];
@@ -37,7 +43,8 @@ export class Home extends React.Component<any, State> {
     private map: IMap;
     private currentView?: View;
 
-    private aircrafts: { [clientId: string]: { aircraftStatus: AircraftStatus, lastUpdated: Date } } = {};
+    private aircrafts: { [clientId: string]: { lastUpdated: Date } } = {};
+    private controllers: { [clientId: string]: { lastUpdated: Date } } = {};
 
     constructor(props: any) {
         super(props);
@@ -45,6 +52,7 @@ export class Home extends React.Component<any, State> {
         const pref = this.storage.loadPreferences();
 
         this.state = {
+            controllers: {},
             aircrafts: {},
             myClientId: null,
             showPathClientIds: [],
@@ -65,6 +73,7 @@ export class Home extends React.Component<any, State> {
             //.withHubProtocol(new protocol.MessagePackHubProtocol())
             .build();
 
+        this.handleControllerClick = this.handleControllerClick.bind(this);
         this.handleAircraftClick = this.handleAircraftClick.bind(this);
 
         this.handleIsDarkChanged = this.handleIsDarkChanged.bind(this);
@@ -97,6 +106,24 @@ export class Home extends React.Component<any, State> {
 
         hub.on("UpdateATC", (clientId, status: ATCStatus, atc: ATCInfo) => {
             try {
+                if (atc && status) {
+                    this.setState({
+                        controllers: {
+                            ...this.state.controllers,
+                            [clientId]: {
+                                ...atc,
+                                ...status
+                            }
+                        }
+                    });
+
+                    this.controllers[clientId] = {
+                        lastUpdated: new Date()
+                    };
+                } else {
+                    // Remove
+                    this.cleanUpController(clientId);
+                }
                 this.map.moveATCMarker(clientId, status, atc);
             } catch (e) {
                 console.error(e);
@@ -115,8 +142,7 @@ export class Home extends React.Component<any, State> {
                 });
 
                 this.aircrafts[clientId] = {
-                    lastUpdated: new Date(),
-                    aircraftStatus: aircraftStatus
+                    lastUpdated: new Date()
                 };
 
                 if (aircraftStatus.isReady) {
@@ -135,7 +161,7 @@ export class Home extends React.Component<any, State> {
                     if (this.state.showPathClientIds.includes(clientId)) {
                         this.map.clearTrack(clientId);
                     }
-                    this.map.cleanUp(clientId, this.state.myClientId === clientId);
+                    this.map.cleanUpAircraft(clientId, this.state.myClientId === clientId);
                 }
             } catch (e) {
                 console.error(e);
@@ -181,38 +207,68 @@ export class Home extends React.Component<any, State> {
     }
 
     private cleanUp() {
-        const clientIds = Object.keys(this.aircrafts);
-        for (let clientId of clientIds) {
-            const aircraft = this.aircrafts[clientId];
-            if (new Date().getTime() - aircraft.lastUpdated.getTime() > 5 * 1000) {
-                this.map.cleanUp(clientId, clientId === this.state.myClientId);
-
-                if (clientId === this.state.myClientId) {
-                    this.setState({
-                        myClientId: null
-                    });
-                }
-                if (clientId === this.state.followingClientId) {
-                    this.setState({
-                        followingClientId: null
-                    });
-                }
-                let newAircrafts = {
-                    ...this.state.aircrafts
-                };
-                delete newAircrafts[clientId];
-                this.setState({
-                    aircrafts: newAircrafts
-                })
-
-                delete this.aircrafts[clientId];
+        for (let clientId of Object.keys(this.controllers)) {
+            const controller = this.controllers[clientId];
+            if (new Date().getTime() - controller.lastUpdated.getTime() > CONTROLLER_TIMEOUT_MILLISECONDS) {
+                this.cleanUpController(clientId);
             }
+        }
+
+        for (let clientId of Object.keys(this.aircrafts)) {
+            const aircraft = this.aircrafts[clientId];
+            if (new Date().getTime() - aircraft.lastUpdated.getTime() > AIRCRAFT_TIMEOUT_MILLISECONDS) {
+                this.cleanUpAircraft(clientId);
+            }
+        }
+    }
+
+    private cleanUpController(clientId: string) {
+        this.map.cleanUpController(clientId);
+
+        let newControllers = {
+            ...this.state.controllers
+        };
+        delete newControllers[clientId];
+        this.setState({
+            controllers: newControllers
+        });
+
+        delete this.controllers[clientId];
+    }
+
+    private cleanUpAircraft(clientId: string) {
+        this.map.cleanUpAircraft(clientId, clientId === this.state.myClientId);
+
+        if (clientId === this.state.myClientId) {
+            this.setState({
+                myClientId: null
+            });
+        }
+        if (clientId === this.state.followingClientId) {
+            this.setState({
+                followingClientId: null
+            });
+        }
+        let newAircrafts = {
+            ...this.state.aircrafts
+        };
+        delete newAircrafts[clientId];
+        this.setState({
+            aircrafts: newAircrafts
+        })
+
+        delete this.aircrafts[clientId];
+    }
+
+    private handleControllerClick(clientId: string) {
+        if (this.map) {
+            this.map.focus(this.state.controllers[clientId]);
         }
     }
 
     private handleAircraftClick(clientId: string) {
         if (this.map) {
-            this.map.focusAircraft(this.aircrafts[clientId].aircraftStatus);
+            this.map.focus(this.state.aircrafts[clientId]);
         }
     }
 
@@ -335,6 +391,8 @@ export class Home extends React.Component<any, State> {
                 onFollowingChanged={this.handleFollowingChanged} followingClientId={this.state.followingClientId}
                 onFlightPlanChanged={this.handleFlightPlanChanged} flightPlanClientId={this.state.flightPlanClientId}
             />
+
+            <ControllerList controllers={this.state.controllers} onControllerClick={this.handleControllerClick} />
 
             <AircraftList
                 aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}

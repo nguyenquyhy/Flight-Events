@@ -8,9 +8,7 @@ namespace FlightEvents.Web.Hubs
         /// <summary>
         /// Send updated ATC status to the map
         /// </summary>
-        /// <param name="connectionId"></param>
-        /// <param name="status"></param>
-        Task UpdateATC(string connectionId, ATCStatus status, ATCInfo atc);
+        Task UpdateATC(string clientId, ATCStatus status, ATCInfo atc);
 
         /// <summary>
         /// Send updated aircraft status to the map

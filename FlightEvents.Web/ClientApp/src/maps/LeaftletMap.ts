@@ -6,7 +6,6 @@ import 'leaflet-contextmenu';
 import 'leaflet-contextmenu/dist/leaflet.contextmenu.css';
 import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
 
-
 interface Markers {
     aircraft: L.Marker<any>
     info: L.Marker<any>
@@ -170,18 +169,18 @@ export default class LeafletMap implements IMap {
         }
     }
 
-    public moveATCMarker(connectionId: string, status: ATCStatus | null, info: ATCInfo | null) {
+    public moveATCMarker(clientId: string, status: ATCStatus | null, info: ATCInfo | null) {
         if (status && info && this.mymap) {
             const latlng: L.LatLngExpression = [status.latitude, status.longitude];
 
-            const marker = this.atcMarkers[connectionId];
+            const marker = this.atcMarkers[clientId];
             if (marker) {
                 // Existing marker
                 marker
                     .bindPopup(`<strong>${info.callsign} [${(status.frequencyCom / 1000)}]</strong><br />Name: ${info.realName}<br />Certificate: ${info.certificate}`)
                     .setLatLng(latlng);
             } else {
-                this.atcMarkers[connectionId] = L.marker(latlng, {
+                this.atcMarkers[clientId] = L.marker(latlng, {
                     icon: L.icon({
                         iconUrl: 'marker-tower.png',
                         iconSize: [30, 30],
@@ -194,11 +193,7 @@ export default class LeafletMap implements IMap {
             }
         } else {
             // Remove
-            const marker = this.atcMarkers[connectionId];
-            if (marker) {
-                marker.remove();
-                delete this.atcMarkers[connectionId];
-            }
+            this.cleanUpController(clientId);
         }
     }
 
@@ -440,24 +435,30 @@ export default class LeafletMap implements IMap {
         }
     }
 
-    public focusAircraft(aircraftStatus: AircraftStatus) {
+    public focus(location: { longitude: number, latitude: number }) {
         if (this.mymap) {
-            let latlng: L.LatLngExpression = [aircraftStatus.latitude, aircraftStatus.longitude];
+            let latlng: L.LatLngExpression = [location.latitude, location.longitude];
             this.mymap.setView(latlng, this.mymap.getZoom());
         }
     }
 
-    public cleanUp(connectionId: string, isMe: boolean) {
-        if (this.mymap !== undefined) {
-            const marker = this.markers[connectionId];
-            if (marker) {
-                delete this.markers[connectionId];
+    public cleanUpController(clientId: string) {
+        const marker = this.atcMarkers[clientId];
+        if (marker) {
+            marker.remove();
+            delete this.atcMarkers[clientId];
+        }
+    }
 
-                marker.aircraft.removeFrom(this.mymap);
-                marker.info.removeFrom(this.mymap);
-                if (isMe) {
-                    this.removeRangeCircle();
-                }
+    public cleanUpAircraft(clientId: string, isMe: boolean) {
+        const marker = this.markers[clientId];
+        if (marker) {
+            delete this.markers[clientId];
+
+            marker.aircraft.remove();
+            marker.info.remove();
+            if (isMe) {
+                this.removeRangeCircle();
             }
         }
     }

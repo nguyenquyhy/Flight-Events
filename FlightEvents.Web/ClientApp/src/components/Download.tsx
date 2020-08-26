@@ -24,7 +24,7 @@ export default class Download extends React.Component<any, State> {
 
     public render() {
         return <>
-            <Button color="primary" onClick={this.toggle} style={{ minWidth: '150px' }}>Join</Button>
+            <Button color="primary" onClick={this.toggle} style={{ minWidth: '130px' }}>Join</Button>
             <Modal isOpen={this.state.modal} toggle={this.toggle}>
                 <ModalHeader toggle={this.toggle}>Flight Events Client</ModalHeader>
                 <ModalBody>

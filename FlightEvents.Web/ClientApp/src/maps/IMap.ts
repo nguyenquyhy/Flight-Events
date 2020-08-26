@@ -4,12 +4,13 @@ export interface IMap {
     initialize(divId: string, view?: View)
     deinitialize();
 
-    moveATCMarker(connectionId: string, atcStatus: ATCStatus | null, atcInfo: ATCInfo | null)
+    moveATCMarker(clientId: string, atcStatus: ATCStatus | null, atcInfo: ATCInfo | null)
     moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isShowingPlan: boolean, isMoreInfo: boolean, isShowingRoute: boolean)
     drawAirports(airports: Airport[])
     drawFlightPlans(flightPlans: FlightPlanData[])
-    focusAircraft(aircraftStatus: AircraftStatus)
-    cleanUp(connectionId: string, isMe: boolean)
+    focus(location: { longitude: number, latitude: number })
+    cleanUpController(clientId: string)
+    cleanUpAircraft(clientId: string, isMe: boolean)
     addRangeCircle()
     removeRangeCircle()
     setTileLayer(type: MapTileType)
