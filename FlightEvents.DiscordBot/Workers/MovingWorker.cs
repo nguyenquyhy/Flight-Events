@@ -170,14 +170,8 @@ namespace FlightEvents.DiscordBot
                     props.Bitrate = serverOptions.ChannelBitrate;
                 });
 
-                try
-                {
-                    await voiceChannel.AddPermissionOverwriteAsync(guild.EveryoneRole, new OverwritePermissions(useVoiceActivation: PermValue.Deny));
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Cannot change channel permission");
-                }
+                // Note: Bot will not try to add permission.
+                // Instead, permission should be set at the category level so that the channel can inherit.
 
                 logger.LogInformation("Created new channel {channelName}", channelName);
 
