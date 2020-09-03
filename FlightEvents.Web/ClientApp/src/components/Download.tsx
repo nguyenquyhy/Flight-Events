@@ -1,5 +1,5 @@
 ﻿import * as React from 'react';
-import { Button, Modal, ModalHeader, ModalBody, Alert } from 'reactstrap';
+import { Button, Modal, ModalHeader, ModalBody } from 'reactstrap';
 
 interface State {
     modal: boolean;
@@ -31,8 +31,6 @@ export default class Download extends React.Component<any, State> {
                     <p>In order to connect Microsoft Flight Simulator to this map, you have to run a client software on your computer.</p>
 
                     <a className="btn btn-primary" href="https://events-storage.flighttracker.tech/downloads/FlightEvents.Client.zip" target="_blank" rel="noopener noreferrer">Download MSFS Client</a>
-
-                    <Alert color="warning">Current version of MSFS has an issue with SimConnect, creating stuttering if add-ons such as Flight Events is connected.<br />As a workaround, please update Flight Events to version 2.1.0 or later, open Settings tab, tick Slow Mode and restart Flight Events. This limits the data rate to 1Hz and seems to alleviate the issue.</Alert>
 
                     <hr />
                     <p>If you want to use Flight Events with FSX or P3D, you can try to use this legacy client (unsupported).</p>
