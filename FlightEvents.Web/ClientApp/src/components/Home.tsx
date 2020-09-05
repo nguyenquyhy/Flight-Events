@@ -1,7 +1,8 @@
 import * as React from 'react';
 import * as signalr from '@microsoft/signalr';
 import 'msgpack5';
-//import * as protocol from '@microsoft/signalr-protocol-msgpack';
+import * as protocol from '@microsoft/signalr-protocol-msgpack';
+import { convertPropertyNames, pascalCaseToCamelCase } from '../Converters';
 import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
 import AircraftList from './AircraftList';
 import ControllerList from './ControllerList';
@@ -70,7 +71,7 @@ export class Home extends React.Component<any, State> {
         this.hub = new signalr.HubConnectionBuilder()
             .withUrl('/FlightEventHub?clientType=Web')
             .withAutomaticReconnect()
-            //.withHubProtocol(new protocol.MessagePackHubProtocol())
+            .withHubProtocol(new protocol.MessagePackHubProtocol())
             .build();
 
         this.handleControllerClick = this.handleControllerClick.bind(this);
@@ -105,6 +106,9 @@ export class Home extends React.Component<any, State> {
         })
 
         hub.on("UpdateATC", (clientId, status: ATCStatus, atc: ATCInfo) => {
+            status = convertPropertyNames(status, pascalCaseToCamelCase);
+            atc = convertPropertyNames(atc, pascalCaseToCamelCase);
+
             try {
                 if (atc && status) {
                     this.setState({
@@ -131,6 +135,8 @@ export class Home extends React.Component<any, State> {
         });
 
         hub.on("UpdateAircraft", (clientId, aircraftStatus: AircraftStatus) => {
+            aircraftStatus = convertPropertyNames(aircraftStatus, pascalCaseToCamelCase);
+
             try {
                 aircraftStatus.isReady = !(Math.abs(aircraftStatus.latitude) < 0.02 && Math.abs(aircraftStatus.longitude) < 0.02);
 
@@ -170,6 +176,7 @@ export class Home extends React.Component<any, State> {
 
         hub.on("ReturnFlightPlanDetails", (connectionId, flightPlan: FlightPlanData | null) => {
             if (flightPlan) {
+                flightPlan = convertPropertyNames(flightPlan, pascalCaseToCamelCase) as FlightPlanData;
                 this.map.drawFlightPlans([flightPlan]);
             }
         });
@@ -330,6 +337,7 @@ export class Home extends React.Component<any, State> {
                         route = [item].concat(route);
                     },
                     complete: () => {
+                        route = convertPropertyNames(route, pascalCaseToCamelCase) as AircraftStatusBrief[];
                         this.map.prependTrack(clientId, route);
                     },
                     error: () => {
