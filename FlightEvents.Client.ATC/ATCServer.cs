@@ -107,7 +107,7 @@ namespace FlightEvents.Client.ATC
             //var remarks = $"Aircraft = {title.Replace(":", "_")}. Registration = {registration.Replace(":", "_")}";
             var remarks = string.IsNullOrWhiteSpace(pilotRemarks) ? string.Empty : pilotRemarks.Replace("\n", " ").Replace(":", "_");
 
-            var fp = $"$FP{callsign}:*A:{ifrs}:{type.Replace(":", "_")}:{speed}:{departure}:::{altitude}:{arrival}:::{(enroute == null ? ":" : $"{enroute.Value.Hours:00}:{enroute.Value.Minutes:00}")}:{alternate}:{remarks}:{route}:";
+            var fp = $"$FP{callsign}:*A:{ifrs}:{type.Replace(":", "_")}:{speed}:{departure}:::{altitude}:{arrival}:::{(enroute == null ? ":" : $"{enroute.Value.Hours:00}:{enroute.Value.Minutes:00}")}:{alternate}:{remarks}:{route}";
 
             await writer?.WriteLineAsync(fp);
             await writer?.FlushAsync();
@@ -186,6 +186,20 @@ namespace FlightEvents.Client.ATC
                 Disconnect();
 
                 return true;
+            }
+
+            if (info.StartsWith("$AM"))
+            {
+                // Modify flight plan
+                // $AMEDDF_TWR:SERVER:AS-205:I:TBM9:255:EDDF:9999:9999:12000:EDDL:99:99:99:99:ALTN::EDDF DF999 D1 DF996 DF995 D4 D5 D6 DF992 LISKU KUMIK DEGOM BOMBA GAPNU RONAD EDDL
+
+                var tokens = info.Substring("$AM".Length).Split(new char[] { ':' }, 4);
+                var sender = tokens[0];
+                //var recipient = tokens[1]; // SERVER
+                var callsign = tokens[2];
+                var flightPlan = tokens[3];
+
+                AtcMessageSent?.Invoke(this, new AtcMessageSentEventArgs("*", $"$FP{callsign}:*A:{flightPlan}"));
             }
 
             if (info.StartsWith("#AP"))
