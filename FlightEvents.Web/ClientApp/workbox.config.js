@@ -12,6 +12,7 @@
         new RegExp('^/graphql'),
         new RegExp('^/Error'),
         new RegExp('^/Discord'),
+        new RegExp('^/.well-known'),
     ]
     return options;
 };
