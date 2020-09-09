@@ -41,7 +41,7 @@ namespace FlightEvents.Web
                 SchemaBuilder.New()
                     .AddQueryType<QueryType>()
                     .AddMutationType<MutationType>()
-                    .AddType<FlightEventType>()
+                    .AddType<FlightEventQueryType>()
                     );
 
             services.AddControllersWithViews();

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace FlightEvents.Web.GraphQL
 {
-    public class FlightPlanType : ObjectType
+    public class FlightPlanQueryType : ObjectType
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
         {

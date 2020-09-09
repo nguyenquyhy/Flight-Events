@@ -2,7 +2,7 @@
 
 namespace FlightEvents.Web.GraphQL
 {
-    public class AirportType : ObjectType<Airport>
+    public class AirportQueryType : ObjectType<Airport>
     {
     }
 }

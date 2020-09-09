@@ -5,12 +5,12 @@ using System.Collections.Generic;
 
 namespace FlightEvents.Web.GraphQL
 {
-    public class FlightEventType : ObjectType<FlightEvent>
+    public class FlightEventQueryType : ObjectType<FlightEvent>
     {
         protected override void Configure(IObjectTypeDescriptor<FlightEvent> descriptor)
         {
             descriptor.Field(o => o.FlightPlanIds).Ignore();
-            descriptor.Field<FlightPlansResolver>(t => t.GetFlightPlans(default)).Type<ListType<FlightPlanType>>();
+            descriptor.Field<FlightPlansResolver>(t => t.GetFlightPlans(default)).Type<ListType<FlightPlanQueryType>>();
         }
     }
 
