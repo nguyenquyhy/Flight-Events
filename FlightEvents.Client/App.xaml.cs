@@ -152,28 +152,12 @@ namespace FlightEvents.Client
                     ServiceProvider.GetService<ILogger<MainWindow>>().LogError(ex, "Cannot initialize SimConnect!");
 
                     var result = MessageBox.Show(mainWindow,
-                        @"SimConnect not found. This component is needed to connect to Flight Simulator.
+                        @"SimConnect is not found. This component is needed to connect to flight simulator.
 
-Do you want to install SimConnect? 
-Please restart the client afterward.",
+Please make sure you have installed Microsoft Flight Simulator and restart the client.",
                         "Needed component is missing",
-                        MessageBoxButton.YesNo,
+                        MessageBoxButton.OK,
                         MessageBoxImage.Error);
-
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        try
-                        {
-                            Process.Start(new ProcessStartInfo
-                            {
-                                FileName = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "SimConnect.msi"),
-                                UseShellExecute = true
-                            });
-                        }
-                        catch { }
-                    }
-
-                    Shutdown(-1);
                 }
             }
         }
