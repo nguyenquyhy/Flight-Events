@@ -11,6 +11,7 @@ export interface IMap {
     focus(location: { longitude: number, latitude: number })
     cleanUpController(clientId: string)
     cleanUpAircraft(clientId: string, isMe: boolean)
+    cleanUpAllAircraft()
     addRangeCircle()
     removeRangeCircle()
     setTileLayer(type: MapTileType)

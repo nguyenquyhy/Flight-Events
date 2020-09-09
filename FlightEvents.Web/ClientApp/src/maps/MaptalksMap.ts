@@ -530,6 +530,14 @@ export default class MaptalksMap implements IMap {
         }
     }
 
+    cleanUpAllAircraft() {
+        this.markers = {};
+        if (this.aircraftLayer) {
+            this.aircraftLayer.clear();
+        }
+        this.removeRangeCircle();
+    }
+
     addRangeCircle() {
         this.visibleCircle.show();
     }

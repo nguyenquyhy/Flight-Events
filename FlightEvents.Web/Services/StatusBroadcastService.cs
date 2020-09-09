@@ -36,7 +36,14 @@ namespace FlightEvents.Web
                 {
                     if (FlightEventHub.ConnectionIdToClientIds.TryGetValue(pair.Key, out var clientId))
                     {
-                        await hubContext.Clients.Groups("Map", "ClientMap").UpdateAircraft(clientId, pair.Value);
+                        if (FlightEventHub.ClientIdToAircraftGroup.TryGetValue(clientId, out var group))
+                        {
+                            await hubContext.Clients.Groups("Map:" + group, "ClientMap:" + group).UpdateAircraft(clientId, pair.Value);
+                        }
+                        else
+                        {
+                            await hubContext.Clients.Groups("Map", "ClientMap").UpdateAircraft(clientId, pair.Value);
+                        }
                     }
                     else
                     {

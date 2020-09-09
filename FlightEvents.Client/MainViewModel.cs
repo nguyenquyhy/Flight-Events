@@ -38,6 +38,9 @@ namespace FlightEvents.Client
         private string callsign = null;
         public string Callsign { get => callsign; set => SetProperty(ref callsign, value?.Replace("<", "").Replace(">", "")); }
 
+        private bool aircraftPrivateGroup = false;
+        public bool AircraftPrivateGroup { get => aircraftPrivateGroup; set => SetProperty(ref aircraftPrivateGroup, value); }
+
         private AircraftStatus aircraftStatus = null;
         public AircraftStatus AircraftStatus { get => aircraftStatus; set => SetProperty(ref aircraftStatus, value); }
 
@@ -47,11 +50,24 @@ namespace FlightEvents.Client
         private string remarks;
         public string Remarks { get => remarks; set => SetProperty(ref remarks, value); }
 
+        #region ATC
+
         private bool vatsimMode = false;
         public bool VatsimMode { get => vatsimMode; set => SetProperty(ref vatsimMode, value); }
 
+        private bool atcPrivateGroup = false;
+        public bool AtcPrivateGroup { get => atcPrivateGroup; set => SetProperty(ref atcPrivateGroup, value); }
+
+        private string atcGroup = "";
+        public string AtcGroup { get => atcGroup; set => SetProperty(ref atcGroup, value?.Trim()); }
+
+        private string aircraftGroup = "";
+        public string AircraftGroup { get => aircraftGroup; set => SetProperty(ref aircraftGroup, value?.Trim()); }
+
         private string atcCallsign = null;
         public string AtcCallsign { get => atcCallsign; set => SetProperty(ref atcCallsign, value); }
+
+        #endregion
 
         private bool isTracking;
         public bool IsTracking { get => isTracking; set => SetProperty(ref isTracking, value); }

@@ -51,6 +51,8 @@ export default class LeafletMap implements IMap {
     routeLines: { [id: string]: L.Polyline } = {};
     trackingStatuses: { [id: string]: AircraftStatusBrief } = {};
 
+    aircraftLayerGroup: L.LayerGroup = L.layerGroup();
+
     circleMarker?: L.Circle;
 
     onViewChangedHandler: (OnViewChangedFn | null) = null;
@@ -124,6 +126,7 @@ export default class LeafletMap implements IMap {
 
         this.airportLayerGroup.addTo(this.mymap);
         this.flightPlanLayerGroup.addTo(this.mymap);
+        this.aircraftLayerGroup.addTo(this.mymap);
     }
 
     public deinitialize() {
@@ -269,7 +272,7 @@ export default class LeafletMap implements IMap {
                     iconAnchor: [5, 25],
                 }),
                 zIndexOffset: 2000
-            }).addTo(this.mymap);
+            }).addTo(this.aircraftLayerGroup);
             const info = L.marker(latlng, {
                 icon: L.divIcon({
                     className: 'divicon-aircraft-info',
@@ -278,7 +281,7 @@ export default class LeafletMap implements IMap {
                     iconAnchor: [-iconSize, -4],
                 }),
                 zIndexOffset: 1000
-            }).addTo(this.mymap)
+            }).addTo(this.aircraftLayerGroup)
             markers = {
                 aircraft: aircraft,
                 info: info
@@ -461,6 +464,12 @@ export default class LeafletMap implements IMap {
                 this.removeRangeCircle();
             }
         }
+    }
+
+    public cleanUpAllAircraft() {
+        this.aircraftLayerGroup.clearLayers();
+        this.markers = {};
+        this.removeRangeCircle();
     }
 
     public addRangeCircle() {

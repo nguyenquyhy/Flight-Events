@@ -17,10 +17,15 @@ interface Props {
 
     moreInfoClientIds: string[];
     onMoreInfoChanged: (clientId: string) => void;
+
+    onJoinAircraftGroup: (group: string) => void;
+    onLeaveAircraftGroup: (group: string) => void;
 }
 
 interface State {
     collapsed: boolean;
+    aircraftGroup: string;
+    inAircraftGroup: boolean;
 }
 
 export default class AircraftList extends React.Component<Props, State> {
@@ -30,16 +35,49 @@ export default class AircraftList extends React.Component<Props, State> {
         super(props);
 
         this.state = {
-            collapsed: false
+            collapsed: false,
+            aircraftGroup: '',
+            inAircraftGroup: false
         }
 
         this.handleToggle = this.handleToggle.bind(this);
+        this.handleAircraftGroupChanged = this.handleAircraftGroupChanged.bind(this);
+        this.handleJoinAircraftGroup = this.handleJoinAircraftGroup.bind(this);
+        this.handleLeaveAircraftGroup = this.handleLeaveAircraftGroup.bind(this);
     }
 
     handleToggle() {
         this.setState({
             collapsed: !this.state.collapsed
         })
+    }
+
+    handleAircraftGroupChanged(e) {
+        this.setState({
+            aircraftGroup: e.target.value.trim()
+        })
+    }
+
+    handleJoinAircraftGroup() {
+        if (!this.state.aircraftGroup) {
+            alert('Please fill in Pilot Code!');
+        } else {
+            this.setState({
+                inAircraftGroup: true
+            })
+            this.props.onJoinAircraftGroup(this.state.aircraftGroup);
+        }
+    }
+
+    handleLeaveAircraftGroup() {
+        if (!this.state.aircraftGroup) {
+            alert('Please fill in Pilot Code!');
+        } else {
+            this.setState({
+                inAircraftGroup: false
+            })
+            this.props.onLeaveAircraftGroup(this.state.aircraftGroup);
+        }
     }
 
     public render() {
@@ -80,6 +118,17 @@ export default class AircraftList extends React.Component<Props, State> {
                     Aircraft List {(clientIds.length === 0 ? "" : `(${clientIds.length})`)}
                 </ModalHeader>
                 <ModalBody>
+                    {this.state.inAircraftGroup ?
+                        <h6>
+                            Private Group {this.state.aircraftGroup}
+                            <Button color="primary" size="sm" onClick={this.handleLeaveAircraftGroup} style={{ marginLeft: 10 }}>Leave Private Group</Button>
+                        </h6> :
+                        <div className="input-group">
+                            <input value={this.state.aircraftGroup} onChange={this.handleAircraftGroupChanged} placeholder="Group Code" className="form-control" />
+                            <div className="input-group-append">
+                                <Button color="primary" onClick={this.handleJoinAircraftGroup}>Join Private Group</Button>
+                            </div>
+                        </div>}
                     <List>
                         <thead>
                             <tr>

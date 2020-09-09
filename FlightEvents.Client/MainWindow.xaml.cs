@@ -197,7 +197,19 @@ namespace FlightEvents.Client
 
         private async void ButtonStartTrack_Click(object sender, RoutedEventArgs e)
         {
+            if (viewModel.AircraftPrivateGroup && string.IsNullOrWhiteSpace(viewModel.AircraftGroup))
+            {
+                MessageBox.Show("Please enter an Pilot Code or press Generate to get a random one.", "Invalid Private Group", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                return;
+            }
+
             route.Clear();
+
+            await hub.SendAsync("LoginAircraft", new LoginInfo
+            {
+                ClientType = LoginInfo.App,
+                AircraftGroup = viewModel.AircraftPrivateGroup ? viewModel.AircraftGroup : null
+            });
 
             viewModel.IsTracking = true;
 
@@ -288,6 +300,11 @@ namespace FlightEvents.Client
             {
                 await hub.SendAsync("Join", "ATC");
             }
+
+            await hub.SendAsync("LoginAircraft", new AircraftLoginInfo
+            {
+                AircraftGroup = viewModel.AircraftPrivateGroup ? viewModel.AircraftGroup : null
+            });
         }
 
         private Task Hub_Reconnecting(Exception arg)
@@ -395,7 +412,7 @@ namespace FlightEvents.Client
 
         private async void Hub_OnAircraftUpdated(string clientId, AircraftStatus status)
         {
-            if (viewModel.IsTracking && viewModel.AircraftStatus != null && 
+            if (viewModel.IsTracking && viewModel.AircraftStatus != null &&
                 GpsHelper.CalculateDistance(status.Latitude, status.Longitude, viewModel.AircraftStatus.Latitude, viewModel.AircraftStatus.Longitude) < 10000)
             {
                 try
@@ -548,6 +565,16 @@ namespace FlightEvents.Client
         #endregion
 
         #region ATC
+
+        private void ButtonGenerateAtcGroup_Click(object sender, RoutedEventArgs e)
+        {
+            viewModel.AtcGroup = Guid.NewGuid().ToString("N").Substring(0, 8);
+        }
+
+        private void ButtonGenerateAircraftGroup_Click(object sender, RoutedEventArgs e)
+        {
+            viewModel.AircraftGroup = Guid.NewGuid().ToString("N").Substring(0, 8);
+        }
 
         private async void AtcServer_Connected(object sender, ConnectedEventArgs e)
         {

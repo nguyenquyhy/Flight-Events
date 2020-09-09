@@ -13,6 +13,7 @@ namespace FlightEvents.Web.Hubs
     {
         public static ConcurrentDictionary<string, string> ConnectionIdToClientIds => connectionIdToClientIds;
         public static ConcurrentDictionary<string, AircraftStatus> ConnectionIdToAircraftStatuses => connectionIdToAircraftStatuses;
+        public static ConcurrentDictionary<string, string> ClientIdToAircraftGroup => clientIdToAircraftGroup;
 
         private static readonly ConcurrentDictionary<string, string> connectionIdToClientIds = new ConcurrentDictionary<string, string>();
         private static readonly ConcurrentDictionary<string, string> clientIdToConnectionIds = new ConcurrentDictionary<string, string>();
@@ -25,6 +26,8 @@ namespace FlightEvents.Web.Hubs
 
         private static readonly ConcurrentDictionary<string, (string, AircraftPosition)> connectionIdToTeleportRequest = new ConcurrentDictionary<string, (string, AircraftPosition)>();
         private static readonly ConcurrentDictionary<string, string> teleportTokenToConnectionId = new ConcurrentDictionary<string, string>();
+
+        private static readonly ConcurrentDictionary<string, string> clientIdToAircraftGroup = new ConcurrentDictionary<string, string>();
 
         private readonly IDiscordConnectionStorage discordConnectionStorage;
         private readonly ILeaderboardStorage leaderboardStorage;
@@ -70,13 +73,51 @@ namespace FlightEvents.Web.Hubs
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
+            // Note: cache based on clientId is removed here, 
+            // but there has to be a recovery mechanism in OnConnectedAsync to handle reconnect
+
             if (connectionIdToClientIds.TryRemove(Context.ConnectionId, out var clientId))
             {
                 clientIdToConnectionIds.TryRemove(clientId, out _);
+                clientIdToAircraftGroup.TryRemove(clientId, out _);
                 await Clients.Groups("Map", "ATC").UpdateATC(clientId, null, null);
             }
             RemoveCacheOnConnectionId(Context.ConnectionId);
             await base.OnDisconnectedAsync(exception);
+        }
+
+        /// <summary>
+        /// A generic login function for all clients that should put the client into the correct group
+        /// </summary>
+        public async Task Login(LoginInfo info)
+        {
+            switch (info.ClientType)
+            {
+                case LoginInfo.Web:
+                    if (string.IsNullOrEmpty(info.AircraftGroup))
+                    {
+                        await Groups.
+                        await Groups.AddToGroupAsync(Context.ConnectionId, "Map");
+                    }
+                    break;
+                case LoginInfo.App:
+                    if (connectionIdToClientIds.TryGetValue(Context.ConnectionId, out var clientId))
+                    {
+                        if (!string.IsNullOrEmpty(info.AircraftGroup))
+                        {
+                            clientIdToAircraftGroup[clientId] = info.AircraftGroup;
+                        }
+                        else
+                        {
+                            clientIdToAircraftGroup.TryRemove(clientId, out _);
+                        }
+                    }
+                    if (info.UseTraffic)
+                    {
+                        await Groups.AddToGroupAsync(Context.ConnectionId, "ClientMap");
+                    }
+                    break;
+            }
         }
 
         public void LoginATC(ATCInfo atc)
@@ -245,6 +286,20 @@ namespace FlightEvents.Web.Hubs
                 var records = await leaderboardStorage.LoadAsync(evt.Id);
                 await Clients.Caller.UpdateLeaderboard(records);
             }
+
+            if (connectionIdToClientIds.TryGetValue(Context.ConnectionId, out var clientId))
+            {
+                if (clientIdToAircraftGroup.TryGetValue(clientId, out var aircraftGroup))
+                {
+                    switch (group)
+                    {
+                        case "ClientMap":
+                            await Groups.AddToGroupAsync(Context.ConnectionId, "ClientMap:" + aircraftGroup);
+                            break;
+                    }
+                }
+            }
+        }
 
             if (group.StartsWith("Leaderboard:"))
             {
