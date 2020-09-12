@@ -67,7 +67,9 @@ text-align: right;
 `
 
 const CustomButton = styled.button<{ endDateTime: Date }>`
-${props => isBefore(props.endDateTime, new Date()) && css`display: none`}
+${props => isBefore(props.endDateTime, new Date()) && css`
+color: gray;
+`}
 :hover, :focus {
     text-decoration: none;
 

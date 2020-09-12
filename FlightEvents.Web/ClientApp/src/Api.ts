@@ -5,6 +5,7 @@ class Api {
         const query = `{
     flightEvents {
         id
+        type
         name
         startDateTime
     }
