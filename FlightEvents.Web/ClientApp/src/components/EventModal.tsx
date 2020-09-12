@@ -42,12 +42,6 @@ export default class EventModal extends React.Component<Props, State> {
 
     private airports: Airport[] | null = null;
 
-    componentDidMount() {
-    }
-
-    componentWillUnmount() {
-    }
-
     private async handleOpen() {
         this.props.hub.on("UpdateLeaderboard", (records: LeaderboardRecord[]) => {
             records = convertPropertyNames(records, pascalCaseToCamelCase) as LeaderboardRecord[];
@@ -62,21 +56,12 @@ export default class EventModal extends React.Component<Props, State> {
                 isLoading: false,
                 flightEvent: event
             });
-            if (event.waypoints) {
-                if (!this.airports) {
-                    this.airports = await Api.getAirports(event.waypoints.split(' '));
-                }
-            }
 
-            if (!this.state.flightPlans) {
-                const flightPlans = await Api.getFlightPlans(event.id);
-                this.setState({ flightPlans: flightPlans }, () => {
-                    this.props.onFlightPlansLoaded(flightPlans);
-                })
-            }
-
-            await this.props.hub.send("Join", "Leaderboard:" + event.id);
+            await this.loadEventData(event);
+        } else {
+            await this.loadEventData(this.state.flightEvent);
         }
+
 
         if (this.airports) {
             this.props.onAirportLoaded(this.airports);
@@ -95,6 +80,22 @@ export default class EventModal extends React.Component<Props, State> {
         }
 
         this.setState({ leaderboards: {} })
+    }
+
+    private async loadEventData(event: FlightEvent) {
+        if (event.waypoints) {
+            if (!this.airports) {
+                this.airports = await Api.getAirports(event.waypoints.split(' '));
+            }
+        }
+
+        if (!this.state.flightPlans) {
+            const flightPlans = await Api.getFlightPlans(event.id);
+            this.setState({ flightPlans: flightPlans }, () => {
+                this.props.onFlightPlansLoaded(flightPlans);
+            });
+        }
+        await this.props.hub.send("Join", "Leaderboard:" + event.id);
     }
 
     public render() {
