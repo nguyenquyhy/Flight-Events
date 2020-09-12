@@ -33,26 +33,6 @@ jobs:
         with:
           name: Website package
           path: publish-web
-
-  publish-web:
-    runs-on: [windows-latest]
-    name: Publish Web package
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Overwrite Secrets
-        run: echo 'export const MAPBOX_API_KEY = "${{ secrets.MAPBOX_API_KEY }}"' > FlightEvents.Web/ClientApp/src/Constants.ts
-      - name: Publish with dotnet
-        run: dotnet publish --configuration Release --output publish-web FlightEvents.Web
-      - name: Azure Login
-        uses: Azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - name: Azure WebApp
-        uses: Azure/webapps-deploy@v2
-        with:
-          app-name: flightevents
-          package: publish-web
           
   package-client:
     runs-on: [windows-latest]
