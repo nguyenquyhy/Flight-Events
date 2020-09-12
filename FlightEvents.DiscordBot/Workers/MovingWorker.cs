@@ -133,7 +133,10 @@ namespace FlightEvents.DiscordBot
         private async Task CreateVoiceChannelAndMoveAsync(string clientId, int? toFrequency)
         {
             var connection = await discordConnectionStorage.GetConnectionAsync(clientId);
-            if (connection == null) return;
+            if (connection == null)
+            {
+                return;
+            }
 
             SocketGuildUser guildUser = null;
             DiscordServerOptions serverOptions = null;
@@ -146,12 +149,14 @@ namespace FlightEvents.DiscordBot
 
             if (guildUser == null)
             {
+                logger.LogDebug("Cannot find connected user {userId} in any server!", connection.UserId);
                 return;
             }
 
             if (guildUser.VoiceChannel?.CategoryId != serverOptions.ChannelCategoryId)
             {
                 // Do not touch user not connecting to voice or connecting outside the channel
+                logger.LogDebug("Cannot move because connected user {userId} is in voice channel category {categoryId}!", guildUser.VoiceChannel?.CategoryId);
                 return;
             }
 
