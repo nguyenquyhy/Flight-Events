@@ -17,15 +17,35 @@ class Api {
         const query = `query ($id: Uuid!) {
     flightEvent(id: $id) {
         id
+        type
         name
         description
         startDateTime
         url
         waypoints
+        leaderboards
+        leaderboardLaps
     }
 }`;
         const data = await this.graphQLQueryAsync(query, { id: id });
         return data.flightEvent as FlightEvent;
+    }
+
+    public async getFlightEventByStopwatchCode(code: string) {
+        const query = `query ($code: String!) {
+    flightEventByStopwatchCode(code: $code) {
+        id
+        name
+        description
+        startDateTime
+        url
+        waypoints
+        leaderboards
+        leaderboardLaps
+    }
+}`;
+        const data = await this.graphQLQueryAsync(query, { code: code });
+        return data.flightEventByStopwatchCode as FlightEvent;
     }
 
     public async getAirports(idents: string[]) {

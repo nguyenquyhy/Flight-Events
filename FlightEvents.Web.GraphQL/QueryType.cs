@@ -2,6 +2,7 @@
 using HotChocolate.Types;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace FlightEvents.Web.GraphQL
@@ -26,6 +27,8 @@ namespace FlightEvents.Web.GraphQL
         public Task<IEnumerable<FlightEvent>> GetFlightEventsAsync() => storage.GetAllAsync();
 
         public Task<FlightEvent> GetFlightEventAsync(Guid id) => storage.GetAsync(id);
+
+        public Task<FlightEvent> GetFlightEventByStopwatchCodeAsync(string code) => storage.GetByStopwatchCodeAsync(code);
 
         public Task<List<Airport>> GetAirportsAsync(List<string> idents) => airportStorage.GetAirportsAsync(idents);
 

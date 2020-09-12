@@ -27,6 +27,11 @@ namespace FlightEvents.Web.GraphQL
 
         public async Task<FlightEvent> AddFlightEventAsync(FlightEvent flightEvent)
         {
+            if (flightEvent.Type == FlightEventType.Race && string.IsNullOrEmpty(flightEvent.StopwatchCode))
+            {
+                flightEvent.StopwatchCode = Guid.NewGuid().ToString("N")[0..5];
+            }
+
             return await storage.AddAsync(flightEvent);
         }
 

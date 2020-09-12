@@ -7,8 +7,10 @@ import parseJSON from 'date-fns/parseJSON';
 import addHours from 'date-fns/addHours';
 import formatRelative from 'date-fns/formatRelative';
 import isBefore from 'date-fns/isBefore';
+import { HubConnection } from '@microsoft/signalr';
 
 interface Props {
+    hub: HubConnection;
     flightEvent: FlightEvent;
     onAirportsLoaded: (airports: Airport[]) => void;
     onFlightPlansLoaded: (flightPlans: FlightPlan[]) => void;
@@ -43,7 +45,8 @@ export default class EventItem extends React.Component<Props, State> {
                     ({formatRelative(parseJSON(this.props.flightEvent.startDateTime), new Date())})
                 </EventSubtitle>
             </CustomButton>
-            <EventModal isOpen={this.state.isOpen} toggle={this.handleToggle} flightEvent={this.props.flightEvent} onAirportLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />
+            <EventModal hub={this.props.hub}
+                isOpen={this.state.isOpen} toggle={this.handleToggle} flightEvent={this.props.flightEvent} onAirportLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />
         </ListItem>
     }
 }

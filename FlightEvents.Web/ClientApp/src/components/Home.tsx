@@ -152,9 +152,9 @@ export class Home extends React.Component<any, State> {
                 };
 
                 if (aircraftStatus.isReady) {
-                    this.map.moveMarker(clientId, aircraftStatus, 
-                        this.state.myClientId === clientId, 
-                        this.state.followingClientId === clientId, 
+                    this.map.moveMarker(clientId, aircraftStatus,
+                        this.state.myClientId === clientId,
+                        this.state.followingClientId === clientId,
                         this.state.flightPlanClientId === clientId,
                         this.state.moreInfoClientIds.includes(clientId),
                         this.state.showPathClientIds.includes(clientId));
@@ -411,7 +411,7 @@ export class Home extends React.Component<any, State> {
                 onMoreInfoChanged={this.handleMoreInfoChanged} moreInfoClientIds={this.state.moreInfoClientIds}
             />
 
-            <EventList onAirportsLoaded={this.handleAirportsLoaded} onFlightPlansLoaded={this.handleFlightPlansLoaded} />
+            <EventList hub={this.hub} onAirportsLoaded={this.handleAirportsLoaded} onFlightPlansLoaded={this.handleFlightPlansLoaded} />
 
             <TeleportDialog hub={this.hub} selectedPosition={this.state.movingPosition} onComplete={this.handleTeleportCompleted} />
         </>;

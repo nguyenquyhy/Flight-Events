@@ -9,6 +9,7 @@ namespace FlightEvents.Data
         Task<IEnumerable<FlightEvent>> GetAllAsync();
         Task<FlightEvent> GetAsync(Guid id);
         Task<FlightEvent> GetByCodeAsync(string code);
+        Task<FlightEvent> GetByStopwatchCodeAsync(string code);
         Task<FlightEvent> AddAsync(FlightEvent flightEvent);
         Task<FlightEvent> UpdateAsync(FlightEvent flightEvent);
         Task<bool> DeleteAsync(Guid id);

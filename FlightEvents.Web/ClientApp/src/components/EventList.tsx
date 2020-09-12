@@ -9,8 +9,10 @@ import parseJSON from 'date-fns/parseJSON';
 import compareDesc from 'date-fns/compareDesc';
 import isBefore from 'date-fns/isBefore';
 import addHours from 'date-fns/addHours';
+import { HubConnection } from '@microsoft/signalr';
 
 interface Props {
+    hub: HubConnection;
     onAirportsLoaded: (airports: Airport[]) => void;
     onFlightPlansLoaded: (flightPlans: FlightPlan[]) => void;
 }
@@ -57,7 +59,7 @@ export default class EventList extends React.Component<Props, State> {
 
         const list = this.state.flightEvents.length === 0 ?
             <NoneText>None</NoneText> :
-            upcoming.map(flightEvent => <EventItem key={flightEvent.id} flightEvent={flightEvent} onAirportsLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />)
+            upcoming.map(flightEvent => <EventItem key={flightEvent.id} hub={this.props.hub} flightEvent={flightEvent} onAirportsLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />)
 
         return <Wrapper collapsed={this.state.collapsed}>
             <Button className="btn" onClick={this.handleToggle}><i className={"fas " + (this.state.collapsed ? "fa-chevron-up" : "fa-chevron-down")}></i></Button>

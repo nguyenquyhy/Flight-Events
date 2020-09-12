@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using FlightEvents.Data;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace FlightEvents.Web.Hubs
@@ -76,5 +78,9 @@ namespace FlightEvents.Web.Hubs
         /// <param name="connectionId">Connection ID of the requesting map</param>
         /// <param name="position"></param>
         Task Teleport(string connectionId, AircraftPosition position);
+
+        Task UpdateStopwatch(EventStopwatch stopwatch, DateTimeOffset serverTime);
+        Task RemoveStopwatch(EventStopwatch stopwatch);
+        Task UpdateLeaderboard(List<LeaderboardRecord> leaderboardRecords);
     }
 }

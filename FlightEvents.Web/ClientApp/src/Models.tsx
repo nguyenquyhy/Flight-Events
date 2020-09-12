@@ -49,8 +49,11 @@ export interface AircraftStatus {
 
 export interface FlightEvent {
     id: string;
+    type: string;
     name: string;
     description: string;
+    leaderboards: string[];
+    leaderboardLaps: string[];
     startDateTime: string;
     url: string | null;
     waypoints: string | null;
@@ -102,4 +105,23 @@ export interface WaypointICAO {
     ident
     airport
     region
+}
+
+export interface LeaderboardRecord {
+    eventId: string;
+    playerName: string;
+    leaderboardName: string;
+    subIndex: number;
+    score: number;
+    scoreDisplay: string;
+}
+
+export interface Stopwatch {
+    id: string;
+    name: string;
+    addedDateTime: string;
+    startedDateTime?: string;
+    stoppedDateTime?: string;
+    lapsDateTime: string[];
+    leaderboardName: string;
 }

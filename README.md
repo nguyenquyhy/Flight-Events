@@ -28,6 +28,9 @@ https://discordapp.com/api/oauth2/authorize?client_id={BOT_CLIENT_ID}&scope=bot&
 - [X] Teleport aircraft using map
 - [X] x64 SimConnect from MSFS
 - [X] Setting for minimize to Task bar
+- [X] Stopwatch & leaderboard for race event
+- [ ] Private group
+- [ ] Flight plan database for ATC
 - [ ] Search airport on map
 - [ ] MSIX packaging
 - [ ] Gamebar integration

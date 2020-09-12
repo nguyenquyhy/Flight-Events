@@ -13,6 +13,8 @@ namespace FlightEvents.Data
         public string ConnectionString { get; set; }
         [Required]
         public string DiscordConnectionTable { get; set; }
+        [Required]
+        public string LeaderboardTable { get; set; }
     }
 
     public class AzureTableDiscordConnectionStorage : IDiscordConnectionStorage

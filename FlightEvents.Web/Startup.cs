@@ -1,4 +1,5 @@
 using FlightEvents.Data;
+using FlightEvents.Data.AzureStorage;
 using FlightEvents.Web.GraphQL;
 using FlightEvents.Web.Hubs;
 using FlightEvents.Web.Logics;
@@ -36,6 +37,7 @@ namespace FlightEvents.Web
             services.AddSingleton<IFlightPlanStorage, AzureBlobFlightPlanStorage>();
             services.AddSingleton<IAirportStorage, XmlFileAirportStorage>();
             services.AddSingleton<IDiscordConnectionStorage, AzureTableDiscordConnectionStorage>();
+            services.AddSingleton<ILeaderboardStorage, AzureTableLeaderboardStorage>();
 
             services.AddGraphQL(
                 SchemaBuilder.New()
