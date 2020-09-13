@@ -17,7 +17,7 @@ function formatTime(elapsed: number) {
     return `${(Math.floor(elapsed / 1000 / 3600) % 60).toString().padStart(2, '0')}:${(Math.floor(elapsed / 1000 / 60) % 60).toString().padStart(2, '0')}:${(Math.floor(elapsed / 1000) % 60).toString().padStart(2, '0')}.${(elapsed % 1000).toString().padStart(3, '0')}`;
 }
 
-export default (props: ItemProps & Stopwatch) => {
+const StopwatchItem = (props: ItemProps & Stopwatch) => {
     const [state, setState] = React.useState<ItemState>({ elapsed: 0 });
 
     React.useEffect(() => {
@@ -98,3 +98,5 @@ right: 10px;
 font-family: Courier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace;
 font-weight: bold;
 `
+
+export default StopwatchItem;

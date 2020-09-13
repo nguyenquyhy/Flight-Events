@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Route } from 'react-router';
 import { Home } from './components/Home';
-import Stopwatch from './components/Stopwatch';
+import StopwatchPage from './components/StopwatchPage';
 
 import './custom.css'
 
@@ -12,7 +12,7 @@ export default class App extends Component {
         return (
             <>
                 <Route exact path='/' component={Home} />
-                <Route exact path='/Stopwatch/:eventCode' component={Stopwatch} />
+                <Route exact path='/Stopwatch/:eventCode' component={StopwatchPage} />
             </>
         );
     }

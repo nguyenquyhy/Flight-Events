@@ -18,7 +18,7 @@ interface Props {
     onFlightPlanChanged: (clientId: string | null) => void;
 }
 
-export default (props: Props) => {
+const Hud = (props: Props) => {
     let clientIds = Object
         .entries(props.aircrafts)
         .sort((a, b) => (a[1].callsign || a[0].substring(5)).localeCompare((b[1].callsign || b[0].substring(5))))
@@ -81,3 +81,5 @@ padding: 10px 10px 10px 44px;
 display: grid;
 grid-template-columns: auto auto auto 1fr auto;
 `;
+
+export default Hud;

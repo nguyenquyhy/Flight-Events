@@ -26,7 +26,7 @@ export const recordsToLeaderboards = (records: LeaderboardRecord[]) => {
     }, {} as Leaderboards)
 }
 
-export default (props: LeaderboardProps) => {
+const Leaderboard = (props: LeaderboardProps) => {
     const milestones = ['Full race'];
     for (let i = 0; i < props.event.leaderboardLaps.length; i++) {
         milestones.push((i === 0 ? 'Start' : props.event.leaderboardLaps[i - 1]) + ' → ' + props.event.leaderboardLaps[i]);
@@ -80,3 +80,5 @@ text-overflow: ellipsis;
 
 const StyledTime = styled.div`
 `
+
+export default Leaderboard;

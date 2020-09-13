@@ -122,7 +122,7 @@ export default class EventModal extends React.Component<Props, State> {
             <div>Loading...</div>;
 
 
-        return <Modal isOpen={this.props.isOpen} toggle={this.props.toggle} onOpened={this.handleOpen} onClosed={this.handleClosed} size='lg'>
+        return <Modal isOpen={this.props.isOpen} toggle={this.props.toggle} onOpened={this.handleOpen} onClosed={this.handleClosed} size='xl'>
             <ModalHeader>{this.props.flightEvent.name}</ModalHeader>
             <ModalBody>
                 {details}

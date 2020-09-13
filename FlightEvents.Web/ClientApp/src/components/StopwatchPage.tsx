@@ -27,7 +27,7 @@ const hub = new HubConnectionBuilder()
 
 window["shift"] = 0;
 
-export default (props: RouteComponentProps<RouteProps>) => {
+const StopwatchPage = (props: RouteComponentProps<RouteProps>) => {
     const eventCode = props.match.params.eventCode;
 
     const [state, setState] = React.useState<State>({ event: null, stopwatches: {}, name: '', leaderboardName: '', leaderboards: {} });
@@ -133,3 +133,5 @@ export default (props: RouteComponentProps<RouteProps>) => {
         </Row>
     </Container>
 }
+
+export default StopwatchPage;

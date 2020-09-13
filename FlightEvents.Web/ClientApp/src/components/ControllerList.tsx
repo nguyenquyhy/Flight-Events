@@ -12,7 +12,7 @@ interface State {
     collapsed: boolean;
 }
 
-export default (props: Props) => {
+const ControllerList = (props: Props) => {
     const [state, setState] = React.useState<State>({ collapsed: false });
     const handleToggle = () => {
         setState({
@@ -65,3 +65,5 @@ right: 290px;
 width: 130px;
 z-index: 1000;
 `
+
+export default ControllerList;

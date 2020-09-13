@@ -24,7 +24,7 @@ function send(hub: signalr.HubConnection, position: MapPosition, altitude: numbe
     return code;
 }
 
-export default (props: Props) => {
+const TeleportDialog = (props: Props) => {
     let [state, setState] = React.useState<State>({ altitude: 10000, teleportToken: null });
 
     return (
@@ -60,3 +60,5 @@ export default (props: Props) => {
         </Modal>
     );
 }
+
+export default TeleportDialog;
