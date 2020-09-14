@@ -67,6 +67,8 @@ text-align: right;
 `
 
 const CustomButton = styled.button<{ endDateTime: Date }>`
+width: 100%;
+text-align: left;
 ${props => isBefore(props.endDateTime, new Date()) && css`
 color: gray;
 `}

@@ -10,6 +10,7 @@ import gql from 'graphql-tag';
 import Panel from './Controls/Panel';
 import { ApolloResult, FlightEvent, Airport, FlightPlan } from '../Models';
 import EventItem from './EventItem';
+import PastEvents from './PastEvents';
 
 interface Props {
     hub: HubConnection;
@@ -62,6 +63,7 @@ export default class EventList extends React.Component<Props, State> {
                     <Button className="btn" onClick={this.handleToggle}><i className={"fas " + (this.state.collapsed ? "fa-chevron-up" : "fa-chevron-down")}></i></Button>
                     <Title collapsed={this.state.collapsed}>{upcoming.length === 0 ? "No upcoming events" : `Upcoming Events (${upcoming.length})`}</Title>
                     <List>{list}</List>
+                    <PastEvents hub={this.props.hub} onAirportsLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />
                 </Wrapper>
             }}
         </Query>
