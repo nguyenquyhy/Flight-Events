@@ -2,8 +2,9 @@
 import { HubConnectionBuilder } from '@microsoft/signalr';
 import { Form, Container, Row, Col, Breadcrumb, BreadcrumbItem, Button, Input, InputGroup, InputGroupAddon, ListGroup } from 'reactstrap';
 import { RouteComponentProps } from 'react-router-dom';
-import Api from '../Api';
-import { FlightEvent, LeaderboardRecord, Stopwatch } from '../Models';
+import { Query } from 'react-apollo';
+import gql from 'graphql-tag';
+import { ApolloResult, FlightEvent, LeaderboardRecord, Stopwatch } from '../Models';
 import StopwatchItem from './StopwatchItem';
 import Leaderboard, { Leaderboards, recordsToLeaderboards } from './Leaderboard';
 
@@ -12,7 +13,6 @@ interface RouteProps {
 }
 
 interface State {
-    event: FlightEvent | null;
     stopwatches: { [id: string]: Stopwatch };
     leaderboards: Leaderboards;
 
@@ -30,15 +30,7 @@ window["shift"] = 0;
 const StopwatchPage = (props: RouteComponentProps<RouteProps>) => {
     const eventCode = props.match.params.eventCode;
 
-    const [state, setState] = React.useState<State>({ event: null, stopwatches: {}, name: '', leaderboardName: '', leaderboards: {} });
-
-    React.useEffect(() => {
-        const f = async () => {
-            const event = await Api.getFlightEventByStopwatchCode(eventCode);
-            setState(state => ({ ...state, event: event }));
-        }
-        f();
-    }, [eventCode])
+    const [state, setState] = React.useState<State>({ stopwatches: {}, name: '', leaderboardName: '', leaderboards: {} });
 
     React.useEffect(() => {
         const f = async () => {
@@ -73,65 +65,84 @@ const StopwatchPage = (props: RouteComponentProps<RouteProps>) => {
         }
     }, [eventCode])
 
-    const handleLeaderboardNameChanged = (e) => {
-        setState({ ...state, leaderboardName: e.target.value });
+    return <Query query={gql`query ($code: String!) {
+    flightEventByStopwatchCode(code: $code) {
+        id
+        name
+        description
+        startDateTime
+        url
+        waypoints
+        leaderboards
+        leaderboardLaps
     }
+}`} variables={{ code: props.match.params.eventCode }}>{({ loading, error, data }: ApolloResult<{ flightEventByStopwatchCode: FlightEvent }>) => {
+            if (loading) return <>Loading...</>
+            if (error) return <>Error!</>
 
-    const handleNameChanged = (e) => {
-        setState({ ...state, name: e.target.value });
-    }
+            const event = data.flightEventByStopwatchCode;
 
-    const handleAddClicked = async (e) => {
-        e.preventDefault();
-        if (state.leaderboardName && state.name) {
-            await hub.send("AddStopwatch", { eventCode: eventCode, leaderboardName: state.leaderboardName, name: state.name });
-            setState({ ...state, name: '' });
-        }
-    }
+            const handleLeaderboardNameChanged = (e) => {
+                setState({ ...state, leaderboardName: e.target.value });
+            }
 
-    const handleStartAll = async () => {
-        await hub.send("StartAllStopwatches", eventCode);
-    }
+            const handleNameChanged = (e) => {
+                setState({ ...state, name: e.target.value });
+            }
 
-    return <Container>
-        <Row>
-            <Col>
-                <Breadcrumb>
-                    <BreadcrumbItem>Events</BreadcrumbItem>
-                    <BreadcrumbItem>{state.event?.name}</BreadcrumbItem>
-                    <BreadcrumbItem>Stopwatches</BreadcrumbItem>
-                </Breadcrumb>
-            </Col>
-        </Row>
-        <Row>
-            <Col md={8}>
-                <Form onSubmit={handleAddClicked}>
-                    <InputGroup>
-                        <InputGroupAddon addonType="prepend">
-                            <select className='form-control' value={state.leaderboardName} onChange={handleLeaderboardNameChanged}>
-                                <option>Select leaderboard...</option>
-                                {state.event?.leaderboards?.map(leaderboardName => <option key={leaderboardName} value={leaderboardName}>{leaderboardName}</option>)}
-                            </select>
-                        </InputGroupAddon>
-                        <Input value={state.name} onChange={handleNameChanged} placeholder="Name" />
-                        <InputGroupAddon addonType="append"><Button type="submit">Add</Button></InputGroupAddon>
-                    </InputGroup>
-                </Form>
-                <hr />
-                {Object.keys(state.stopwatches).length > 0 && <Button color="primary" onClick={handleStartAll}>Start All</Button>}
-                <br />
-                <ListGroup>
-                    {Object.keys(state.stopwatches).map(id => <StopwatchItem key={id} eventCode={eventCode} hub={hub} {...state.stopwatches[id]} />)}
-                </ListGroup>
-                <br />
-            </Col>
-        </Row>
-        <Row>
-            <Col>
-                {state.event && <Leaderboard event={state.event} leaderboards={state.leaderboards} />}
-            </Col>
-        </Row>
-    </Container>
+            const handleAddClicked = async (e) => {
+                e.preventDefault();
+                if (state.leaderboardName && state.name) {
+                    await hub.send("AddStopwatch", { eventCode: eventCode, leaderboardName: state.leaderboardName, name: state.name });
+                    setState({ ...state, name: '' });
+                }
+            }
+
+            const handleStartAll = async () => {
+                await hub.send("StartAllStopwatches", eventCode);
+            }
+
+            return <Container>
+                <Row>
+                    <Col>
+                        <Breadcrumb>
+                            <BreadcrumbItem>Events</BreadcrumbItem>
+                            <BreadcrumbItem>{event.name}</BreadcrumbItem>
+                            <BreadcrumbItem>Stopwatches</BreadcrumbItem>
+                        </Breadcrumb>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col md={8}>
+                        <Form onSubmit={handleAddClicked}>
+                            <InputGroup>
+                                <InputGroupAddon addonType="prepend">
+                                    <select className='form-control' value={state.leaderboardName} onChange={handleLeaderboardNameChanged}>
+                                        <option>Select leaderboard...</option>
+                                        {event.leaderboards?.map(leaderboardName => <option key={leaderboardName} value={leaderboardName}>{leaderboardName}</option>)}
+                                    </select>
+                                </InputGroupAddon>
+                                <Input value={state.name} onChange={handleNameChanged} placeholder="Name" />
+                                <InputGroupAddon addonType="append"><Button type="submit">Add</Button></InputGroupAddon>
+                            </InputGroup>
+                        </Form>
+                        <hr />
+                        {Object.keys(state.stopwatches).length > 0 && <Button color="primary" onClick={handleStartAll}>Start All</Button>}
+                        <br />
+                        <ListGroup>
+                            {Object.keys(state.stopwatches).map(id => <StopwatchItem key={id} eventCode={eventCode} hub={hub} {...state.stopwatches[id]} />)}
+                        </ListGroup>
+                        <br />
+                    </Col>
+                </Row>
+                <Row>
+                    <Col>
+                        <Leaderboard event={event} leaderboards={state.leaderboards} />
+                    </Col>
+                </Row>
+            </Container>
+        }}
+        </Query>
 }
 
 export default StopwatchPage;

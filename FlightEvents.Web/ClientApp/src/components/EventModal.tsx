@@ -1,8 +1,9 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import { FlightEvent, Airport, FlightPlan, LeaderboardRecord } from '../Models';
-import Api from '../Api';
+import { ApolloResult, FlightEvent, Airport, FlightPlan, LeaderboardRecord } from '../Models';
+import { Query } from 'react-apollo';
+import gql from 'graphql-tag';
 import parseJSON from 'date-fns/parseJSON';
 import ReactMarkdown from 'react-markdown';
 import { HubConnection } from '@microsoft/signalr';
@@ -19,9 +20,6 @@ interface Props {
 }
 
 interface State {
-    isLoading: boolean;
-    flightEvent: FlightEvent | null;
-    flightPlans: FlightPlan[] | null;
     leaderboards: Leaderboards;
 }
 
@@ -30,17 +28,11 @@ export default class EventModal extends React.Component<Props, State> {
         super(props);
 
         this.state = {
-            isLoading: true,
-            flightEvent: null,
-            flightPlans: null,
             leaderboards: {}
         }
 
         this.handleOpen = this.handleOpen.bind(this);
-        this.handleClosed = this.handleClosed.bind(this);
     }
-
-    private airports: Airport[] | null = null;
 
     private async handleOpen() {
         this.props.hub.on("UpdateLeaderboard", (records: LeaderboardRecord[]) => {
@@ -50,82 +42,121 @@ export default class EventModal extends React.Component<Props, State> {
             })
         })
 
-        if (!this.state.flightEvent) {
-            const event = await Api.getFlightEvent(this.props.flightEvent.id);
-            this.setState({
-                isLoading: false,
-                flightEvent: event
-            });
-
-            await this.loadEventData(event);
-        } else {
-            await this.loadEventData(this.state.flightEvent);
-        }
-
-
-        if (this.airports) {
-            this.props.onAirportLoaded(this.airports);
-        }
-
-        if (this.state.flightPlans) {
-            this.props.onFlightPlansLoaded(this.state.flightPlans);
-        }
-    }
-
-    private async handleClosed() {
-        this.props.hub.off("UpdateLeaderboard");
-
-        if (this.state.flightEvent) {
-            await this.props.hub.send("Leave", "Leaderboard:" + this.state.flightEvent.id);
-        }
-
-        this.setState({ leaderboards: {} })
-    }
-
-    private async loadEventData(event: FlightEvent) {
-        if (event.waypoints) {
-            if (!this.airports) {
-                this.airports = await Api.getAirports(event.waypoints.split(' '));
-            }
-        }
-
-        if (!this.state.flightPlans) {
-            const flightPlans = await Api.getFlightPlans(event.id);
-            this.setState({ flightPlans: flightPlans }, () => {
-                this.props.onFlightPlansLoaded(flightPlans);
-            });
-        }
-        await this.props.hub.send("Join", "Leaderboard:" + event.id);
+        await this.props.hub.send("Join", "Leaderboard:" + this.props.flightEvent.id);
     }
 
     public render() {
-        const details = this.state.flightEvent ?
-            <>
-                <div><StyledTime>{parseJSON(this.state.flightEvent.startDateTime).toLocaleString()}</StyledTime></div>
-                <div><ReactMarkdown>{this.state.flightEvent.description}</ReactMarkdown></div>
-                {!!this.state.flightEvent.url && <><h6>Read more at:</h6><a href={this.state.flightEvent.url} target="_blank" rel="noopener noreferrer">{this.state.flightEvent.url}</a></>}
+        const handleClosed = async () => {
+            this.props.hub.off("UpdateLeaderboard");
 
-                {this.state.flightPlans && <>
-                    <Header>Flight Plans</Header>
-                    {this.state.flightPlans.length === 0 ?
-                        <p><em>No flight plan is available for this event.</em></p> :
-                        <ul>
-                            {this.state.flightPlans.map(flightPlan => (
-                                <li key={flightPlan.id}><a href={flightPlan.downloadUrl} target="_blank" rel="noopener noreferrer" download={flightPlan.id}>{flightPlan.data.title}</a></li>
-                            ))}
-                        </ul>
-                    }
-                </>}
+            await this.props.hub.send("Leave", "Leaderboard:" + this.props.flightEvent.id);
 
-                {this.state.flightEvent.type === "RACE" && this.state.leaderboards && <Leaderboard event={this.state.flightEvent} leaderboards={this.state.leaderboards} />}
-            </> :
-            <div>Loading...</div>;
+            this.setState({ leaderboards: {} })
+        }
 
-
-        return <Modal isOpen={this.props.isOpen} toggle={this.props.toggle} onOpened={this.handleOpen} onClosed={this.handleClosed} size='xl'>
+        return <Modal isOpen={this.props.isOpen} toggle={this.props.toggle} onOpened={this.handleOpen} onClosed={handleClosed} size='xl'>
             <ModalHeader>{this.props.flightEvent.name}</ModalHeader>
             <ModalBody>
-                {details}
+                <Query query={gql`query GetFlightEvent($id: Uuid!) {
+    flightEvent(id: $id) {
+        id
+        type
+        name
+        description
+        startDateTime
+        url
+        waypoints
+        leaderboards
+        leaderboardLaps
+    }
+}`} variables={{ id: this.props.flightEvent.id }}>{({ loading, error, data }: ApolloResult<{ flightEvent: FlightEvent }>) => {
+                        if (loading) return <>Loading...</>
+                        if (error) return <>Error!</>
+
+                        const event = data.flightEvent;
+
+                        return <>
+
+                            {!!event.waypoints && <Query query={gql`query GetAirports($idents: [String]!) {
+    airports(idents: $idents) {
+        ident
+        name
+        longitude
+        latitude
+    }
+}`} variables={{ idents: event.waypoints.split(' ') }}>{({ loading, error, data }: ApolloResult<{ airports: Airport[] }>) => {
+                                    if (!loading && !error && data) this.props.onAirportLoaded(data.airports);
+                                    return null;
+                                }}</Query>}
+
+                            <div><StyledTime>{parseJSON(event.startDateTime).toLocaleString()}</StyledTime></div>
+                            <div><ReactMarkdown>{event.description}</ReactMarkdown></div>
+                            {!!event.url && <><h6>Read more at:</h6><a href={event.url} target="_blank" rel="noopener noreferrer">{event.url}</a></>}
+
+                            <Query query={gql`query GetFlightPlans($id: Uuid!) {
+    flightEvent(id: $id) {
+        id
+        flightPlans {
+            id
+            downloadUrl
+            data {
+                title
+                description
+                cruisingAltitude
+                type
+                routeType
+                departure {
+                    id
+                    name
+                    latitude
+                    longitude
+                }
+                destination {
+                    id
+                    name
+                    latitude
+                    longitude
+                }
+                waypoints {
+                    id
+                    airway
+                    type
+                    latitude
+                    longitude
+                    icao {
+                        ident
+                        airport
+                        region
+                    }
+                }
+            }
+        }
+    }
+}`} variables={{ id: event.id }}>{({ loading, error, data }: ApolloResult<{ flightEvent: { flightPlans: FlightPlan[] } }>) => {
+                                    if (loading) return <div>Checking flight plan...</div>;
+                                    if (error) return <div>Error!</div>;
+
+                                    const flightPlans = data.flightEvent.flightPlans;
+
+                                    this.props.onFlightPlansLoaded(flightPlans);
+
+                                    return <>
+                                        <Header>Flight Plans</Header>
+                                        {flightPlans.length === 0 ?
+                                            <p><em>No flight plan is available for this event.</em></p> :
+                                            <ul>
+                                                {flightPlans.map(flightPlan => (
+                                                    <li key={flightPlan.id}><a href={flightPlan.downloadUrl} target="_blank" rel="noopener noreferrer" download={flightPlan.id}>{flightPlan.data.title}</a></li>
+                                                ))}
+                                            </ul>
+                                        }
+                                    </>;
+                                }}
+                            </Query>
+
+                            {event.type === "RACE" && this.state.leaderboards && <Leaderboard event={event} leaderboards={this.state.leaderboards} />}
+                        </>;
+                    }}</Query>
             </ModalBody>
             <ModalFooter>
                 <Button color="primary" disabled>Join</Button>{' '}

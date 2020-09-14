@@ -1,15 +1,15 @@
 ﻿import * as React from 'react';
-import styled from 'styled-components';
-import { css } from 'styled-components';
-import Panel from './Controls/Panel';
-import { FlightEvent, Airport, FlightPlan } from '../Models';
-import EventItem from './EventItem';
-import Api from '../Api';
+import styled, { css } from 'styled-components';
 import parseJSON from 'date-fns/parseJSON';
 import compareDesc from 'date-fns/compareDesc';
 import isBefore from 'date-fns/isBefore';
 import addHours from 'date-fns/addHours';
 import { HubConnection } from '@microsoft/signalr';
+import { Query } from 'react-apollo';
+import gql from 'graphql-tag';
+import Panel from './Controls/Panel';
+import { ApolloResult, FlightEvent, Airport, FlightPlan } from '../Models';
+import EventItem from './EventItem';
 
 interface Props {
     hub: HubConnection;
@@ -19,7 +19,6 @@ interface Props {
 
 interface State {
     collapsed: boolean;
-    flightEvents: FlightEvent[]
 }
 
 export default class EventList extends React.Component<Props, State> {
@@ -27,23 +26,10 @@ export default class EventList extends React.Component<Props, State> {
         super(props);
 
         this.state = {
-            collapsed: false,
-            flightEvents: []
+            collapsed: false
         }
 
         this.handleToggle = this.handleToggle.bind(this);
-    }
-
-    componentDidMount() {
-        this.populateData();
-    }
-
-    private async populateData() {
-        const events = await Api.getFlightEvents();
-
-        this.setState({
-            flightEvents: events
-        });
     }
 
     handleToggle() {
@@ -53,19 +39,32 @@ export default class EventList extends React.Component<Props, State> {
     }
 
     public render() {
-        const upcoming = this.state.flightEvents
-            .filter(ev => isBefore(new Date(), addHours(parseJSON(ev.startDateTime), ev.type === 'RACE' ? 24 : 4)))
-            .sort((a, b) => compareDesc(parseJSON(a.startDateTime), parseJSON(b.startDateTime)));
+        return <Query query={gql`{
+    flightEvents {
+        id
+        type
+        name
+        startDateTime
+    }
+}`}>{({ loading, error, data }: ApolloResult<{ flightEvents: FlightEvent[] }>) => {
+                if (loading) return <Wrapper collapsed={this.state.collapsed}>Loading...</Wrapper>;
+                if (error) return <Wrapper collapsed={this.state.collapsed}>Error</Wrapper>;
 
-        const list = this.state.flightEvents.length === 0 ?
-            <NoneText>None</NoneText> :
-            upcoming.map(flightEvent => <EventItem key={flightEvent.id} hub={this.props.hub} flightEvent={flightEvent} onAirportsLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />)
+                const upcoming = data.flightEvents
+                    .filter(ev => isBefore(new Date(), addHours(parseJSON(ev.startDateTime), ev.type === 'RACE' ? 24 : 4)))
+                    .sort((a, b) => compareDesc(parseJSON(a.startDateTime), parseJSON(b.startDateTime)));
 
-        return <Wrapper collapsed={this.state.collapsed}>
-            <Button className="btn" onClick={this.handleToggle}><i className={"fas " + (this.state.collapsed ? "fa-chevron-up" : "fa-chevron-down")}></i></Button>
-            <Title collapsed={this.state.collapsed}>{upcoming.length === 0 ? "No upcoming events" : `Upcoming Events (${upcoming.length})`}</Title>
-            <List>{list}</List>
-        </Wrapper>
+                const list = data.flightEvents.length === 0 ?
+                    <NoneText>None</NoneText> :
+                    upcoming.map(flightEvent => <EventItem key={flightEvent.id} hub={this.props.hub} flightEvent={flightEvent} onAirportsLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />)
+
+                return <Wrapper collapsed={this.state.collapsed}>
+                    <Button className="btn" onClick={this.handleToggle}><i className={"fas " + (this.state.collapsed ? "fa-chevron-up" : "fa-chevron-down")}></i></Button>
+                    <Title collapsed={this.state.collapsed}>{upcoming.length === 0 ? "No upcoming events" : `Upcoming Events (${upcoming.length})`}</Title>
+                    <List>{list}</List>
+                </Wrapper>
+            }}
+        </Query>
     }
 }
 
