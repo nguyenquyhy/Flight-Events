@@ -5,10 +5,11 @@ import compareDesc from 'date-fns/compareDesc';
 import isBefore from 'date-fns/isBefore';
 import addHours from 'date-fns/addHours';
 import { HubConnection } from '@microsoft/signalr';
-import { Query } from 'react-apollo';
-import gql from 'graphql-tag';
+import { Query } from '@apollo/client/react/components';
+import { ApolloQueryResult } from '@apollo/client/core';
+import { gql } from '@apollo/client';
 import Panel from './Controls/Panel';
-import { ApolloResult, FlightEvent, Airport, FlightPlan } from '../Models';
+import { FlightEvent, Airport, FlightPlan } from '../Models';
 import EventItem from './EventItem';
 import PastEvents from './PastEvents';
 
@@ -47,7 +48,7 @@ export default class EventList extends React.Component<Props, State> {
         name
         startDateTime
     }
-}`}>{({ loading, error, data }: ApolloResult<{ flightEvents: FlightEvent[] }>) => {
+}`}>{({ loading, error, data }: ApolloQueryResult<{ flightEvents: FlightEvent[] }>) => {
                 if (loading) return <Wrapper collapsed={this.state.collapsed}>Loading...</Wrapper>;
                 if (error) return <Wrapper collapsed={this.state.collapsed}>Error</Wrapper>;
 

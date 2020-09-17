@@ -1,9 +1,10 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import { ApolloResult, FlightEvent, Airport, FlightPlan, LeaderboardRecord } from '../Models';
-import { Query } from 'react-apollo';
-import gql from 'graphql-tag';
+import { FlightEvent, Airport, FlightPlan, LeaderboardRecord } from '../Models';
+import { Query } from '@apollo/client/react/components';
+import { ApolloQueryResult } from '@apollo/client/core';
+import { gql } from '@apollo/client';
 import parseJSON from 'date-fns/parseJSON';
 import ReactMarkdown from 'react-markdown';
 import { HubConnection } from '@microsoft/signalr';
@@ -69,7 +70,7 @@ export default class EventModal extends React.Component<Props, State> {
         leaderboards
         leaderboardLaps
     }
-}`} variables={{ id: this.props.flightEvent.id }}>{({ loading, error, data }: ApolloResult<{ flightEvent: FlightEvent }>) => {
+}`} variables={{ id: this.props.flightEvent.id }}>{({ loading, error, data }: ApolloQueryResult<{ flightEvent: FlightEvent }>) => {
                         if (loading) return <>Loading...</>
                         if (error) return <>Error!</>
 
@@ -84,7 +85,7 @@ export default class EventModal extends React.Component<Props, State> {
         longitude
         latitude
     }
-}`} variables={{ idents: event.waypoints.split(' ') }}>{({ loading, error, data }: ApolloResult<{ airports: Airport[] }>) => {
+}`} variables={{ idents: event.waypoints.split(' ') }}>{({ loading, error, data }: ApolloQueryResult<{ airports: Airport[] }>) => {
                                     if (!loading && !error && data) this.props.onAirportLoaded(data.airports);
                                     return null;
                                 }}</Query>}
@@ -132,7 +133,7 @@ export default class EventModal extends React.Component<Props, State> {
             }
         }
     }
-}`} variables={{ id: event.id }}>{({ loading, error, data }: ApolloResult<{ flightEvent: { flightPlans: FlightPlan[] } }>) => {
+}`} variables={{ id: event.id }}>{({ loading, error, data }: ApolloQueryResult<{ flightEvent: { flightPlans: FlightPlan[] } }>) => {
                                     if (loading) return <div>Checking flight plan...</div>;
                                     if (error) return <div>Error!</div>;
 

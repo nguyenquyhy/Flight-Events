@@ -1,12 +1,4 @@
-﻿import { ApolloError } from 'apollo-boost';
-
-export interface ApolloResult<T> {
-    loading: boolean;
-    error?: ApolloError;
-    data: T
-}
-
-export interface ATCInfo {
+﻿export interface ATCInfo {
     callsign: string;
 
     longitude: number;

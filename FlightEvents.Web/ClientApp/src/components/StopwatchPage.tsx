@@ -2,9 +2,10 @@
 import { HubConnectionBuilder } from '@microsoft/signalr';
 import { Form, Container, Row, Col, Breadcrumb, BreadcrumbItem, Button, Input, InputGroup, InputGroupAddon, ListGroup } from 'reactstrap';
 import { RouteComponentProps } from 'react-router-dom';
-import { Query } from 'react-apollo';
-import gql from 'graphql-tag';
-import { ApolloResult, FlightEvent, LeaderboardRecord, Stopwatch } from '../Models';
+import { Query } from '@apollo/client/react/components';
+import { ApolloQueryResult } from '@apollo/client/core';
+import { gql } from '@apollo/client';
+import { FlightEvent, LeaderboardRecord, Stopwatch } from '../Models';
 import StopwatchItem from './StopwatchItem';
 import Leaderboard, { Leaderboards, recordsToLeaderboards } from './Leaderboard';
 
@@ -76,7 +77,7 @@ const StopwatchPage = (props: RouteComponentProps<RouteProps>) => {
         leaderboards
         leaderboardLaps
     }
-}`} variables={{ code: props.match.params.eventCode }}>{({ loading, error, data }: ApolloResult<{ flightEventByStopwatchCode: FlightEvent }>) => {
+}`} variables={{ code: props.match.params.eventCode }}>{({ loading, error, data }: ApolloQueryResult<{ flightEventByStopwatchCode: FlightEvent }>) => {
             if (loading) return <>Loading...</>
             if (error) return <>Error!</>
 

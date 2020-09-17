@@ -1,10 +1,11 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
 import { Modal, ModalBody, ModalHeader } from 'reactstrap';
-import { Query } from 'react-apollo';
-import gql from 'graphql-tag';
+import { Query } from '@apollo/client/react/components';
+import { ApolloQueryResult } from '@apollo/client/core';
+import { gql } from '@apollo/client';
 import { HubConnection } from '@microsoft/signalr';
-import { Airport, ApolloResult, FlightEvent, FlightPlan } from '../Models';
+import { Airport, FlightEvent, FlightPlan } from '../Models';
 import EventItem from './EventItem';
 
 interface Props {
@@ -36,12 +37,15 @@ const PastEvents = (props: Props) => {
         name
         startDateTime
     }
-}`}>{({ loading, error, data }: ApolloResult<{ flightEvents: FlightEvent[] }>) => {
+}`}>{({ loading, error, data }: ApolloQueryResult<{ flightEvents: FlightEvent[] }>) => {
                         if (loading) return <>Loading...</>;
                         if (error) return <>Error!</>;
 
+                        const events = data.flightEvents.slice()
+                            .sort((a, b) => (new Date(b.startDateTime).getTime() - new Date(a.startDateTime).getTime()));
+
                         return <>
-                            {data.flightEvents.sort((a, b) => (new Date(b.startDateTime).getTime() - new Date(a.startDateTime).getTime())).map(event => <List key={event.id}>
+                            {events.map(event => <List key={event.id}>
                                 <EventItem flightEvent={event} hub={props.hub} onAirportsLoaded={props.onAirportsLoaded} onFlightPlansLoaded={props.onFlightPlansLoaded} />
                             </List>)}
                         </>
