@@ -11,7 +11,16 @@ const rootElement = document.getElementById('root');
 
 const client = new ApolloClient({
     uri: '/graphql',
-    cache: new InMemoryCache()
+    cache: new InMemoryCache({
+        typePolicies: {
+            FlightPlanData: {
+                keyFields: ['title']
+            },
+            FlightPlanWaypoint: {
+                keyFields: false
+            }
+        }
+    })
 });
 
 ReactDOM.render(
