@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "2.2.0",
+      "changes": "Fixes for ForeFlight integration"
+    },
+    {
       "id": "2.1.0",
       "changes": "Add slow mode"
     },
