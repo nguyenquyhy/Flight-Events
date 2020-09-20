@@ -86,7 +86,7 @@ namespace FlightEvents.Client.Logics
 
             if (udpClient != null)
             {
-                var dataString = $"XTRAFFICFlight Events,{icaoAddress},{status.Latitude:0.######},{status.Longitude:0.######},{status.Altitude:0.#},{status.VerticalSpeed:0.#},{(status.IsOnGround ? 0 : 1)},{status.TrueHeading:0.#},{status.GroundSpeed:0.#},{status.Callsign}";
+                var dataString = FormattableString.Invariant($"XTRAFFICFlight Events,{icaoAddress},{status.Latitude:0.######},{status.Longitude:0.######},{status.Altitude:0.#},{status.VerticalSpeed:0.#},{(status.IsOnGround ? 0 : 1)},{status.TrueHeading:0.#},{status.GroundSpeed:0.#},{status.Callsign}");
                 var trafficData = Encoding.UTF8.GetBytes(dataString);
                 var sent = await udpClient.SendAsync(trafficData, trafficData.Length);
                 logger.LogDebug($"Sent {sent}/{trafficData.Length} bytes for Traffic.");
@@ -100,7 +100,7 @@ namespace FlightEvents.Client.Logics
             {
                 await gpsDataSender.ExecuteAsync(async () =>
                 {
-                    var gpsData = Encoding.UTF8.GetBytes($"XGPSFlight Events,{status.Longitude:0.######},{status.Latitude:0.######},{status.Altitude * FeetToMeters:0.#)},{status.TrueHeading:0.#},{status.GroundSpeed * KnotsToMetersPerSecond:0.#}");
+                    var gpsData = Encoding.UTF8.GetBytes(FormattableString.Invariant($"XGPSFlight Events,{status.Longitude:0.######},{status.Latitude:0.######},{status.Altitude * FeetToMeters:0.#)},{status.TrueHeading:0.#},{status.GroundSpeed * KnotsToMetersPerSecond:0.#}"));
                     var sent = await udpClient.SendAsync(gpsData, gpsData.Length);
                     logger.LogDebug($"Sent {sent}/{gpsData.Length} bytes for GPS.");
                 });
@@ -113,7 +113,7 @@ namespace FlightEvents.Client.Logics
             {
                 await attDataSender.ExecuteAsync(async () =>
                 {
-                    var statusData = Encoding.UTF8.GetBytes($"XATTFlight Events,{status.TrueHeading:0.#},{-status.Pitch:0.#},{-status.Bank:0.#}");
+                    var statusData = Encoding.UTF8.GetBytes(FormattableString.Invariant($"XATTFlight Events,{status.TrueHeading:0.#},{-status.Pitch:0.#},{-status.Bank:0.#}"));
                     var sent = await udpClient.SendAsync(statusData, statusData.Length);
                     logger.LogDebug($"Sent {sent}/{statusData.Length} bytes for ATT.");
                 });
