@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { FlightEvent, Airport, FlightPlan, LeaderboardRecord } from '../Models';
 import { Query } from '@apollo/client/react/components';
+import { useQuery } from '@apollo/client/react/hooks';
 import { ApolloQueryResult } from '@apollo/client/core';
 import { gql } from '@apollo/client';
 import parseJSON from 'date-fns/parseJSON';
@@ -94,7 +95,34 @@ export default class EventModal extends React.Component<Props, State> {
                             <div><ReactMarkdown>{event.description}</ReactMarkdown></div>
                             {!!event.url && <><h6>Read more at:</h6><a href={event.url} target="_blank" rel="noopener noreferrer">{event.url}</a></>}
 
-                            <Query query={gql`query GetFlightPlans($id: Uuid!) {
+                            <FlightPlanComponent id={event.id} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />
+
+                            {event.type === "RACE" && this.state.leaderboards && <Leaderboard event={event} leaderboards={this.state.leaderboards} />}
+                        </>;
+                    }}</Query>
+            </ModalBody>
+            <ModalFooter>
+                <Button color="primary" disabled>Join</Button>{' '}
+                <Button color="secondary" onClick={this.props.toggle}>Close</Button>
+            </ModalFooter>
+        </Modal>
+    }
+}
+
+const StyledTime = styled.span`
+border-bottom: 1px dashed #909090;
+margin-bottom: 10px;
+`
+
+const Header = styled.h5`
+margin-top: 12px;
+`;
+
+const FlightPlanComponent = (props: {
+    id: string,
+    onFlightPlansLoaded: (flightPlans: FlightPlan[]) => void;
+}) => {
+    const { loading, error, data } = useQuery<{ flightEvent: { flightPlans: FlightPlan[] } }>(gql`query GetFlightPlans($id: Uuid!) {
     flightEvent(id: $id) {
         id
         flightPlans {
@@ -133,45 +161,24 @@ export default class EventModal extends React.Component<Props, State> {
             }
         }
     }
-}`} variables={{ id: event.id }}>{({ loading, error, data }: ApolloQueryResult<{ flightEvent: { flightPlans: FlightPlan[] } }>) => {
-                                    if (loading) return <div>Checking flight plan...</div>;
-                                    if (error) return <div>Error!</div>;
+}`, { variables: { id: props.id } });
 
-                                    const flightPlans = data.flightEvent.flightPlans;
+    if (loading) return <div>Checking flight plan...</div>;
+    if (error || !data) return <div>Cannot load flight plan!</div>;
 
-                                    this.props.onFlightPlansLoaded(flightPlans);
+    const flightPlans = data.flightEvent.flightPlans;
 
-                                    return <>
-                                        <Header>Flight Plans</Header>
-                                        {flightPlans.length === 0 ?
-                                            <p><em>No flight plan is available for this event.</em></p> :
-                                            <ul>
-                                                {flightPlans.map(flightPlan => (
-                                                    <li key={flightPlan.id}><a href={flightPlan.downloadUrl} target="_blank" rel="noopener noreferrer" download={flightPlan.id}>{flightPlan.data.title}</a></li>
-                                                ))}
-                                            </ul>
-                                        }
-                                    </>;
-                                }}
-                            </Query>
+    props.onFlightPlansLoaded(flightPlans);
 
-                            {event.type === "RACE" && this.state.leaderboards && <Leaderboard event={event} leaderboards={this.state.leaderboards} />}
-                        </>;
-                    }}</Query>
-            </ModalBody>
-            <ModalFooter>
-                <Button color="primary" disabled>Join</Button>{' '}
-                <Button color="secondary" onClick={this.props.toggle}>Close</Button>
-            </ModalFooter>
-        </Modal>
-    }
+    return <>
+        <Header>Flight Plans</Header>
+        {flightPlans.length === 0 ?
+            <p><em>No flight plan is available for this event.</em></p> :
+            <ul>
+                {flightPlans.map(flightPlan => (
+                    <li key={flightPlan.id}><a href={flightPlan.downloadUrl} target="_blank" rel="noopener noreferrer" download={flightPlan.id}>{flightPlan.data.title}</a></li>
+                ))}
+            </ul>
+        }
+    </>;
 }
-
-const StyledTime = styled.span`
-border-bottom: 1px dashed #909090;
-margin-bottom: 10px;
-`
-
-const Header = styled.h5`
-margin-top: 12px;
-`;
