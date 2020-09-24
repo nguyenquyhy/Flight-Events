@@ -23,6 +23,7 @@ namespace FlightEvents.DiscordBot
         public ulong ServerId { get; set; }
         [Required]
         public ulong ChannelCategoryId { get; set; }
+        public ulong? CommandChannelId { get; set; }
         [Required]
         public string LoungeChannelName { get; set; }
         [Required]
@@ -33,6 +34,15 @@ namespace FlightEvents.DiscordBot
         /// Restrict the role that can use !finfo
         /// </summary>
         public ulong? FlightInfoRoleId { get; set; }
+    }
+
+    public class AtisOptions
+    {
+        public string[] BotTokens { get; set; }
+        [Required]
+        public string AudioFolder { get; set; }
+        [Required]
+        public string BotExecutionPath { get; set; }
     }
 
 }

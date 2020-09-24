@@ -19,20 +19,22 @@ namespace FlightEvents.DiscordBot
         private readonly DiscordOptions discordOptions;
         private readonly IDiscordConnectionStorage discordConnectionStorage;
         private readonly HubConnection hub;
+        private readonly ChannelMaker channelMaker;
         private DiscordSocketClient botClient;
 
         public MovingWorker(ILogger<MovingWorker> logger,
             IOptionsMonitor<AppOptions> appOptionsAccessor,
             IOptionsMonitor<DiscordOptions> discordOptionsAccessor,
             IDiscordConnectionStorage discordConnectionStorage,
-            HubConnection hub)
+            HubConnection hub,
+            ChannelMaker channelMaker)
         {
             this.logger = logger;
             this.appOptions = appOptionsAccessor.CurrentValue;
             this.discordOptions = discordOptionsAccessor.CurrentValue;
             this.discordConnectionStorage = discordConnectionStorage;
             this.hub = hub;
-
+            this.channelMaker = channelMaker;
             hub.Reconnecting += Hub_Reconnecting;
             hub.Reconnected += Hub_Reconnected;
 
@@ -162,34 +164,9 @@ namespace FlightEvents.DiscordBot
 
             var guild = guildUser.Guild;
 
-            var channelName = toFrequency.HasValue ?
-                CreateChannelNameFromFrequency(serverOptions, toFrequency) :
-                serverOptions.LoungeChannelName;
-
-            var channel = guild.Channels.FirstOrDefault(c => c.Name == channelName);
-            if (channel == null)
-            {
-                var voiceChannel = await guild.CreateVoiceChannelAsync(channelName, props =>
-                {
-                    props.CategoryId = serverOptions.ChannelCategoryId;
-                    props.Bitrate = serverOptions.ChannelBitrate;
-                });
-
-                // Note: Bot will not try to add permission.
-                // Instead, permission should be set at the category level so that the channel can inherit.
-
-                logger.LogInformation("Created new channel {channelName}", channelName);
-
-                await MoveMemberAsync(guildUser, voiceChannel);
-            }
-            else
-            {
-                await MoveMemberAsync(guildUser, channel);
-            }
+            var channel = await channelMaker.CreateVoiceChannelAsync(serverOptions, guild, toFrequency);
+            await MoveMemberAsync(guildUser, channel);
         }
-
-        private static string CreateChannelNameFromFrequency(DiscordServerOptions serverOptions, int? toFrequency)
-            => (toFrequency.Value / 1000d).ToString("N3") + (serverOptions.ChannelNameSuffix ?? "");
 
         private async Task MoveMemberAsync(SocketGuildUser guildUser, IGuildChannel channel)
         {

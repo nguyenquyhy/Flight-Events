@@ -45,6 +45,7 @@ namespace FlightEvents.DiscordBot
                     services.AddOptions<AppOptions>().Bind(hostContext.Configuration).ValidateDataAnnotations();
                     services.AddOptions<DiscordOptions>().Bind(hostContext.Configuration.GetSection("Discord")).ValidateDataAnnotations();
                     services.AddOptions<AzureTableOptions>().Bind(hostContext.Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();
+                    services.AddOptions<AtisOptions>().Bind(hostContext.Configuration.GetSection("Atis")).ValidateDataAnnotations();
 
                     var appOptions = new AppOptions();
                     hostContext.Configuration.Bind(appOptions);
@@ -57,9 +58,14 @@ namespace FlightEvents.DiscordBot
                     services.AddSingleton(hub);
 
                     services.AddTransient<IDiscordConnectionStorage, AzureTableDiscordConnectionStorage>();
+                    services.AddTransient<ChannelMaker>();
+                    services.AddTransient<RegexMatcher>();
+                    services.AddSingleton<AtisProcessManager>();
+
                     services.AddHostedService<MovingWorker>();
                     services.AddHostedService<CleaningWorker>();
                     services.AddHostedService<DiscordMessageWorker>();
+                    services.AddHostedService<AtisWorker>();
                 });
     }
 }
