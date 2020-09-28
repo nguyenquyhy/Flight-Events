@@ -84,8 +84,19 @@ namespace FlightEvents.DiscordBot
                                         }
                                         else if (stopwatch.ElapsedMilliseconds > 60000)
                                         {
-                                            logger.LogInformation("Deleting {channelName}.", voiceChannel.Name);
-                                            await voiceChannel.DeleteAsync();
+                                            try
+                                            {
+                                                logger.LogInformation("Deleting {channelName} of guild {guildName}.", voiceChannel.Name, guild.Name);
+                                                await voiceChannel.DeleteAsync();
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                logger.LogError(ex, "Cannot delete channel {channelName} of guild {guildName}", voiceChannel.Name, guild.Name);
+                                            }
+                                            finally
+                                            {
+                                                channelStopwatches.TryRemove(channel.Id, out _);
+                                            }
                                         }
                                     }
                                 }
