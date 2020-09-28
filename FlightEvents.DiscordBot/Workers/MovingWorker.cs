@@ -158,7 +158,7 @@ namespace FlightEvents.DiscordBot
             if (guildUser.VoiceChannel?.CategoryId != serverOptions.ChannelCategoryId)
             {
                 // Do not touch user not connecting to voice or connecting outside the channel
-                logger.LogDebug("Cannot move because connected user {userId} is in voice channel category {categoryId}!", guildUser.VoiceChannel?.CategoryId);
+                logger.LogDebug("Cannot move because connected user {userId} is in another voice channel category {categoryId}!", connection.UserId, guildUser.VoiceChannel?.CategoryId);
                 return;
             }
 
