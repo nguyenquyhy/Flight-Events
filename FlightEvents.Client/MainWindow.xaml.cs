@@ -395,7 +395,7 @@ namespace FlightEvents.Client
 
         private async void Hub_OnAircraftUpdated(string clientId, AircraftStatus status)
         {
-            if (viewModel.IsTracking && viewModel.AircraftStatus != null && 
+            if (viewModel.IsTracking && viewModel.AircraftStatus != null &&
                 GpsHelper.CalculateDistance(status.Latitude, status.Longitude, viewModel.AircraftStatus.Latitude, viewModel.AircraftStatus.Longitude) < 10000)
             {
                 try
@@ -701,13 +701,19 @@ namespace FlightEvents.Client
         private async Task StartUDPConnectionAsync()
         {
             await udpBroadcastLogic.StartAsync(viewModel.BroadcastIP);
-            await hub.SendAsync("Join", "ClientMap");
+            if (hub?.ConnectionId != null)
+            {
+                await hub.SendAsync("Join", "ClientMap");
+            }
         }
 
         private async Task StopUDPConnectionAsync()
         {
             await hub.SendAsync("Leave", "ClientMap");
-            await udpBroadcastLogic.StopAsync();
+            if (hub?.ConnectionId != null)
+            {
+                await udpBroadcastLogic.StopAsync();
+            }
         }
 
         #endregion
@@ -795,34 +801,73 @@ namespace FlightEvents.Client
 
         private async void BroadcastUDP_Checked(object sender, RoutedEventArgs e)
         {
+            // Prevent loop
+            if (!BroadcastUDP.IsEnabled) return;
+
+            var initializating = hub == null;
+
             try
             {
+                BroadcastUDP.IsEnabled = false;
                 await userPreferencesLoader.UpdateAsync(pref => pref.BroadcastUDP = true);
-
-                if (hub != null)
-                {
-                    await StartUDPConnectionAsync();
-                }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Cannot check BroadcastUDP!");
+                logger.LogError(ex, "Cannot update BroadcastUDP!");
                 viewModel.BroadcastUDP = false;
+                return;
+            }
+            finally
+            {
+                BroadcastUDP.IsEnabled = true;
+            }
+
+            // Side-effect
+            if (!initializating)
+            {
+                try
+                {
+                    await StartUDPConnectionAsync();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cannot start UDP connection!");
+                    MessageBox.Show("Cannot start broadcasting! Please restart Flight Events to try again.");
+                }
             }
         }
 
         private async void BroadcastUDP_Unchecked(object sender, RoutedEventArgs e)
         {
+            // Prevent loop
+            if (!BroadcastUDP.IsEnabled) return;
+
             try
             {
+                BroadcastUDP.IsEnabled = false;
                 await userPreferencesLoader.UpdateAsync(pref => pref.BroadcastUDP = false);
 
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot update BroadcastUDP!");
+                viewModel.BroadcastUDP = true;
+                return;
+            }
+            finally
+            {
+                BroadcastUDP.IsEnabled = true;
+            }
+
+            // Side-effect
+            try
+            {
                 await StopUDPConnectionAsync();
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Cannot uncheck BroadcastUDP!");
-                viewModel.BroadcastUDP = true;
+                logger.LogError(ex, "Cannot stop UDP connection!");
+                MessageBox.Show("Cannot stop broadcasting! Please restart Flight Events.");
             }
         }
 
