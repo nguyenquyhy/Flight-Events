@@ -271,7 +271,11 @@ namespace FlightEvents.Client
         {
             try
             {
-                Process.Start(new ProcessStartInfo { FileName = TextURL.Text, UseShellExecute = true });
+                var url = TextURL.Text;
+                if (!string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(viewModel.Callsign) && viewModel.IsTracking)
+                    url += "?myCallsign=" + Uri.EscapeDataString(viewModel.Callsign);
+
+                Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
             }
             catch { }
         }
