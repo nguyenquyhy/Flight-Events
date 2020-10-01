@@ -54,7 +54,7 @@ export default class EventList extends React.Component<Props, State> {
 
                 const upcoming = data.flightEvents
                     .filter(ev => isBefore(new Date(), addHours(parseJSON(ev.startDateTime), ev.type === 'RACE' ? 24 : 4)))
-                    .sort((a, b) => compareDesc(parseJSON(a.startDateTime), parseJSON(b.startDateTime)));
+                    .sort((a, b) => compareDesc(parseJSON(b.startDateTime), parseJSON(a.startDateTime)));
 
                 const list = data.flightEvents.length === 0 ?
                     <NoneText>None</NoneText> :
