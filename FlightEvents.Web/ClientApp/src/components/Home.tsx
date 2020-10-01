@@ -14,6 +14,7 @@ import LeafletMap from '../maps/LeaftletMap';
 import MaptalksMap from '../maps/MaptalksMap';
 import Storage from '../Storage';
 import TeleportDialog from './Dialogs/TeleportDialog';
+import { RouteComponentProps } from 'react-router-dom';
 
 const CONTROLLER_TIMEOUT_MILLISECONDS = 30000;
 const AIRCRAFT_TIMEOUT_MILLISECONDS = 10000;
@@ -35,7 +36,9 @@ interface State {
     movingPosition: MapPosition | null;
 }
 
-export class Home extends React.Component<any, State> {
+type Props = RouteComponentProps<any>;
+
+export class Home extends React.Component<Props, State> {
     static displayName = Home.name;
 
     private storage = new Storage();
@@ -44,10 +47,12 @@ export class Home extends React.Component<any, State> {
     private map: IMap;
     private currentView?: View;
 
+    private myCallsign: string | null = null;
+
     private aircrafts: { [clientId: string]: { lastUpdated: Date } } = {};
     private controllers: { [clientId: string]: { lastUpdated: Date } } = {};
 
-    constructor(props: any) {
+    constructor(props: Props) {
         super(props);
 
         const pref = this.storage.loadPreferences();
@@ -97,6 +102,9 @@ export class Home extends React.Component<any, State> {
     async componentDidMount() {
         this.initializeMap();
 
+        const searchParams = new URLSearchParams(this.props.location.search);
+        this.myCallsign = searchParams.get('myCallsign');
+
         const hub = this.hub;
 
         hub.onreconnected(async connectionId => {
@@ -140,12 +148,25 @@ export class Home extends React.Component<any, State> {
             try {
                 aircraftStatus.isReady = !(Math.abs(aircraftStatus.latitude) < 0.02 && Math.abs(aircraftStatus.longitude) < 0.02);
 
-                this.setState({
+                let newState = {
                     aircrafts: {
                         ...this.state.aircrafts,
                         [clientId]: aircraftStatus
-                    }
-                });
+                    },
+                    myClientId: this.state.myClientId
+                };
+
+                // Set own aircraft from URL
+                if (this.myCallsign && aircraftStatus.callsign === this.myCallsign) {
+                    newState = {
+                        ...newState,
+                        myClientId: clientId
+                    };
+                    this.map.focus(aircraftStatus);
+                    this.myCallsign = null;
+                }
+
+                this.setState(newState);
 
                 this.aircrafts[clientId] = {
                     lastUpdated: new Date()
