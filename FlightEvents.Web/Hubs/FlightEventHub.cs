@@ -1,5 +1,6 @@
 ﻿using FlightEvents.Data;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -26,13 +27,16 @@ namespace FlightEvents.Web.Hubs
         private static readonly ConcurrentDictionary<string, (string, AircraftPosition)> connectionIdToTeleportRequest = new ConcurrentDictionary<string, (string, AircraftPosition)>();
         private static readonly ConcurrentDictionary<string, string> teleportTokenToConnectionId = new ConcurrentDictionary<string, string>();
 
+        private readonly ILogger<FlightEventHub> logger;
         private readonly IDiscordConnectionStorage discordConnectionStorage;
         private readonly ILeaderboardStorage leaderboardStorage;
         private readonly IFlightEventStorage flightEventStorage;
 
-        public FlightEventHub(IDiscordConnectionStorage discordConnectionStorage, ILeaderboardStorage leaderboardStorage,
+        public FlightEventHub(ILogger<FlightEventHub> logger,
+            IDiscordConnectionStorage discordConnectionStorage, ILeaderboardStorage leaderboardStorage,
             IFlightEventStorage flightEventStorage)
         {
+            this.logger = logger;
             this.discordConnectionStorage = discordConnectionStorage;
             this.leaderboardStorage = leaderboardStorage;
             this.flightEventStorage = flightEventStorage;
@@ -131,6 +135,7 @@ namespace FlightEvents.Web.Hubs
                     var toFrequency = status.FrequencyCom1;
                     if (fromFrequency != toFrequency)
                     {
+                        logger.LogDebug("Send signal to Bot on changing frequency of {clientId} from {from} to {to}", clientId, fromFrequency, toFrequency);
                         await Clients.Groups("Bot").ChangeFrequency(clientId, fromFrequency == 0 ? null : (int?)fromFrequency, toFrequency == 0 ? null : (int?)toFrequency);
                     }
                 }
