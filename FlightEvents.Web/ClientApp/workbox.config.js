@@ -9,11 +9,12 @@
         // URLs containing a "?" character won't be blacklisted as they're likely
         // a route with query params (e.g. auth callbacks).
         new RegExp('/[^/?]+\\.[^/]+$'),
-        new RegExp('^/graphql'),
-        new RegExp('^/Error'),
-        new RegExp('^/Discord'),
-        new RegExp('^/Login'),
-        new RegExp('^/.well-known'),
+        new RegExp('^/GraphQL', 'i'),
+        new RegExp('^/Error', 'i'),
+        new RegExp('^/Discord', 'i'),
+        new RegExp('^/Login', 'i'),
+        new RegExp('^/Logout', 'i'),
+        new RegExp('^/.well-known', 'i'),
     ]
     return options;
 };
