@@ -37,6 +37,7 @@ namespace FlightEvents.DiscordBot
             this.channelMaker = channelMaker;
             hub.Reconnecting += Hub_Reconnecting;
             hub.Reconnected += Hub_Reconnected;
+            hub.Closed += Hub_Closed;
 
             hub.On<string, int?, int?>("ChangeFrequency", async (clientId, from, to) =>
             {
@@ -87,15 +88,21 @@ namespace FlightEvents.DiscordBot
             }
         }
 
-        private Task Hub_Reconnecting(Exception arg)
+        private Task Hub_Reconnecting(Exception ex)
         {
-            logger.LogInformation("Reconnecting to SignalR");
+            logger.LogError(ex, "Reconnecting to SignalR");
             return Task.CompletedTask;
         }
 
         private Task Hub_Reconnected(string arg)
         {
-            logger.LogInformation("Reconnected to SignalR");
+            logger.LogInformation("Reconnected to SignalR. {arg}", arg);
+            return Task.CompletedTask;
+        }
+
+        private Task Hub_Closed(Exception ex)
+        {
+            logger.LogError(ex, "Close SignalR connection!");
             return Task.CompletedTask;
         }
 
