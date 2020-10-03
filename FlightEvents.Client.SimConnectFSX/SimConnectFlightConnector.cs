@@ -142,13 +142,16 @@ namespace FlightEvents.Client.SimConnectFSX
 
         public Task<FlightPlanData> RequestFlightPlanAsync(CancellationToken cancellationToken = default)
         {
-            if (flightPlanTcs != null)
+            if (simconnect == null) return Task.FromResult<FlightPlanData>(null);
+
+            var tcs = flightPlanTcs;
+            if (tcs != null)
             {
                 logger.LogInformation("Wait for existing flight plan request...");
-                return flightPlanTcs.Task;
+                return tcs.Task;
             }
 
-            var tcs = new TaskCompletionSource<FlightPlanData>();
+            tcs = new TaskCompletionSource<FlightPlanData>();
             flightPlanTcs = tcs;
 
             cancellationToken.Register(() =>
@@ -156,7 +159,10 @@ namespace FlightEvents.Client.SimConnectFSX
                 if (tcs.TrySetCanceled())
                 {
                     logger.LogWarning("Cannot get flight plan in time limit!");
-                    flightPlanTcs = null;
+                    if (flightPlanTcs == tcs)
+                    {
+                        flightPlanTcs = null;
+                    }
                 }
             }, useSynchronizationContext: false);
 
