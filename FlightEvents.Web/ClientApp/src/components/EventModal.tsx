@@ -25,6 +25,14 @@ interface State {
     leaderboards: Leaderboards;
 }
 
+function renderTime(event: FlightEvent) {
+    if (event.endDateTime) {
+        return <><StyledTime>{parseJSON(event.startDateTime).toLocaleString()}</StyledTime> - <StyledTime>{parseJSON(event.endDateTime).toLocaleString()}</StyledTime></>;
+    } else {
+        return <StyledTime>{parseJSON(event.startDateTime).toLocaleString()}</StyledTime>;
+    }
+}
+
 export default class EventModal extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -66,6 +74,7 @@ export default class EventModal extends React.Component<Props, State> {
         name
         description
         startDateTime
+        endDateTime
         url
         waypoints
         leaderboards
@@ -91,7 +100,7 @@ export default class EventModal extends React.Component<Props, State> {
                                     return null;
                                 }}</Query>}
 
-                            <div><StyledTime>{parseJSON(event.startDateTime).toLocaleString()}</StyledTime></div>
+                            <div>{renderTime(event)}</div>
                             <div><ReactMarkdown>{event.description}</ReactMarkdown></div>
                             {!!event.url && <><h6>Read more at:</h6><a href={event.url} target="_blank" rel="noopener noreferrer">{event.url}</a></>}
 

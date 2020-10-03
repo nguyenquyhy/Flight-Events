@@ -27,7 +27,7 @@ namespace FlightEvents.Web.GraphQL
             descriptor.Field(o => o.CreatedDateTime).Ignore();
             descriptor.Field(o => o.UpdatedDateTime).Ignore();
             descriptor.Field(o => o.Code).Ignore();
-            descriptor.Field(o => o.StartDateTime).Type<DateTimeType>().DefaultValue(default(DateTimeOffset));
+            descriptor.Field(o => o.StartDateTime).Type<DateTimeType>().DefaultValue(FlightEvent.DefaultDateTimeOffset);
         }
     }
 }

@@ -12,11 +12,16 @@ namespace FlightEvents.Data
 
     public class FlightEvent
     {
+        // HACK: defaultValue in HotChocolate seems to assign wrong date when DateTimeOffset.MinValue is used
+        // hence we introduce a different default
+        public static readonly DateTimeOffset DefaultDateTimeOffset = new DateTimeOffset(1000, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
         public Guid Id { get; set; }
         public DateTimeOffset CreatedDateTime { get; set; }
         public DateTimeOffset UpdatedDateTime { get; set; }
 
         public DateTimeOffset StartDateTime { get; set; }
+        public DateTimeOffset? EndDateTime { get; set; }
 
         public FlightEventType? Type { get; set; }
 
@@ -36,7 +41,8 @@ namespace FlightEvents.Data
 
         public void UpdateTo(FlightEvent current)
         {
-            if (StartDateTime != default) current.StartDateTime = StartDateTime;
+            if (StartDateTime > DefaultDateTimeOffset) current.StartDateTime = StartDateTime;
+            if (EndDateTime != default) current.EndDateTime = EndDateTime;
 
             if (Type != default) current.Type = Type;
 

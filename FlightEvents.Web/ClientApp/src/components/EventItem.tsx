@@ -39,7 +39,9 @@ export default class EventItem extends React.Component<Props, State> {
 
     public render() {
         return <ListItem>
-            <CustomButton className={"btn btn-link"} endDateTime={addHours(parseJSON(this.props.flightEvent.startDateTime), 4)} onClick={this.handleToggle}>
+            <CustomButton className={"btn btn-link"}
+                endDateTime={this.props.flightEvent.endDateTime ? parseJSON(this.props.flightEvent.endDateTime) : addHours(parseJSON(this.props.flightEvent.startDateTime), 4)}
+                onClick={this.handleToggle}>
                 <EventTitle>{this.props.flightEvent.name}</EventTitle>
                 <EventSubtitle>
                     ({formatRelative(parseJSON(this.props.flightEvent.startDateTime), new Date())})

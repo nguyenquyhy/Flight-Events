@@ -55,6 +55,7 @@ export interface FlightEvent {
     leaderboards: string[];
     leaderboardLaps: string[];
     startDateTime: string;
+    endDateTime: string | null;
     url: string | null;
     waypoints: string | null;
 }
