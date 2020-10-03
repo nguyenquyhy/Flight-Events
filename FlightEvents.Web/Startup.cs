@@ -43,13 +43,14 @@ namespace FlightEvents.Web
             var adminUsernames = new List<string>();
             Configuration.GetSection("Authentication:AdminUsernames").Bind(adminUsernames);
 
+            services.AddOptions<EventOptions>().Bind(Configuration.GetSection("Events")).ValidateDataAnnotations();
             services.AddOptions<DiscordOptions>().Bind(Configuration.GetSection("Discord")).ValidateDataAnnotations();
             services.AddOptions<AzureBlobOptions>().Bind(Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();
             services.AddOptions<AzureTableOptions>().Bind(Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();
             services.AddOptions<BroadcastOptions>().Bind(Configuration.GetSection("Broadcast")).ValidateDataAnnotations();
 
             services.AddSingleton<RandomStringGenerator>();
-            services.AddSingleton<IFlightEventStorage>(sp => new JsonFileFlightEventStorage("events.json", sp.GetService<RandomStringGenerator>()));
+            services.AddSingleton<IFlightEventStorage, JsonFileFlightEventStorage>();
             services.AddSingleton<IFlightPlanStorage, AzureBlobFlightPlanStorage>();
             services.AddSingleton<IAirportStorage, XmlFileAirportStorage>();
             services.AddSingleton<IDiscordConnectionStorage, AzureTableDiscordConnectionStorage>();

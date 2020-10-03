@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -8,14 +10,20 @@ using System.Threading.Tasks;
 
 namespace FlightEvents.Data
 {
+    public class EventOptions
+    {
+        [Required]
+        public string FilePath { get; set; }
+    }
+
     public class JsonFileFlightEventStorage : IFlightEventStorage
     {
         private readonly string filePath;
         private readonly RandomStringGenerator randomStringGenerator;
 
-        public JsonFileFlightEventStorage(string filePath, RandomStringGenerator randomStringGenerator)
+        public JsonFileFlightEventStorage(IOptionsMonitor<EventOptions> optionsAccessor, RandomStringGenerator randomStringGenerator)
         {
-            this.filePath = filePath;
+            this.filePath = optionsAccessor.CurrentValue.FilePath;
             this.randomStringGenerator = randomStringGenerator;
         }
 
