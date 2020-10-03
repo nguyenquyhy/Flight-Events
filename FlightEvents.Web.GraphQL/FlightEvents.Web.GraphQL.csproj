@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="10.5.2" />
     <PackageReference Include="HotChocolate.Types" Version="10.5.2" />
   </ItemGroup>
 

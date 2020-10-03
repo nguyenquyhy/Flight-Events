@@ -1,4 +1,5 @@
 ﻿using FlightEvents.Data;
+using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.Types;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ namespace FlightEvents.Web.GraphQL
         }
     }
 
+    [Authorize(Roles = new string[] { "Admin" })]
     public class Mutation
     {
         private readonly IFlightEventStorage storage;
