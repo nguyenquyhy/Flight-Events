@@ -44,6 +44,10 @@ This includes:
 - [X] x64 SimConnect from MSFS
 - [X] Setting for minimize to Task bar
 - [X] Stopwatch & leaderboard for race event
+- [ ] Support for Events in client
+  - [X] Show events and checklist
+  - [ ] Notify button
+  - [ ] Manual and Auto Refresh
 - [ ] Private group
 - [ ] Flight plan database for ATC
 - [ ] Search airport on map

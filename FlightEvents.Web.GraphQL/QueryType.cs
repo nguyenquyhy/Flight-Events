@@ -24,7 +24,15 @@ namespace FlightEvents.Web.GraphQL
             this.flightPlanStorage = flightPlanStorage;
         }
 
-        public Task<IEnumerable<FlightEvent>> GetFlightEventsAsync() => storage.GetAllAsync();
+        public async Task<IEnumerable<FlightEvent>> GetFlightEventsAsync(bool upcoming = false)
+        {
+            var result = await storage.GetAllAsync();
+            if (upcoming)
+            {
+                result = result.Where(o => (o.EndDateTime ?? (o.StartDateTime.AddHours(4))) > DateTimeOffset.Now);
+            }
+            return result;
+        }
 
         public Task<FlightEvent> GetFlightEventAsync(Guid id) => storage.GetAsync(id);
 

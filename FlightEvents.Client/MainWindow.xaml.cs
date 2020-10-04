@@ -1,6 +1,7 @@
 ﻿using FlightEvents.Client.ATC;
 using FlightEvents.Client.Dialogs;
 using FlightEvents.Client.Logics;
+using FlightEvents.Data;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -153,21 +154,11 @@ namespace FlightEvents.Client
 
             try
             {
-                using (var httpClient = new HttpClient())
-                {
-                    var response = await httpClient.GetAsync($"{appSettings.WebServerUrl}/Discord/Connection/{pref.ClientId}");
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        using var stream = await response.Content.ReadAsStreamAsync();
-                        var connection = await JsonSerializer.DeserializeAsync<DiscordConnection>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                        viewModel.DiscordConnection = connection;
-                    }
-                }
+                await viewModel.InitializeAsync(pref.ClientId);
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Cannot get Discord connection!");
+                logger.LogWarning(ex, "Cannot initialize View Model");
             }
 
             discordRichPresentLogic.Initialize();
@@ -973,6 +964,74 @@ namespace FlightEvents.Client
                 logger.LogError(ex, "Cannot uncheck SlowMode!");
                 viewModel.MinimizeToTaskbar = true;
             }
+        }
+
+        #endregion
+
+        #region Events
+
+        private void ButtonReadMore_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var vm = (sender as FrameworkElement).DataContext as FlightEvent;
+                if (!string.IsNullOrEmpty(vm?.Url))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = vm.Url,
+                        UseShellExecute = true
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot open Read More link");
+            }
+        }
+
+        private void ButtonChecklist_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var vm = (sender as FrameworkElement).DataContext as FlightEvent;
+                viewModel.ChecklistEvent = new ChecklistViewModel(vm, viewModel.DiscordConnection != null);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot open checklist");
+            }
+        }
+
+        private void ButtonCloseChecklist_Click(object sender, RoutedEventArgs e)
+        {
+            viewModel.ChecklistEvent = null;
+        }
+
+        private void ButtonChecklistItemHint_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var itemVM = (sender as FrameworkElement).DataContext as ChecklistItemViewModel;
+                if (!string.IsNullOrEmpty(itemVM.Hint))
+                {
+                    MessageBox.Show(itemVM.Hint, "Flight Events", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch { }
+        }
+
+        private void ButtonChecklistItemLink_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var link = (sender as FrameworkElement).DataContext as FlightEventChecklistItemLink;
+                if (!string.IsNullOrEmpty(link?.Url) && Uri.IsWellFormedUriString(link.Url, UriKind.Absolute))
+                {
+                    Process.Start(new ProcessStartInfo(link.Url) { UseShellExecute = true });
+                }
+            }
+            catch { }
         }
 
         #endregion

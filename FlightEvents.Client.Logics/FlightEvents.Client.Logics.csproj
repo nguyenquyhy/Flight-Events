@@ -9,10 +9,12 @@
   <ItemGroup>
     <PackageReference Include="DiscordRichPresence" Version="1.0.150" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.8" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="3.1.8" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FlightEvents.Common\FlightEvents.Common.csproj" />
+    <ProjectReference Include="..\FlightEvents.Data\FlightEvents.Data.csproj" />
   </ItemGroup>
 
 </Project>

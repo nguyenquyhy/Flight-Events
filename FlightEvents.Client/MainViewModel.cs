@@ -1,5 +1,15 @@
-﻿using System.ComponentModel;
+﻿using FlightEvents.Client.Logics;
+using FlightEvents.Data;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace FlightEvents.Client
 {
@@ -11,7 +21,7 @@ namespace FlightEvents.Client
         Failed
     }
 
-    public class MainViewModel : INotifyPropertyChanged
+    public class BaseViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -25,6 +35,53 @@ namespace FlightEvents.Client
             }
             return false;
         }
+    }
+
+    public class MainViewModel : BaseViewModel
+    {
+        private readonly ILogger<MainViewModel> logger;
+        private readonly IEventGraphQLClient graphQLClient;
+        private readonly object webServerUrl;
+
+        public MainViewModel(ILogger<MainViewModel> logger, IEventGraphQLClient graphQLClient, IOptionsMonitor<AppSettings> appSettings)
+        {
+            this.logger = logger;
+            this.graphQLClient = graphQLClient;
+            this.webServerUrl = appSettings.CurrentValue.WebServerUrl;
+        }
+
+        public async Task InitializeAsync(string clientId)
+        {
+            try
+            {
+                var allEvents = await graphQLClient.GetFlightEventsAsync();
+                Events = new ObservableCollection<FlightEvent>(allEvents);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Cannot get events!");
+            }
+
+            try
+            {
+                using var httpClient = new HttpClient();
+                var response = await httpClient.GetAsync($"{webServerUrl}/Discord/Connection/{clientId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    using var stream = await response.Content.ReadAsStreamAsync();
+                    var connection = await JsonSerializer.DeserializeAsync<DiscordConnection>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    DiscordConnection = connection;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Cannot get Discord connection!");
+            }
+        }
+
+        private ObservableCollection<FlightEvent> events = new ObservableCollection<FlightEvent>();
+        public ObservableCollection<FlightEvent> Events { get => events; set => SetProperty(ref events, value); }
 
         private ConnectionState simConnectionState = ConnectionState.Idle;
         public ConnectionState SimConnectionState { get => simConnectionState; set => SetProperty(ref simConnectionState, value); }
@@ -57,7 +114,25 @@ namespace FlightEvents.Client
         public bool IsTracking { get => isTracking; set => SetProperty(ref isTracking, value); }
 
         private DiscordConnection discordConnection;
-        public DiscordConnection DiscordConnection { get => discordConnection; set => SetProperty(ref discordConnection, value); }
+        public DiscordConnection DiscordConnection
+        {
+            get => discordConnection;
+            set
+            {
+                if (discordConnection != value && ChecklistEvent != null)
+                {
+                    var itemVm = ChecklistEvent?.Items.FirstOrDefault(o => o.Data.Type == FlightEventChecklistItemType.Client && o.Data.SubType == FlightEventChecklistItemSubType.ConnectToDiscord);
+                    if (itemVm != null)
+                    {
+                        var oldEnabled = itemVm.IsEnabled;
+                        itemVm.IsEnabled = true;
+                        itemVm.IsChecked = value != null;
+                        itemVm.IsEnabled = oldEnabled;
+                    }
+                }
+                SetProperty(ref discordConnection, value);
+            }
+        }
 
         private bool disableDiscordRP;
         public bool DisableDiscordRP { get => disableDiscordRP; set => SetProperty(ref disableDiscordRP, value); }
@@ -75,6 +150,9 @@ namespace FlightEvents.Client
         public bool MinimizeToTaskbar { get => minimizeToTaskbar; set => SetProperty(ref minimizeToTaskbar, value); }
 
         private Airport nearestAirport;
-        public Airport NearestAirport { get { return nearestAirport; } set { SetProperty(ref nearestAirport, value); } }
+        public Airport NearestAirport { get => nearestAirport; set => SetProperty(ref nearestAirport, value); }
+
+        private ChecklistViewModel checklistEvent;
+        public ChecklistViewModel ChecklistEvent { get => checklistEvent; set => SetProperty(ref checklistEvent, value); }
     }
 }

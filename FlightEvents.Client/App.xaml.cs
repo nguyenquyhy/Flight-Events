@@ -104,6 +104,7 @@ namespace FlightEvents.Client
                 configure.AddSerilog();
             });
 
+            services.AddSingleton<IEventGraphQLClient, EventGraphQLClient>();
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<IFlightConnector, SimConnectFlightConnector>();
             services.AddSingleton<UdpBroadcastLogic>();

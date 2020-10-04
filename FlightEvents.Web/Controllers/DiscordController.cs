@@ -42,7 +42,11 @@ namespace FlightEvents.Web.Controllers
         [HttpPost]
         public async Task<ActionResult<DiscordConnection>> Confirm(string clientId, string code)
         {
-            return await discordLogic.ConfirmAsync(clientId, code);
+            var connection = await discordLogic.ConfirmAsync(clientId, code);
+
+            if (connection == null) return BadRequest();
+
+            return connection;
         }
 
         [HttpDelete]

@@ -39,6 +39,8 @@ namespace FlightEvents.Data
 
         public List<string> FlightPlanIds { get; set; }
 
+        public List<FlightEventChecklistItem> ChecklistItems { get; set; }
+
         public void UpdateTo(FlightEvent current)
         {
             if (StartDateTime > DefaultDateTimeOffset) current.StartDateTime = StartDateTime;
@@ -59,6 +61,36 @@ namespace FlightEvents.Data
             if (LeaderboardLaps != default) current.LeaderboardLaps = LeaderboardLaps;
 
             if (FlightPlanIds != default) current.FlightPlanIds = FlightPlanIds;
+            if (ChecklistItems != default) current.ChecklistItems = ChecklistItems;
         }
+    }
+
+    public class FlightEventChecklistItem
+    {
+        public FlightEventChecklistItemType Type { get; set; }
+        public string SubType { get; set; }
+
+        public string Title { get; set; }
+        public long? DiscordServerId { get; set; }
+        public long? DiscordChannelId { get; set; }
+        public List<FlightEventChecklistItemLink> Links { get; set; }
+    }
+
+    public class FlightEventChecklistItemLink
+    {
+        public string Type { get; set; }
+        public string Url { get; set; }
+    }
+
+    public enum FlightEventChecklistItemType
+    {
+        Client,
+        Discord,
+        MicrosoftSimulator
+    }
+
+    public static class FlightEventChecklistItemSubType
+    {
+        public const string ConnectToDiscord = "ConnectToDiscord";
     }
 }
