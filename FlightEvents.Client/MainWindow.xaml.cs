@@ -28,8 +28,6 @@ namespace FlightEvents.Client
     {
         private int MinimumUpdatePeriod = 500;
 
-        private const string DefaultWebServerUrl = "https://events.flighttracker.tech";
-
         private readonly Random random = new Random();
 
         private readonly MainViewModel viewModel;
@@ -75,6 +73,8 @@ namespace FlightEvents.Client
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            TextURL.Text = this.appSettings.WebServerUrl;
+
             var currentVersion = versionLogic.GetVersion();
             UserPreferences pref;
             try
@@ -96,7 +96,7 @@ namespace FlightEvents.Client
 
             var clientId = pref.ClientId;
             hub = new HubConnectionBuilder()
-                .WithUrl($"{this.appSettings.WebServerUrl ?? DefaultWebServerUrl}/FlightEventHub?clientType=Client&clientVersion={currentVersion}&clientId={clientId}")
+                .WithUrl($"{this.appSettings.WebServerUrl}/FlightEventHub?clientType=Client&clientVersion={currentVersion}&clientId={clientId}")
                 .WithAutomaticReconnect()
                 .AddMessagePackProtocol()
                 .Build();
@@ -112,8 +112,6 @@ namespace FlightEvents.Client
             hub.On<string, int>("ChangeUpdateRateByCallsign", Hub_OnChangeUpdateRateByCallsign);
             hub.On<string, AircraftStatus>("UpdateAircraft", Hub_OnAircraftUpdated);
             hub.On<string, AircraftPosition>("Teleport", Hub_OnTeleport);
-
-            TextURL.Text = this.appSettings.WebServerUrl ?? DefaultWebServerUrl;
 
             atcServer.FlightPlanRequested += AtcServer_FlightPlanRequested;
             atcServer.Connected += AtcServer_Connected;
@@ -153,7 +151,7 @@ namespace FlightEvents.Client
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync($"{appSettings.WebServerUrl ?? DefaultWebServerUrl}/Discord/Connection/{pref.ClientId}");
+                    var response = await httpClient.GetAsync($"{appSettings.WebServerUrl}/Discord/Connection/{pref.ClientId}");
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -486,7 +484,7 @@ namespace FlightEvents.Client
                 await Task.Delay(500);
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = $"{appSettings.WebServerUrl ?? DefaultWebServerUrl}/Discord/Connect",
+                    FileName = $"{appSettings.WebServerUrl}/Discord/Connect",
                     UseShellExecute = true
                 });
             }
@@ -506,7 +504,7 @@ namespace FlightEvents.Client
                 var userPref = await userPreferencesLoader.LoadAsync();
 
                 using var httpClient = new HttpClient();
-                var response = await httpClient.PostAsync($"{appSettings.WebServerUrl ?? DefaultWebServerUrl}/Discord/Confirm?clientId={userPref.ClientId}&code={TextDiscordConfirm.Text}", null);
+                var response = await httpClient.PostAsync($"{appSettings.WebServerUrl}/Discord/Confirm?clientId={userPref.ClientId}&code={TextDiscordConfirm.Text}", null);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -538,7 +536,7 @@ namespace FlightEvents.Client
                     var userPref = await userPreferencesLoader.LoadAsync();
                     using (var httpClient = new HttpClient())
                     {
-                        await httpClient.DeleteAsync($"{appSettings.WebServerUrl ?? DefaultWebServerUrl }/Discord/Connection/{userPref.ClientId}");
+                        await httpClient.DeleteAsync($"{appSettings.WebServerUrl}/Discord/Connection/{userPref.ClientId}");
                     }
                     viewModel.DiscordConnection = null;
                 }

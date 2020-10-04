@@ -25,6 +25,8 @@ namespace FlightEvents.Client
     /// </summary>
     public partial class App : Application
     {
+        private const string DefaultWebServerUrl = "https://events.flighttracker.tech";
+
         #region Single Instance Enforcer
 
         readonly SingletonApplicationEnforcer enforcer = new SingletonApplicationEnforcer(args =>
@@ -90,7 +92,12 @@ namespace FlightEvents.Client
                 )
                 .CreateLogger();
 
-            services.AddOptions<AppSettings>().Bind(Configuration).ValidateDataAnnotations();
+            services.AddOptions<AppSettings>().Bind(Configuration)
+                .ValidateDataAnnotations()
+                .PostConfigure(options =>
+                {
+                    options.WebServerUrl ??= DefaultWebServerUrl;
+                });
 
             services.AddLogging(configure =>
             {
