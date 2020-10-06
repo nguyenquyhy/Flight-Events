@@ -43,6 +43,7 @@ namespace FlightEvents.Web
             var adminUsernames = new List<string>();
             Configuration.GetSection("Authentication:AdminUsernames").Bind(adminUsernames);
 
+            services.AddOptions<FeaturesOptions>().Bind(Configuration.GetSection("Features")).ValidateDataAnnotations();
             services.AddOptions<EventOptions>().Bind(Configuration.GetSection("Events")).ValidateDataAnnotations();
             services.AddOptions<DiscordOptions>().Bind(Configuration.GetSection("Discord")).ValidateDataAnnotations();
             services.AddOptions<AzureBlobOptions>().Bind(Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();

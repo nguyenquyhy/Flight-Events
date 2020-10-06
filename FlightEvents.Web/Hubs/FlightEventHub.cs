@@ -1,6 +1,7 @@
 ﻿using FlightEvents.Data;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -28,15 +29,17 @@ namespace FlightEvents.Web.Hubs
         private static readonly ConcurrentDictionary<string, string> teleportTokenToConnectionId = new ConcurrentDictionary<string, string>();
 
         private readonly ILogger<FlightEventHub> logger;
+        private readonly IOptionsMonitor<FeaturesOptions> featuresOptionsAccessor;
         private readonly IDiscordConnectionStorage discordConnectionStorage;
         private readonly ILeaderboardStorage leaderboardStorage;
         private readonly IFlightEventStorage flightEventStorage;
 
-        public FlightEventHub(ILogger<FlightEventHub> logger,
+        public FlightEventHub(ILogger<FlightEventHub> logger, IOptionsMonitor<FeaturesOptions> featuresOptionsAccessor,
             IDiscordConnectionStorage discordConnectionStorage, ILeaderboardStorage leaderboardStorage,
             IFlightEventStorage flightEventStorage)
         {
             this.logger = logger;
+            this.featuresOptionsAccessor = featuresOptionsAccessor;
             this.discordConnectionStorage = discordConnectionStorage;
             this.leaderboardStorage = leaderboardStorage;
             this.flightEventStorage = flightEventStorage;
@@ -219,7 +222,10 @@ namespace FlightEvents.Web.Hubs
 
         public async Task SendMessage(string from, string to, string message)
         {
-            await Clients.All.SendMessage(from, to, message);
+            if (featuresOptionsAccessor.CurrentValue.SendMessage)
+            {
+                await Clients.All.SendMessage(from, to, message);
+            }
         }
 
         public async Task ChangeUpdateRateByCallsign(string callsign, int hz)
