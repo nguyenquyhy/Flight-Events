@@ -4,7 +4,7 @@ import 'msgpack5';
 import * as protocol from '@microsoft/signalr-protocol-msgpack';
 import { convertPropertyNames, pascalCaseToCamelCase } from '../Converters';
 import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
-import AircraftList from './AircraftList';
+import AircraftList, { AircraftStatusInList } from './AircraftList';
 import ControllerList from './ControllerList';
 import EventList from './EventList';
 import Display from './Display';
@@ -13,6 +13,7 @@ import { IMap, MapTileType, View, MapPosition } from '../maps/IMap';
 import LeafletMap from '../maps/LeaftletMap';
 import MaptalksMap from '../maps/MaptalksMap';
 import Storage from '../Storage';
+import { deepEqual } from '../Compare';
 import TeleportDialog from './Dialogs/TeleportDialog';
 import { RouteComponentProps } from 'react-router-dom';
 
@@ -22,7 +23,8 @@ const AIRCRAFT_TIMEOUT_MILLISECONDS = 10000;
 interface State {
     controllers: { [clientId: string]: ATCInfo & ATCStatus };
 
-    aircrafts: { [clientId: string]: AircraftStatus };
+    aircrafts: { [clientId: string]: AircraftStatusInList };
+    aircraftCallsigns: { [clientId: string]: string };
     myClientId: string | null;
     showPathClientIds: string[];
     followingClientId: string | null;
@@ -51,7 +53,7 @@ export class Home extends React.Component<Props, State> {
     private followCallsign: string | null = null;
     private focusCallsign: string | null = null;
 
-    private aircrafts: { [clientId: string]: { lastUpdated: Date } } = {};
+    private aircrafts: { [clientId: string]: { lastUpdated: Date, status: AircraftStatus } } = {};
     private controllers: { [clientId: string]: { lastUpdated: Date } } = {};
 
     constructor(props: Props) {
@@ -62,6 +64,7 @@ export class Home extends React.Component<Props, State> {
         this.state = {
             controllers: {},
             aircrafts: {},
+            aircraftCallsigns: {},
             myClientId: null,
             showPathClientIds: [],
             followingClientId: null,
@@ -99,6 +102,10 @@ export class Home extends React.Component<Props, State> {
         this.handleTeleportCompleted = this.handleTeleportCompleted.bind(this);
 
         this.cleanUp = this.cleanUp.bind(this);
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        return !deepEqual(this.state, nextState) || this.props !== nextProps;
     }
 
     async componentDidMount() {
@@ -150,13 +157,20 @@ export class Home extends React.Component<Props, State> {
             aircraftStatus = convertPropertyNames(aircraftStatus, pascalCaseToCamelCase);
 
             try {
-                aircraftStatus.isReady = !(Math.abs(aircraftStatus.latitude) < 0.02 && Math.abs(aircraftStatus.longitude) < 0.02);
+                const isReady = !(Math.abs(aircraftStatus.latitude) < 0.02 && Math.abs(aircraftStatus.longitude) < 0.02);
 
                 let newState = {
                     ...this.state,
                     aircrafts: {
                         ...this.state.aircrafts,
-                        [clientId]: aircraftStatus
+                        [clientId]: {
+                            callsign: aircraftStatus.callsign,
+                            isReady: isReady
+                        }
+                    },
+                    aircraftCallsigns: {
+                        ...this.state.aircraftCallsigns,
+                        [clientId]: aircraftStatus.callsign
                     }
                 };
 
@@ -191,10 +205,11 @@ export class Home extends React.Component<Props, State> {
                 this.setState(newState);
 
                 this.aircrafts[clientId] = {
-                    lastUpdated: new Date()
+                    lastUpdated: new Date(),
+                    status: aircraftStatus
                 };
 
-                if (aircraftStatus.isReady) {
+                if (isReady) {
                     this.map.moveMarker(clientId, aircraftStatus,
                         this.state.myClientId === clientId,
                         this.state.followingClientId === clientId,
@@ -302,9 +317,14 @@ export class Home extends React.Component<Props, State> {
         let newAircrafts = {
             ...this.state.aircrafts
         };
+        let newAircraftCallsigns = {
+            ...this.state.aircraftCallsigns
+        }
         delete newAircrafts[clientId];
+        delete newAircraftCallsigns[clientId];
         this.setState({
-            aircrafts: newAircrafts
+            aircrafts: newAircrafts,
+            aircraftCallsigns: newAircraftCallsigns
         })
 
         delete this.aircrafts[clientId];
@@ -318,7 +338,7 @@ export class Home extends React.Component<Props, State> {
 
     private handleAircraftClick(clientId: string) {
         if (this.map) {
-            this.map.focus(this.state.aircrafts[clientId]);
+            this.map.focus(this.aircrafts[clientId].status);
         }
     }
 
@@ -437,7 +457,7 @@ export class Home extends React.Component<Props, State> {
                 tileType={this.state.mapTileType} onTileTypeChanged={this.handleTileTypeChanged} />
 
             <Hud
-                aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
+                aircrafts={this.state.aircraftCallsigns} onAircraftClick={this.handleAircraftClick}
                 onMeChanged={this.handleMeChanged} myClientId={this.state.myClientId}
                 onFollowingChanged={this.handleFollowingChanged} followingClientId={this.state.followingClientId}
                 onFlightPlanChanged={this.handleFlightPlanChanged} flightPlanClientId={this.state.flightPlanClientId}

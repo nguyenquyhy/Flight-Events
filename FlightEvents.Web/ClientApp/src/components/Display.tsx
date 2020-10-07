@@ -18,7 +18,7 @@ interface State {
     expand: boolean;
 }
 
-export default class Display extends React.Component<Props, State> {
+export default class Display extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 

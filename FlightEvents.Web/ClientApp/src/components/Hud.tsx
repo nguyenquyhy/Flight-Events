@@ -1,11 +1,11 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
 import { Input } from 'reactstrap';
+import { propsShallowEqual } from '../Compare';
 import Download from './Download';
-import { AircraftStatus } from '../Models';
 
 interface Props {
-    aircrafts: { [clientId: string]: AircraftStatus };
+    aircrafts: { [clientId: string]: string };
     onAircraftClick: (clientId: string) => void;
 
     myClientId: string | null;
@@ -21,7 +21,7 @@ interface Props {
 const Hud = (props: Props) => {
     let clientIds = Object
         .entries(props.aircrafts)
-        .sort((a, b) => (a[1].callsign || a[0].substring(5)).localeCompare((b[1].callsign || b[0].substring(5))))
+        .sort((a, b) => (a[1] || a[0].substring(5)).localeCompare((b[1] || b[0].substring(5))))
         .map(o => o[0]);
 
     const handleMeChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,15 +54,15 @@ const Hud = (props: Props) => {
     return <StyledWrapper>
         <Input type="select" name="ownAircraft" id="ownAircraft" value={props.myClientId ?? ''} onChange={handleMeChanged}>
             <option value="">Select your aircraft</option>
-            {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId].callsign}</option>)}
+            {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId]}</option>)}
         </Input>
         <Input type="select" name="followAircraft" id="followAircraft" value={props.followingClientId ?? ''} onChange={handleFollowChanged}>
             <option value="">Follow an aircraft</option>
-            {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId].callsign}</option>)}
+            {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId]}</option>)}
         </Input>
         <Input type="select" name="flightplanAircraft" id="flightplanAircraft" value={props.flightPlanClientId ?? ''} onChange={handleFlightPlanChanged}>
             <option value="">Show Flight Plan</option>
-            {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId].callsign}</option>)}
+            {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId]}</option>)}
         </Input>
         <div></div>
         <Download />
@@ -82,4 +82,4 @@ display: grid;
 grid-template-columns: auto auto auto 1fr auto;
 `;
 
-export default Hud;
+export default React.memo(Hud, propsShallowEqual);

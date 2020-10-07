@@ -66,4 +66,4 @@ width: 130px;
 z-index: 1000;
 `
 
-export default ControllerList;
+export default React.memo(ControllerList);

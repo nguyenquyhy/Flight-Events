@@ -1,15 +1,20 @@
 ﻿import * as React from 'react';
 import { Button, UncontrolledTooltip, Modal, ModalHeader, ModalBody } from 'reactstrap';
 import styled from 'styled-components';
-import { AircraftStatus } from '../Models';
+import { deepEqual } from '../Compare';
 import AircraftListItem from './AircraftListItem';
+
+export interface AircraftStatusInList {
+    callsign: string;
+    isReady: boolean;
+}
 
 interface Props {
     myClientId: string | null;
     followingClientId: string | null;
     flightPlanClientId: string | null;
 
-    aircrafts: { [clientId: string]: AircraftStatus };
+    aircrafts: { [clientId: string]: AircraftStatusInList };
     onAircraftClick: (clientId: string) => void;
 
     showPathClientIds: string[];
@@ -34,6 +39,10 @@ export default class AircraftList extends React.Component<Props, State> {
         }
 
         this.handleToggle = this.handleToggle.bind(this);
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        return this.state !== nextState || !deepEqual(this.props, nextProps);
     }
 
     handleToggle() {

@@ -23,7 +23,7 @@ interface State {
     collapsed: boolean;
 }
 
-export default class EventList extends React.Component<Props, State> {
+export default class EventList extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 

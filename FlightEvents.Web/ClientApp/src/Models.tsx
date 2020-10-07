@@ -42,9 +42,6 @@ export interface AircraftStatus {
     isOnGround: boolean;
 
     frequencyCom1: number;
-
-    // Calculated
-    isReady: boolean;
 }
 
 export interface FlightEvent {

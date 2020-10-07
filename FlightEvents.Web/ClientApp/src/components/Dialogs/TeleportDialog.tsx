@@ -61,4 +61,4 @@ const TeleportDialog = (props: Props) => {
     );
 }
 
-export default TeleportDialog;
+export default React.memo(TeleportDialog);
