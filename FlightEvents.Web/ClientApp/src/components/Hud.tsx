@@ -5,6 +5,8 @@ import { propsShallowEqual } from '../Compare';
 import Download from './Download';
 
 interface Props {
+    mode: string | null;
+
     aircrafts: { [clientId: string]: string };
     onAircraftClick: (clientId: string) => void;
 
@@ -52,18 +54,27 @@ const Hud = (props: Props) => {
     }
 
     return <StyledWrapper>
-        <Input type="select" name="ownAircraft" id="ownAircraft" value={props.myClientId ?? ''} onChange={handleMeChanged}>
-            <option value="">Select your aircraft</option>
-            {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId]}</option>)}
-        </Input>
-        <Input type="select" name="followAircraft" id="followAircraft" value={props.followingClientId ?? ''} onChange={handleFollowChanged}>
-            <option value="">Follow an aircraft</option>
-            {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId]}</option>)}
-        </Input>
-        <Input type="select" name="flightplanAircraft" id="flightplanAircraft" value={props.flightPlanClientId ?? ''} onChange={handleFlightPlanChanged}>
-            <option value="">Show Flight Plan</option>
-            {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId]}</option>)}
-        </Input>
+        {props.mode === "MSFS" ?
+            <div></div> :
+            <Input type="select" name="ownAircraft" id="ownAircraft" value={props.myClientId ?? ''} onChange={handleMeChanged}>
+                <option value="">Select your aircraft</option>
+                {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId]}</option>)}
+            </Input>
+        }
+        {props.mode === "MSFS" ?
+            <div></div> :
+            <Input type="select" name="followAircraft" id="followAircraft" value={props.followingClientId ?? ''} onChange={handleFollowChanged}>
+                <option value="">Follow an aircraft</option>
+                {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId]}</option>)}
+            </Input>
+        }
+        {props.mode === "MSFS" ?
+            <div></div> :
+            <Input type="select" name="flightplanAircraft" id="flightplanAircraft" value={props.flightPlanClientId ?? ''} onChange={handleFlightPlanChanged}>
+                <option value="">Show Flight Plan</option>
+                {clientIds.map(clientId => <option key={clientId} value={clientId}>{props.aircrafts[clientId]}</option>)}
+            </Input>
+        }
         <div></div>
         <Download />
     </StyledWrapper>

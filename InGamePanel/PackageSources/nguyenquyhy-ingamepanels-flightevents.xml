@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<SimBase.Document Type="InGamePanels" version="1,0">
+  <Filename>nguyenquyhy-ingamepanels-flightevents.spb</Filename>
+  <InGamePanels.InGamePanelDefinition id="PANEL_FLIGHT_EVENTS" Name="Flight Events" url="html_UI/ingamePanels/FlightEventsPanel/CustomPanel.html" resizeDirections="Both" minWidth="33" minHeight="35" defaultWidth="36" defaultHeight="36" defaultTop="33" defaultRight="2" icon="ICON_TOOLBAR_FLIGHTEVENTS" buttonVisible="true">
+  </InGamePanels.InGamePanelDefinition>
+</SimBase.Document>

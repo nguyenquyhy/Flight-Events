@@ -49,6 +49,7 @@ export class Home extends React.Component<Props, State> {
     private map: IMap;
     private currentView?: View;
 
+    private mode: string | null = null;
     private myCallsign: string | null = null;
     private followCallsign: string | null = null;
     private focusCallsign: string | null = null;
@@ -102,6 +103,12 @@ export class Home extends React.Component<Props, State> {
         this.handleTeleportCompleted = this.handleTeleportCompleted.bind(this);
 
         this.cleanUp = this.cleanUp.bind(this);
+
+        const searchParams = new URLSearchParams(props.location.search);
+        this.mode = searchParams.get('mode');
+        this.myCallsign = searchParams.get('myCallsign');
+        this.followCallsign = searchParams.get('followCallsign');
+        this.focusCallsign = searchParams.get('focusCallsign');
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -110,11 +117,6 @@ export class Home extends React.Component<Props, State> {
 
     async componentDidMount() {
         this.initializeMap();
-
-        const searchParams = new URLSearchParams(this.props.location.search);
-        this.myCallsign = searchParams.get('myCallsign');
-        this.followCallsign = searchParams.get('followCallsign');
-        this.focusCallsign = searchParams.get('focusCallsign');
 
         const hub = this.hub;
 
@@ -457,6 +459,7 @@ export class Home extends React.Component<Props, State> {
                 tileType={this.state.mapTileType} onTileTypeChanged={this.handleTileTypeChanged} />
 
             <Hud
+                mode={this.mode}
                 aircrafts={this.state.aircraftCallsigns} onAircraftClick={this.handleAircraftClick}
                 onMeChanged={this.handleMeChanged} myClientId={this.state.myClientId}
                 onFollowingChanged={this.handleFollowingChanged} followingClientId={this.state.followingClientId}

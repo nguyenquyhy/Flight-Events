@@ -1,0 +1,8 @@
+<Project Version="2" Name="FlightEvents" FolderName="Packages">
+	<OutputDirectory>.</OutputDirectory>
+	<TemporaryOutputDirectory>_PackageInt</TemporaryOutputDirectory>
+	<Packages>
+		<Package>PackageDefinitions\nguyenquyhy-ingamepanels-flightevents.xml</Package>
+	</Packages>
+</Project>
+
