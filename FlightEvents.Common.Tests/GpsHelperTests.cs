@@ -38,5 +38,25 @@ namespace FlightEvents.Common.Tests
             Assert.AreEqual(latitude, latitudeSt);
             Assert.AreEqual(longitude, longitudeSt);
         }
+
+        [TestMethod]
+        public void TestPerpendicular()
+        {
+            //var lat1 = 35.91261825928116;
+            //var lon1 = -113.71721493789124;
+            //var lat2 = 35.912017916060556;
+            //var lon2 = -113.7172875911555;
+            var lat1 = 35.905402778;
+            var lon1 = -113.717561111;
+            var lat2 = 35.880433333;
+            var lon2 = -113.709511111;
+            var distance = 0.05399568 * 5;
+            var (deltaLat, deltaLon) = GpsHelper.CalculatePerpendicular(lat1, lon1, lat2, lon2, distance * 2);
+
+            var lat3 = lat2 + deltaLat;
+            var lon3 = lon2 + deltaLon;
+            var lat4 = lat2 - deltaLat;
+            var lon4 = lon2 - deltaLon;
+        }
     }
 }
