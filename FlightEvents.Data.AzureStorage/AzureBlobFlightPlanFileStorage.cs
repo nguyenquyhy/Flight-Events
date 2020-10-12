@@ -1,6 +1,8 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
@@ -20,6 +22,9 @@ namespace FlightEvents.Data
         private readonly BlobContainerClient containerClient;
         private readonly string customDomain;
         private readonly XmlSerializer serializer;
+
+        private readonly Dictionary<string, FlightPlanData> cachedFlightPlans = new Dictionary<string, FlightPlanData>();
+        private readonly SemaphoreSlim sm = new SemaphoreSlim(1);
 
         public AzureBlobFlightPlanFileStorage(IOptionsMonitor<AzureBlobOptions> options)
         {
@@ -45,14 +50,26 @@ namespace FlightEvents.Data
 
         public async Task<FlightPlanData> GetFlightPlanAsync(string id)
         {
-
-            await containerClient.CreateIfNotExistsAsync();
-            var blobClient = containerClient.GetBlobClient(id);
-            var info = await blobClient.DownloadAsync();
-            using (info.Value.Content)
+            try
             {
-                var document = serializer.Deserialize(info.Value.Content) as FlightPlanDocumentXml;
-                return document.FlightPlan.ToData();
+                await sm.WaitAsync();
+
+                if (cachedFlightPlans.ContainsKey(id)) return cachedFlightPlans[id];
+
+                await containerClient.CreateIfNotExistsAsync();
+                var blobClient = containerClient.GetBlobClient(id);
+                var info = await blobClient.DownloadAsync();
+                using (info.Value.Content)
+                {
+                    var document = serializer.Deserialize(info.Value.Content) as FlightPlanDocumentXml;
+                    var result = document.FlightPlan.ToData();
+                    cachedFlightPlans.Add(id, result);
+                    return result;
+                }
+            }
+            finally
+            {
+                sm.Release();
             }
         }
     }
