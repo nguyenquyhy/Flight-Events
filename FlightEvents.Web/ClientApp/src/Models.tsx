@@ -55,6 +55,8 @@ export interface FlightEvent {
     endDateTime: string | null;
     url: string | null;
     waypoints: string | null;
+    racerCallsigns: string[] | null;
+    markedWaypoints: string[] | null;
 }
 
 export interface Checkpoint {

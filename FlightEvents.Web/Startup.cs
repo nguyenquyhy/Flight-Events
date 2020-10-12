@@ -55,6 +55,9 @@ namespace FlightEvents.Web
             services.AddSingleton<ILeaderboardStorage, AzureTableLeaderboardStorage>();
             services.AddSingleton<IATCFlightPlanStorage, InMemoryATCFlightPlanStorage>();
 
+            services.AddSingleton<IRaceStorage, RaceStorage>();
+            services.AddSingleton<IRaceManager, RaceManager>();
+
             services.AddGraphQL(
                 SchemaBuilder.New()
                     .AddQueryType<QueryType>()

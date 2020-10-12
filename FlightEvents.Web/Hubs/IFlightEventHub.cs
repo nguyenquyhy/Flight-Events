@@ -1,4 +1,5 @@
 ﻿using FlightEvents.Data;
+using FlightEvents.Web.Logics;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -91,5 +92,7 @@ namespace FlightEvents.Web.Hubs
         Task UpdateStopwatch(EventStopwatch stopwatch, DateTimeOffset serverTime);
         Task RemoveStopwatch(EventStopwatch stopwatch);
         Task UpdateLeaderboard(List<LeaderboardRecord> leaderboardRecords);
+
+        Task UpdateRaceResult(IEnumerable<Racer> racers);
     }
 }

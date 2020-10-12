@@ -52,6 +52,9 @@ This includes:
   - [ ] Show landing rate on map
 - [X] User database
   - [X] Mods & admins
+- [ ] Race events
+  - [ ] Stream overlay
+- [ ] Dashboard
 - [ ] Private group
 - [ ] Flight plan database for ATC
 - [ ] Search airport on map

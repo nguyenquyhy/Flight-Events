@@ -31,6 +31,8 @@ mutation Update($flightEvent: FlightEventUpdate!) {
         url
         startDateTime
         endDateTime
+        racerCallsigns
+        markedWaypoints
     }
 }`
 
@@ -62,10 +64,20 @@ export default (props: RouteComponentProps<RouteProps>) => {
         })();
     }, []);
 
+    const startRace = () => {
+        hub.send('StartRace', props.match.params.id);
+    }
+
+    const stopRace = () => {
+        hub.send('StopRace', props.match.params.id);
+    }
+
     return (
         <Query query={GET_QUERY} variables={{ id: props.match.params.id }}>{({ loading, error, data }: ApolloQueryResult<{ flightEvent: FlightEvent }>) => {
             if (loading) return <>Loading...</>
             if (error) return <>Error!</>
+
+            const event = data.flightEvent;
 
             return <Container>
                 <Row>
@@ -80,6 +92,28 @@ export default (props: RouteComponentProps<RouteProps>) => {
                 <Row>
                     <Col>
                         <Mutated event={data.flightEvent} />
+
+                        {event.type === 'RACE' && <>
+                            {event.racerCallsigns && <>
+                                <h6>Racers</h6>
+                                <ul>
+                                    {event.racerCallsigns.map(callsign => <li>{callsign}</li>)}
+                                </ul>
+                            </>}
+
+                            {event.markedWaypoints && <>
+                                <h6>Checkpoints</h6>
+                                <ul>
+                                    {event.markedWaypoints.map(waypoint => <li>{waypoint}</li>)}
+                                </ul>
+                            </>}
+
+                            {event.racerCallsigns && !!event.racerCallsigns.length &&
+                                event.markedWaypoints && !!event.markedWaypoints.length ? <>
+                                    <Button color="primary" onClick={startRace}>Start Race</Button>
+                                    <Button color="warning" onClick={stopRace}>Stop Race</Button>
+                                </> : <p>Racers and Checkpoints need to be setup before starting the race.</p>}
+                        </>}
                     </Col>
                 </Row>
             </Container>

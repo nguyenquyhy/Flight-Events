@@ -38,6 +38,8 @@ namespace FlightEvents.Data
         /// Note: First/Last points are assumed to be start/finish respectively.
         /// </summary>
         public List<FlightEventCheckpoint> Checkpoints { get; set; }
+        public List<string> MarkedWaypoints { get; set; }
+        public List<string> RacerCallsigns { get; set; }
 
         public List<string> FlightPlanIds { get; set; }
 
@@ -59,6 +61,8 @@ namespace FlightEvents.Data
 
             if (Leaderboards != default) current.Leaderboards = Leaderboards;
             if (Checkpoints != default) current.Checkpoints = Checkpoints;
+            if (MarkedWaypoints != default) current.MarkedWaypoints = MarkedWaypoints;
+            if (RacerCallsigns != default) current.RacerCallsigns = RacerCallsigns;
 
             if (FlightPlanIds != default) current.FlightPlanIds = FlightPlanIds;
             if (ChecklistItems != default) current.ChecklistItems = ChecklistItems;

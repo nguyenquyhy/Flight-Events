@@ -1,4 +1,5 @@
 ﻿using FlightEvents.Data;
+using FlightEvents.Web.Logics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -35,10 +36,13 @@ namespace FlightEvents.Web.Hubs
         private readonly ILeaderboardStorage leaderboardStorage;
         private readonly IFlightEventStorage flightEventStorage;
         private readonly IATCFlightPlanStorage flightPlanStorage;
+        private readonly IRaceStorage raceStorage;
+        private readonly IRaceManager raceManager;
 
         public FlightEventHub(ILogger<FlightEventHub> logger, IOptionsMonitor<FeaturesOptions> featuresOptionsAccessor,
             IDiscordConnectionStorage discordConnectionStorage, ILeaderboardStorage leaderboardStorage,
-            IFlightEventStorage flightEventStorage, IATCFlightPlanStorage flightPlanStorage)
+            IFlightEventStorage flightEventStorage, IATCFlightPlanStorage flightPlanStorage,
+            IRaceStorage raceStorage, IRaceManager raceManager)
         {
             this.logger = logger;
             this.featuresOptionsAccessor = featuresOptionsAccessor;
@@ -46,6 +50,8 @@ namespace FlightEvents.Web.Hubs
             this.leaderboardStorage = leaderboardStorage;
             this.flightEventStorage = flightEventStorage;
             this.flightPlanStorage = flightPlanStorage;
+            this.raceStorage = raceStorage;
+            this.raceManager = raceManager;
         }
 
         public override async Task OnConnectedAsync()
@@ -71,6 +77,8 @@ namespace FlightEvents.Web.Hubs
                     break;
                 case "Bot":
                     await Groups.AddToGroupAsync(Context.ConnectionId, "Bot");
+                    break;
+                case "StreamOverlay":
                     break;
                 default:
                     break;
@@ -146,6 +154,14 @@ namespace FlightEvents.Web.Hubs
                     }
                 }
                 await Clients.Groups("ATC").UpdateAircraft(clientId, status);
+
+                // Race
+                var (racer, crossedCheckpoint) = await raceManager.UpdatePositionAsync(status.Callsign, status.Latitude, status.Longitude);
+                if (racer != null && crossedCheckpoint)
+                {
+                    var racers = await raceStorage.GetRacersAsync(racer.EventId);
+                    await Clients.Group("StreamOverlay:" + racer.EventId).UpdateRaceResult(racers);
+                }
             }
         }
 
@@ -292,6 +308,21 @@ namespace FlightEvents.Web.Hubs
                     }
                 }
             }
+
+            if (group.StartsWith("StreamOverlay:"))
+            {
+                var eventIdString = group.Split(":")[1];
+                if (Guid.TryParse(eventIdString, out var eventId))
+                {
+                    var evt = await flightEventStorage.GetAsync(eventId);
+
+                    if (evt != null)
+                    {
+                        var racers = await raceStorage.GetRacersAsync(eventId);
+                        await Clients.Caller.UpdateRaceResult(racers);
+                    }
+                }
+            }
         }
 
         public async Task Leave(string group)
@@ -370,6 +401,24 @@ namespace FlightEvents.Web.Hubs
         }
 
         #endregion
+
+        #region Race
+
+        [Authorize(Roles = "Admin,Mod")]
+        public async Task StartRace(Guid eventId)
+        {
+            var evt = await flightEventStorage.GetAsync(eventId);
+            await raceStorage.InitializeRaceAsync(eventId, evt.RacerCallsigns ?? new List<string>());
+            var racers = await raceStorage.GetRacersAsync(eventId);
+            await Clients.Group("StreamOverlay:" + eventId).UpdateRaceResult(racers);
+        }
+
+        [Authorize(Roles = "Admin,Mod")]
+        public async Task StopRace(Guid eventId)
+        {
+            await raceStorage.RemoveAsync(eventId);
+            await Clients.Group("StreamOverlay:" + eventId).UpdateRaceResult(new List<Racer>());
+        }
 
         #region Stopwatch
 
@@ -551,6 +600,8 @@ namespace FlightEvents.Web.Hubs
             await Clients.Group("Stopwatch:" + eventId).UpdateLeaderboard(records);
             await Clients.Group("Leaderboard:" + eventId).UpdateLeaderboard(records);
         }
+
+        #endregion
 
         #endregion
 
