@@ -1,6 +1,6 @@
 ﻿import { IMap, MapTileType, OnViewChangedFn, View, OnAircraftMovedFn, OnSetClientIdFn, OnSetOptionalClientIdFn } from './IMap';
 import * as maptalks from 'maptalks';
-import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
+import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief, FlightPlanWaypoint } from '../Models';
 
 interface Markers {
     aircraft: Sector
@@ -549,6 +549,10 @@ export default class MaptalksMap implements IMap {
                 }
             }
         }
+    }
+
+    public drawCheckpoints(checkpoints: FlightPlanWaypoint[]) {
+
     }
 
     focus(location: { longitude: number, latitude: number }) {

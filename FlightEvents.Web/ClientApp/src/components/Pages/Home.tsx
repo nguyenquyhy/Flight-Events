@@ -6,7 +6,7 @@ import { Query } from '@apollo/client/react/components';
 import { ApolloQueryResult, gql } from '@apollo/client';
 import { RouteComponentProps } from 'react-router-dom';
 import { convertPropertyNames, pascalCaseToCamelCase } from '../../Converters';
-import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief, FlightEvent } from '../../Models';
+import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief, FlightEvent, FlightPlanWaypoint } from '../../Models';
 import AircraftList, { AircraftStatusInList } from '../AircraftList';
 import ControllerList from '../ControllerList';
 import EventList from '../EventList';
@@ -107,6 +107,7 @@ export class Home extends React.Component<Props, State> {
 
         this.handleAirportsLoaded = this.handleAirportsLoaded.bind(this);
         this.handleFlightPlansLoaded = this.handleFlightPlansLoaded.bind(this);
+        this.handleCheckpointsLoaded = this.handleCheckpointsLoaded.bind(this);
         this.handleTeleportRequested = this.handleTeleportRequested.bind(this);
         this.handleTeleportCompleted = this.handleTeleportCompleted.bind(this);
 
@@ -476,6 +477,10 @@ export class Home extends React.Component<Props, State> {
         this.map.drawFlightPlans(flightPlans.map(o => o.data));
     }
 
+    private handleCheckpointsLoaded(checkpoints: FlightPlanWaypoint[]) {
+        this.map.drawCheckpoints(checkpoints);
+    }
+
     public handleTeleportRequested(code: string, position: MapPosition, altitude: number) {
         this.hub.send('RequestTeleport', code, position.latitude, position.longitude, altitude);
     }
@@ -514,7 +519,7 @@ export class Home extends React.Component<Props, State> {
                     onMoreInfoChanged={this.handleMoreInfoChanged} moreInfoClientIds={this.state.moreInfoClientIds}
                 />
 
-                <EventList hub={this.hub} onAirportsLoaded={this.handleAirportsLoaded} onFlightPlansLoaded={this.handleFlightPlansLoaded} />
+                <EventList hub={this.hub} onAirportsLoaded={this.handleAirportsLoaded} onFlightPlansLoaded={this.handleFlightPlansLoaded} onCheckpointsLoaded={this.handleCheckpointsLoaded} />
             </>}
 
             {!!this.eventId && <FlightPlanLoader eventId={this.eventId} onFlightPlansLoaded={this.handleFlightPlansLoaded} onAirportsLoaded={this.handleAirportsLoaded} />}

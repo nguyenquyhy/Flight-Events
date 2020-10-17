@@ -1,7 +1,7 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
 import { css } from 'styled-components';
-import { FlightEvent, Airport, FlightPlan } from '../Models';
+import { FlightEvent, Airport, FlightPlan, FlightPlanWaypoint } from '../Models';
 import EventModal from './EventModal';
 import parseJSON from 'date-fns/parseJSON';
 import addHours from 'date-fns/addHours';
@@ -14,6 +14,7 @@ interface Props {
     flightEvent: FlightEvent;
     onAirportsLoaded: (airports: Airport[]) => void;
     onFlightPlansLoaded: (flightPlans: FlightPlan[]) => void;
+    onCheckpointsLoaded: (checkpoints: FlightPlanWaypoint[]) => void;
 }
 
 interface State {
@@ -48,7 +49,8 @@ export default class EventItem extends React.Component<Props, State> {
                 </EventSubtitle>
             </CustomButton>
             <EventModal hub={this.props.hub}
-                isOpen={this.state.isOpen} toggle={this.handleToggle} flightEvent={this.props.flightEvent} onAirportLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />
+                isOpen={this.state.isOpen} toggle={this.handleToggle} flightEvent={this.props.flightEvent}
+                onAirportLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} onCheckpointsLoaded={this.props.onCheckpointsLoaded} />
         </ListItem>
     }
 }

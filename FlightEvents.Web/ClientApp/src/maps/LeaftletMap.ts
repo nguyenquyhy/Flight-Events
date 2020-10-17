@@ -4,7 +4,7 @@ import 'leaflet-rotatedmarker';
 import 'overpass-layer/dist/overpass-layer';
 import 'leaflet-contextmenu';
 import 'leaflet-contextmenu/dist/leaflet.contextmenu.css';
-import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
+import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief, FlightPlanWaypoint } from '../Models';
 
 interface Markers {
     aircraft: L.Marker<any>
@@ -46,6 +46,7 @@ export default class LeafletMap implements IMap {
     atcMarkers: { [connectionId: string]: L.Marker } = {};
 
     flightPlanLayerGroup: L.LayerGroup = L.layerGroup();
+    checkpointsLayerGroup: L.LayerGroup = L.layerGroup();
 
     routeLayerGroups: { [id: string]: L.LayerGroup } = {};
     routeLines: { [id: string]: L.Polyline } = {};
@@ -129,6 +130,7 @@ export default class LeafletMap implements IMap {
 
         this.airportLayerGroup.addTo(this.mymap);
         this.flightPlanLayerGroup.addTo(this.mymap);
+        this.checkpointsLayerGroup.addTo(this.mymap);
     }
 
     public deinitialize() {
@@ -429,6 +431,16 @@ export default class LeafletMap implements IMap {
                 const polyline1 = L.polyline(latlngPositive180, { color: 'black', dashArray: '5, 10' });
                 this.flightPlanLayerGroup.addLayer(polyline1);
             }
+
+        }
+    }
+
+    public drawCheckpoints(checkpoints: FlightPlanWaypoint[]) {
+        this.checkpointsLayerGroup.clearLayers();
+        for (let i = 0; i < checkpoints.length; i += 2) {
+            L.polyline([
+                [checkpoints[i].latitude, checkpoints[i].longitude], [checkpoints[i + 1].latitude, checkpoints[i + 1].longitude]
+            ], { color: 'blue' }).addTo(this.checkpointsLayerGroup);
 
         }
     }

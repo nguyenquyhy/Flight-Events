@@ -9,7 +9,7 @@ import { Query } from '@apollo/client/react/components';
 import { ApolloQueryResult } from '@apollo/client/core';
 import { gql } from '@apollo/client';
 import Panel from './Controls/Panel';
-import { FlightEvent, Airport, FlightPlan } from '../Models';
+import { FlightEvent, Airport, FlightPlan, FlightPlanWaypoint } from '../Models';
 import EventItem from './EventItem';
 import PastEvents from './PastEvents';
 
@@ -17,6 +17,7 @@ interface Props {
     hub: HubConnection;
     onAirportsLoaded: (airports: Airport[]) => void;
     onFlightPlansLoaded: (flightPlans: FlightPlan[]) => void;
+    onCheckpointsLoaded: (checkpoints: FlightPlanWaypoint[]) => void;
 }
 
 interface State {
@@ -59,13 +60,13 @@ export default class EventList extends React.PureComponent<Props, State> {
                 const list = data.flightEvents.length === 0 ?
                     <NoneText>None</NoneText> :
                     upcoming.map(flightEvent => <EventItem key={flightEvent.id} hub={this.props.hub} flightEvent={flightEvent}
-                        onAirportsLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />)
+                        onAirportsLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} onCheckpointsLoaded={this.props.onCheckpointsLoaded} />)
 
                 return <Wrapper collapsed={this.state.collapsed}>
                     <Button className="btn" onClick={this.handleToggle}><i className={"fas " + (this.state.collapsed ? "fa-chevron-up" : "fa-chevron-down")}></i></Button>
                     <Title collapsed={this.state.collapsed}>{upcoming.length === 0 ? "No upcoming events" : `Upcoming Events (${upcoming.length})`}</Title>
                     <List>{list}</List>
-                    <PastEvents hub={this.props.hub} onAirportsLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />
+                    <PastEvents hub={this.props.hub} onAirportsLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} onCheckpointsLoaded={this.props.onCheckpointsLoaded} />
                 </Wrapper>
             }}
         </Query>

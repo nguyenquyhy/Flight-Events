@@ -5,13 +5,14 @@ import { Query } from '@apollo/client/react/components';
 import { ApolloQueryResult } from '@apollo/client/core';
 import { gql } from '@apollo/client';
 import { HubConnection } from '@microsoft/signalr';
-import { Airport, FlightEvent, FlightPlan } from '../Models';
+import { Airport, FlightEvent, FlightPlan, FlightPlanWaypoint } from '../Models';
 import EventItem from './EventItem';
 
 interface Props {
     hub: HubConnection;
     onAirportsLoaded: (airports: Airport[]) => void;
     onFlightPlansLoaded: (flightPlans: FlightPlan[]) => void;
+    onCheckpointsLoaded: (checkpoints: FlightPlanWaypoint[]) => void;
 }
 
 interface State {
@@ -46,7 +47,7 @@ const PastEvents = (props: Props) => {
 
                         return <>
                             {events.map(event => <List key={event.id}>
-                                <EventItem flightEvent={event} hub={props.hub} onAirportsLoaded={props.onAirportsLoaded} onFlightPlansLoaded={props.onFlightPlansLoaded} />
+                                <EventItem flightEvent={event} hub={props.hub} onAirportsLoaded={props.onAirportsLoaded} onFlightPlansLoaded={props.onFlightPlansLoaded} onCheckpointsLoaded={props.onCheckpointsLoaded} />
                             </List>)}
                         </>
                     }}

@@ -1,4 +1,4 @@
-﻿import { ATCStatus, ATCInfo, AircraftStatus, Airport, FlightPlanData, AircraftStatusBrief } from '../Models';
+﻿import { ATCStatus, ATCInfo, AircraftStatus, Airport, FlightPlanData, AircraftStatusBrief, FlightPlanWaypoint } from '../Models';
 
 export interface IMap {
     initialize(divId: string, view: View | undefined, mode: string | null)
@@ -8,6 +8,7 @@ export interface IMap {
     moveMarker(connectionId: string, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isShowingPlan: boolean, isMoreInfo: boolean, isShowingRoute: boolean)
     drawAirports(airports: Airport[])
     drawFlightPlans(flightPlans: FlightPlanData[])
+    drawCheckpoints(checkpoints: FlightPlanWaypoint[])
     focus(location: { longitude: number, latitude: number })
     cleanUpController(clientId: string)
     cleanUpAircraft(clientId: string, isMe: boolean)
