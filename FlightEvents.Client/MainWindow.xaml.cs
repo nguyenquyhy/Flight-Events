@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -27,6 +28,8 @@ namespace FlightEvents.Client
     public partial class MainWindow : Window
     {
         private int MinimumUpdatePeriod = 500;
+
+        private readonly ConcurrentDictionary<string, Airport> airports = new ConcurrentDictionary<string, Airport>();
 
         private readonly Random random = new Random();
 
@@ -64,6 +67,7 @@ namespace FlightEvents.Client
 
             flightConnector.AircraftStatusUpdated += FlightConnector_AircraftStatusUpdated;
             flightConnector.AircraftPositionChanged += FlightConnector_AircraftPositionChanged;
+            flightConnector.AirportListReceived += FlightConnector_AirportListReceived;
             flightConnector.Error += FlightConnector_Error;
 
             DataContext = viewModel;
@@ -434,15 +438,38 @@ namespace FlightEvents.Client
                 e.AircraftStatus.Callsign = viewModel.Callsign;
                 e.AircraftStatus.TransponderMode = viewModel.TransponderIdent ? TransponderMode.Ident : TransponderMode.ModeC;
 
-                if (hub?.ConnectionId != null && DateTime.Now - lastStatusSent > TimeSpan.FromMilliseconds(MinimumUpdatePeriod))
+                if (DateTime.Now - lastStatusSent > TimeSpan.FromMilliseconds(MinimumUpdatePeriod))
                 {
-                    route.Add(new AircraftStatusBrief(e.AircraftStatus));
+                    if (hub?.ConnectionId != null)
+                    {
+                        route.Add(new AircraftStatusBrief(e.AircraftStatus));
 
-                    lastStatusSent = DateTime.Now;
-                    await hub.SendAsync("UpdateAircraft", e.AircraftStatus);
-                    lastStatusSent = DateTime.Now;
+                        lastStatusSent = DateTime.Now;
+                        await hub.SendAsync("UpdateAircraft", e.AircraftStatus);
+                        lastStatusSent = DateTime.Now;
 
-                    if (viewModel.TransponderIdent) viewModel.TransponderIdent = false;
+                        if (viewModel.TransponderIdent) viewModel.TransponderIdent = false;
+                    }
+
+                    var stopwatch = new Stopwatch();
+                    stopwatch.Start();
+                    var minDistance = 0d;
+                    Airport minAirport = null;
+                    foreach (var airport in airports.Values)
+                    {
+                        var distance = GpsHelper.CalculateDistance(e.AircraftStatus.Latitude, e.AircraftStatus.Longitude, airport.Latitude, airport.Longitude);
+                        if (minAirport == null || minDistance > distance)
+                        {
+                            minDistance = distance;
+                            minAirport = airport;
+                        }
+                    }
+                    if (minAirport != null)
+                    {
+                        viewModel.NearestAirport = minAirport;
+                    }
+                    //Debug.WriteLine($"Found closest airport in {stopwatch.ElapsedMilliseconds}ms");
+                    stopwatch.Stop();
                 }
 
                 viewModel.AircraftStatus = e.AircraftStatus;
@@ -465,6 +492,17 @@ namespace FlightEvents.Client
         private void FlightConnector_AircraftPositionChanged(object sender, EventArgs e)
         {
             route.Clear();
+        }
+
+        private void FlightConnector_AirportListReceived(object sender, AirportListReceivedEventArgs e)
+        {
+            foreach (var airport in e.Airports)
+            {
+                if (airports.TryAdd(airport.Ident, airport))
+                {
+                    Debug.WriteLine($"{airport.Ident} {airport.Latitude} {airport.Longitude}");
+                }
+            }
         }
 
         private void FlightConnector_Error(object sender, ConnectorErrorEventArgs e)

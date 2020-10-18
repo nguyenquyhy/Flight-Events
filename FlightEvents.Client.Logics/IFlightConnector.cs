@@ -9,6 +9,7 @@ namespace FlightEvents.Client.Logics
         event EventHandler<AircraftDataUpdatedEventArgs> AircraftDataUpdated;
         event EventHandler<AircraftStatusUpdatedEventArgs> AircraftStatusUpdated;
         event EventHandler<FlightPlanUpdatedEventArgs> FlightPlanUpdated;
+        event EventHandler<AirportListReceivedEventArgs> AirportListReceived;
         event EventHandler AircraftPositionChanged;
         event EventHandler Closed;
         event EventHandler Connected;

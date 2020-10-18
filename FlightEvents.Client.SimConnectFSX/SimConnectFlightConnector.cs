@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.FlightSimulator.SimConnect;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -17,6 +18,7 @@ namespace FlightEvents.Client.SimConnectFSX
         public event EventHandler<AircraftStatusUpdatedEventArgs> AircraftStatusUpdated;
         public event EventHandler AircraftPositionChanged;
         public event EventHandler<FlightPlanUpdatedEventArgs> FlightPlanUpdated;
+        public event EventHandler<AirportListReceivedEventArgs> AirportListReceived;
         public event EventHandler Connected;
         public event EventHandler Closed;
         public event EventHandler<ConnectorErrorEventArgs> Error;
@@ -95,6 +97,8 @@ namespace FlightEvents.Client.SimConnectFSX
             RegisterFlightStatusDefinition();
             RegisterAircraftPositionDefinition();
 
+            simconnect.OnRecvAirportList += Simconnect_OnRecvAirportList;
+
             simconnect.SubscribeToSystemEvent(EVENTS.POSITION_CHANGED, "PositionChanged");
             simconnect.OnRecvEvent += Simconnect_OnRecvEvent;
 
@@ -129,6 +133,8 @@ namespace FlightEvents.Client.SimConnectFSX
             {
                 if (simconnect != null)
                 {
+                    simconnect.UnsubscribeToFacilities(SIMCONNECT_FACILITY_LIST_TYPE.AIRPORT);
+
                     // Dispose serves the same purpose as SimConnect_Close()
                     simconnect.Dispose();
                     simconnect = null;
@@ -500,6 +506,19 @@ namespace FlightEvents.Client.SimConnectFSX
             }
         }
 
+        private void Simconnect_OnRecvAirportList(SimConnect sender, SIMCONNECT_RECV_AIRPORT_LIST data)
+        {
+            logger.LogDebug("Received Airport List");
+
+            AirportListReceived?.Invoke(this, new AirportListReceivedEventArgs(data.rgData.Cast<SIMCONNECT_DATA_FACILITY_AIRPORT>().Select(airport => new Airport
+            {
+                Ident = airport.Icao,
+                Latitude = airport.Latitude,
+                Longitude = airport.Longitude,
+                Elevation = airport.Altitude
+            })));
+        }
+
         void Simconnect_OnRecvEvent(SimConnect sender, SIMCONNECT_RECV_EVENT data)
         {
             logger.LogInformation("OnRecvEvent dwID " + data.dwID + " uEventID " + data.uEventID);
@@ -575,6 +594,8 @@ namespace FlightEvents.Client.SimConnectFSX
             simconnect.RequestDataOnSimObject(DATA_REQUESTS.FLIGHT_STATUS, DEFINITIONS.FlightStatus, 0, 
                 SlowMode ? SIMCONNECT_PERIOD.SECOND : SIMCONNECT_PERIOD.SIM_FRAME, 
                 SIMCONNECT_DATA_REQUEST_FLAG.DEFAULT, 0, 0, 0);
+
+            simconnect.SubscribeToFacilities(SIMCONNECT_FACILITY_LIST_TYPE.AIRPORT, DATA_REQUESTS.SUBSCRIBE_GENERIC);
         }
 
         // The case where the user closes Flight Simulator

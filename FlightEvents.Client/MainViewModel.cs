@@ -73,5 +73,8 @@ namespace FlightEvents.Client
 
         private bool minimizeToTaskbar;
         public bool MinimizeToTaskbar { get => minimizeToTaskbar; set => SetProperty(ref minimizeToTaskbar, value); }
+
+        private Airport nearestAirport;
+        public Airport NearestAirport { get { return nearestAirport; } set { SetProperty(ref nearestAirport, value); } }
     }
 }
