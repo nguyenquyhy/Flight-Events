@@ -31,6 +31,9 @@ namespace FlightEvents.DiscordBot.AtisBot
                 discord = new DiscordSocketClient();
 
                 discord.GuildAvailable += Discord_GuildAvailable;
+                discord.VoiceServerUpdated += Discord_VoiceServerUpdated;
+                discord.Disconnected += Discord_Disconnected;
+                discord.Connected += Discord_Connected;
 
                 await discord.LoginAsync(TokenType.Bot, appOptions.BotToken);
                 await discord.StartAsync();
@@ -47,11 +50,40 @@ namespace FlightEvents.DiscordBot.AtisBot
             }
         }
 
+        private Task Discord_Connected()
+        {
+            logger.LogInformation("Connected to Discord");
+
+            return Task.CompletedTask;
+        }
+
+        private Task Discord_Disconnected(Exception error)
+        {
+            logger.LogInformation(error, "Disconnected from Discord");
+
+            cts?.Cancel();
+
+            return Task.CompletedTask;
+        }
+
+        private Task Discord_VoiceServerUpdated(SocketVoiceServer server)
+        {
+            logger.LogInformation("Voice server updated to {endpoint}", server.Endpoint);
+
+            return Task.CompletedTask;
+        }
+
+        private CancellationTokenSource cts = null;
+
         private async Task Discord_GuildAvailable(SocketGuild guild)
         {
             logger.LogInformation("Connected to {guildId} {guildName}", guild.Id, guild.Name);
             if (guild.Id == appOptions.ServerId)
             {
+                cts?.Cancel();
+                cts = new CancellationTokenSource();
+                var token = cts.Token;
+
                 var channel = guild.GetVoiceChannel(appOptions.ChannelId);
 
                 try
@@ -89,7 +121,7 @@ namespace FlightEvents.DiscordBot.AtisBot
                     logger.LogInformation("Start loop on channel {channelId}", appOptions.ChannelId);
                     Task.Run(async () =>
                     {
-                        await PlayLoopAsync(channel);
+                        await PlayLoopAsync(channel, token);
                     });
                 }
                 else
@@ -99,7 +131,7 @@ namespace FlightEvents.DiscordBot.AtisBot
             }
         }
 
-        private async Task PlayLoopAsync(SocketVoiceChannel voiceChannel)
+        private async Task PlayLoopAsync(SocketVoiceChannel voiceChannel, CancellationToken cancellationToken)
         {
             using var stream = new MemoryStream();
 
@@ -111,30 +143,41 @@ namespace FlightEvents.DiscordBot.AtisBot
             File.Delete(appOptions.AudioFilePath);
             logger.LogInformation("Read & deleted file {fileName}", appOptions.AudioFilePath);
 
+            using var audioClient = await voiceChannel.ConnectAsync();
+            logger.LogInformation("Connected to voice channel {channelId} {channelName}", voiceChannel.Id, voiceChannel.Name);
+
             try
             {
-                var audioClient = await voiceChannel.ConnectAsync();
-                logger.LogInformation("Connected to voice channel {channelId} {channelName}", voiceChannel.Id, voiceChannel.Name);
 
                 while (true)
                 {
-                    logger.LogInformation("Start playing audio");
+                    logger.LogDebug("Start playing audio");
                     using var discordStream = audioClient.CreatePCMStream(AudioApplication.Voice);
                     try
                     {
                         stream.Seek(0, SeekOrigin.Begin);
-                        await stream.CopyToAsync(discordStream);
+                        await stream.CopyToAsync(discordStream, cancellationToken);
                     }
                     finally
                     {
                         await discordStream.FlushAsync();
                     }
+                    cancellationToken.ThrowIfCancellationRequested();
                     await Task.Delay(1000);
                 }
+            }
+            catch (TaskCanceledException)
+            {
+                logger.LogInformation("Audio loop is canceled");
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Cannot play ATIS message");
+            }
+            finally
+            {
+                await audioClient.StopAsync();
+                logger.LogInformation("Stopped voice channel {channelId} {channelName}", voiceChannel.Id, voiceChannel.Name);
             }
         }
 
