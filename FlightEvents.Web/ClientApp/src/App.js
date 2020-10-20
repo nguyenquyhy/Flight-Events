@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { Route } from 'react-router';
 import { Home } from './components/Pages/Home';
+import EventListPage from './components/Pages/EventListPage';
+import EventDetailsPage from './components/Pages/EventDetailsPage';
 import StopwatchPage from './components/Pages/StopwatchPage';
 import FlightPlanCreatePage from './components/Pages/FlightPlanCreatePage';
 import FlightPlanListPage from './components/Pages/FlightPlanListPage';
@@ -14,7 +16,9 @@ export default class App extends Component {
         return (
             <>
                 <Route exact path='/' component={Home} />
-                <Route exact path='/Stopwatch/:eventCode' component={StopwatchPage} />
+                <Route exact path='/Events' component={EventListPage} />
+                <Route exact path='/Events/:id' component={EventDetailsPage} />
+                <Route exact path='/Events/:id/Stopwatch' component={StopwatchPage} />
                 <Route exact path='/FlightPlans/Create' component={FlightPlanCreatePage} />
                 <Route exact path='/FlightPlans' component={FlightPlanListPage} />
             </>

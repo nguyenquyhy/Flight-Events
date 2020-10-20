@@ -33,7 +33,6 @@ namespace FlightEvents.Data
         public string Waypoints { get; set; }
         public string Route { get; set; }
 
-        public string StopwatchCode { get; set; }
         public List<string> Leaderboards { get; set; }
         public List<string> LeaderboardLaps { get; set; }
 
@@ -54,8 +53,6 @@ namespace FlightEvents.Data
 
             if (Waypoints != default) current.Waypoints = Waypoints;
             if (Route != default) current.Route = Route;
-
-            if (StopwatchCode != default) current.StopwatchCode = StopwatchCode;
 
             if (Leaderboards != default) current.Leaderboards = Leaderboards;
             if (LeaderboardLaps != default) current.LeaderboardLaps = LeaderboardLaps;

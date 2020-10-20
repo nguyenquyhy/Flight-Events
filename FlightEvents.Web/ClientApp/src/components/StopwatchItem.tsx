@@ -6,7 +6,7 @@ import { Stopwatch } from '../Models';
 
 interface ItemProps {
     hub: HubConnection;
-    eventCode: string;
+    eventId: string;
 }
 
 interface ItemState {
@@ -36,27 +36,27 @@ const StopwatchItem = (props: ItemProps & Stopwatch) => {
     }, [props])
 
     const handleStart = () => {
-        props.hub.send("StartStopwatch", props.eventCode, props.id);
+        props.hub.send("StartStopwatch", props.eventId, props.id);
     }
 
     const handleLap = () => {
-        props.hub.send("LapStopwatch", props.eventCode, props.id);
+        props.hub.send("LapStopwatch", props.eventId, props.id);
     }
 
     const handleStop = () => {
-        props.hub.send("StopStopwatch", props.eventCode, props.id);
+        props.hub.send("StopStopwatch", props.eventId, props.id);
     }
 
     const handleReset = () => {
-        props.hub.send("RestartStopwatch", props.eventCode, props.id);
+        props.hub.send("RestartStopwatch", props.eventId, props.id);
     }
 
     const handleSave = () => {
-        props.hub.send("SaveStopwatch", props.eventCode, props.id);
+        props.hub.send("SaveStopwatch", props.eventId, props.id);
     }
 
     const handleRemove = () => {
-        props.hub.send("RemoveStopwatch", props.eventCode, props.id);
+        props.hub.send("RemoveStopwatch", props.eventId, props.id);
     }
 
     const startedDateTime = props.startedDateTime ? new Date(props.startedDateTime).getTime() : null;

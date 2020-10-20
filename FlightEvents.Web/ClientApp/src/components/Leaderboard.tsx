@@ -28,8 +28,10 @@ export const recordsToLeaderboards = (records: LeaderboardRecord[]) => {
 
 const Leaderboard = (props: LeaderboardProps) => {
     const milestones = ['Full race'];
-    for (let i = 0; i < props.event.leaderboardLaps.length; i++) {
-        milestones.push((i === 0 ? 'Start' : props.event.leaderboardLaps[i - 1]) + ' → ' + props.event.leaderboardLaps[i]);
+    if (props.event.leaderboardLaps) {
+        for (let i = 0; i < props.event.leaderboardLaps.length; i++) {
+            milestones.push((i === 0 ? 'Start' : props.event.leaderboardLaps[i - 1]) + ' → ' + props.event.leaderboardLaps[i]);
+        }
     }
 
     return <div className="table-responsive">
@@ -37,16 +39,16 @@ const Leaderboard = (props: LeaderboardProps) => {
             <thead>
                 <tr>
                     <th rowSpan={2}></th>
-                    {props.event.leaderboards.map(leaderboardName => <th key={leaderboardName} colSpan={3}>{leaderboardName}</th>)}
+                    {!!props.event.leaderboards && props.event.leaderboards.map(leaderboardName => <th key={leaderboardName} colSpan={3}>{leaderboardName}</th>)}
                 </tr>
                 <tr>
-                    {props.event.leaderboards.map(leaderboardName => <React.Fragment key={leaderboardName}><th>Pos</th><th>Name</th><th>Time</th></React.Fragment>)}
+                    {!!props.event.leaderboards && props.event.leaderboards.map(leaderboardName => <React.Fragment key={leaderboardName}><th>Pos</th><th>Name</th><th>Time</th></React.Fragment>)}
                 </tr>
             </thead>
             <tbody>
                 {milestones.map((milestoneName, subIndex) => <tr key={subIndex}>
                     <td>{milestoneName}</td>
-                    {props.event.leaderboards.map(leaderboardName => {
+                    {!!props.event.leaderboards && props.event.leaderboards.map(leaderboardName => {
                         let leaderboard = props.leaderboards[leaderboardName];
                         if (!leaderboard) return <React.Fragment key={leaderboardName}><td></td><td></td><td></td></React.Fragment>;
 

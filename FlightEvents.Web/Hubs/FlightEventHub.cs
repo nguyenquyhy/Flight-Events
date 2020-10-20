@@ -262,17 +262,19 @@ namespace FlightEvents.Web.Hubs
 
             if (group.StartsWith("Stopwatch:"))
             {
-                var eventCode = group.Split(":")[1];
-                var evt = await flightEventStorage.GetByStopwatchCodeAsync(eventCode);
-
-                var eventStopwatches = stopwatches.GetOrAdd(eventCode, new ConcurrentDictionary<Guid, EventStopwatch>());
-                foreach (var stopwatch in eventStopwatches.Values)
+                if (Guid.TryParse(group.Split(":")[1], out var eventId))
                 {
-                    await Clients.Caller.UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
-                }
+                    var evt = await flightEventStorage.GetAsync(eventId);
 
-                var records = await leaderboardStorage.LoadAsync(evt.Id);
-                await Clients.Caller.UpdateLeaderboard(records);
+                    var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
+                    foreach (var stopwatch in eventStopwatches.Values)
+                    {
+                        await Clients.Caller.UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
+                    }
+
+                    var records = await leaderboardStorage.LoadAsync(evt.Id);
+                    await Clients.Caller.UpdateLeaderboard(records);
+                }
             }
 
             if (group.StartsWith("Leaderboard:"))
@@ -370,7 +372,7 @@ namespace FlightEvents.Web.Hubs
 
         #region Stopwatch
 
-        private static ConcurrentDictionary<string, ConcurrentDictionary<Guid, EventStopwatch>> stopwatches = new ConcurrentDictionary<string, ConcurrentDictionary<Guid, EventStopwatch>>();
+        private static ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, EventStopwatch>> stopwatches = new ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, EventStopwatch>>();
 
         public async Task AddStopwatch(EventStopwatch input)
         {
@@ -379,19 +381,19 @@ namespace FlightEvents.Web.Hubs
                 Id = Guid.NewGuid(),
                 LeaderboardName = input.LeaderboardName,
                 Name = input.Name,
-                EventCode = input.EventCode,
+                EventId = input.EventId,
                 AddedDateTime = DateTimeOffset.UtcNow
             };
-            var eventStopwatches = stopwatches.GetOrAdd(input.EventCode, new ConcurrentDictionary<Guid, EventStopwatch>());
+            var eventStopwatches = stopwatches.GetOrAdd(input.EventId, new ConcurrentDictionary<Guid, EventStopwatch>());
             if (eventStopwatches.TryAdd(stopwatch.Id, stopwatch))
             {
-                await Clients.Group("Stopwatch:" + input.EventCode).UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
+                await Clients.Group("Stopwatch:" + input.EventId).UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
             }
         }
 
-        public async Task StartAllStopwatches(string eventCode)
+        public async Task StartAllStopwatches(Guid eventId)
         {
-            var eventStopwatches = stopwatches.GetOrAdd(eventCode, new ConcurrentDictionary<Guid, EventStopwatch>());
+            var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
             var startTime = DateTimeOffset.UtcNow;
             foreach (var stopwatch in eventStopwatches.Values)
             {
@@ -399,82 +401,82 @@ namespace FlightEvents.Web.Hubs
                 {
                     stopwatch.StartedDateTime = startTime;
                     stopwatch.StoppedDateTime = null;
-                    await Clients.Group("Stopwatch:" + eventCode).UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
+                    await Clients.Group("Stopwatch:" + eventId).UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
                 }
             }
         }
 
-        public async Task StartStopwatch(string eventCode, Guid id)
+        public async Task StartStopwatch(Guid eventId, Guid id)
         {
-            var eventStopwatches = stopwatches.GetOrAdd(eventCode, new ConcurrentDictionary<Guid, EventStopwatch>());
+            var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
             if (eventStopwatches.TryGetValue(id, out var stopwatch))
             {
                 if (stopwatch.StartedDateTime == null && stopwatch.StoppedDateTime == null)
                 {
                     stopwatch.StartedDateTime = DateTimeOffset.UtcNow;
-                    await Clients.Group("Stopwatch:" + eventCode).UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
+                    await Clients.Group("Stopwatch:" + eventId).UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
                 }
             }
         }
 
-        public async Task RestartStopwatch(string eventCode, Guid id)
+        public async Task RestartStopwatch(Guid eventId, Guid id)
         {
-            var eventStopwatches = stopwatches.GetOrAdd(eventCode, new ConcurrentDictionary<Guid, EventStopwatch>());
+            var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
             if (eventStopwatches.TryGetValue(id, out var stopwatch))
             {
                 stopwatch.StartedDateTime = DateTimeOffset.UtcNow;
                 stopwatch.StoppedDateTime = null;
                 stopwatch.LapsDateTime.Clear();
-                await Clients.Group("Stopwatch:" + eventCode).UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
+                await Clients.Group("Stopwatch:" + eventId).UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
             }
         }
 
-        public async Task LapStopwatch(string eventCode, Guid id)
+        public async Task LapStopwatch(Guid eventId, Guid id)
         {
-            var eventStopwatches = stopwatches.GetOrAdd(eventCode, new ConcurrentDictionary<Guid, EventStopwatch>());
+            var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
             if (eventStopwatches.TryGetValue(id, out var stopwatch)
                 && stopwatch.StartedDateTime.HasValue && !stopwatch.StoppedDateTime.HasValue)
             {
                 var dateTime = DateTimeOffset.UtcNow;
                 stopwatch.LapsDateTime.Add(dateTime);
 
-                var evt = await flightEventStorage.GetByStopwatchCodeAsync(eventCode);
+                var evt = await flightEventStorage.GetAsync(eventId);
                 if (stopwatch.LapsDateTime.Count == evt.LeaderboardLaps.Count)
                 {
                     stopwatch.StoppedDateTime = dateTime;
                 }
 
-                await Clients.Group("Stopwatch:" + eventCode).UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
+                await Clients.Group("Stopwatch:" + eventId).UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
             }
         }
 
-        public async Task StopStopwatch(string eventCode, Guid id)
+        public async Task StopStopwatch(Guid eventId, Guid id)
         {
-            var eventStopwatches = stopwatches.GetOrAdd(eventCode, new ConcurrentDictionary<Guid, EventStopwatch>());
+            var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
             if (eventStopwatches.TryGetValue(id, out var stopwatch))
             {
                 stopwatch.StoppedDateTime = DateTimeOffset.UtcNow;
-                await Clients.Group("Stopwatch:" + eventCode).UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
+                await Clients.Group("Stopwatch:" + eventId).UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
             }
         }
 
-        public async Task RemoveStopwatch(string eventCode, Guid id)
+        public async Task RemoveStopwatch(Guid eventId, Guid id)
         {
-            var eventStopwatches = stopwatches.GetOrAdd(eventCode, new ConcurrentDictionary<Guid, EventStopwatch>());
+            var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
             if (eventStopwatches.TryRemove(id, out var stopwatch))
             {
-                await Clients.Group("Stopwatch:" + eventCode).RemoveStopwatch(stopwatch);
+                await Clients.Group("Stopwatch:" + eventId).RemoveStopwatch(stopwatch);
             }
         }
 
-        public async Task SaveStopwatch(string eventCode, Guid id)
+        public async Task SaveStopwatch(Guid eventId, Guid id)
         {
-            var eventStopwatches = stopwatches.GetOrAdd(eventCode, new ConcurrentDictionary<Guid, EventStopwatch>());
+            var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
             if (eventStopwatches.TryRemove(id, out var stopwatch))
             {
-                await Clients.Group("Stopwatch:" + eventCode).RemoveStopwatch(stopwatch);
+                await Clients.Group("Stopwatch:" + eventId).RemoveStopwatch(stopwatch);
 
-                var evt = await flightEventStorage.GetByStopwatchCodeAsync(eventCode);
+                var evt = await flightEventStorage.GetAsync(eventId);
                 // Create leaderboard for each lap and full race
                 if (stopwatch.LapsDateTime.Count == evt.LeaderboardLaps.Count)
                 {
@@ -512,7 +514,7 @@ namespace FlightEvents.Web.Hubs
                 }
 
                 var records = await leaderboardStorage.LoadAsync(evt.Id);
-                await Clients.Group("Stopwatch:" + eventCode).UpdateLeaderboard(records);
+                await Clients.Group("Stopwatch:" + eventId).UpdateLeaderboard(records);
                 await Clients.Group("Leaderboard:" + evt.Id).UpdateLeaderboard(records);
             }
 
@@ -549,7 +551,7 @@ namespace FlightEvents.Web.Hubs
     public class EventStopwatch
     {
         public Guid Id { get; set; }
-        public string EventCode { get; set; }
+        public Guid EventId { get; set; }
         public string LeaderboardName { get; set; }
         public string Name { get; set; }
         public DateTimeOffset AddedDateTime { get; set; }

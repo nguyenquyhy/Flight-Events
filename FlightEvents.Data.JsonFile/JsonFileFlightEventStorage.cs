@@ -33,8 +33,6 @@ namespace FlightEvents.Data
 
         public async Task<FlightEvent> GetByCodeAsync(string code) => (await LoadAsync()).FirstOrDefault(o => o.Code == code);
 
-        public async Task<FlightEvent> GetByStopwatchCodeAsync(string code) => (await LoadAsync()).FirstOrDefault(o => o.StopwatchCode == code);
-
         public async Task<FlightEvent> AddAsync(FlightEvent flightEvent)
         {
             flightEvent.Id = Guid.NewGuid();

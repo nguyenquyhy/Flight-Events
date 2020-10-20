@@ -37,8 +37,6 @@ namespace FlightEvents.Web.GraphQL
 
         public Task<FlightEvent> GetFlightEventAsync(Guid id) => storage.GetAsync(id);
 
-        public Task<FlightEvent> GetFlightEventByStopwatchCodeAsync(string code) => storage.GetByStopwatchCodeAsync(code);
-
         public Task<List<Airport>> GetAirportsAsync(List<string> idents) => airportStorage.GetAirportsAsync(idents);
 
         public Task<FlightPlanData> GetFlightPlanAsync(string id) => flightPlanFileStorage.GetFlightPlanAsync(id);

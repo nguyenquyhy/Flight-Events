@@ -49,8 +49,8 @@ export interface FlightEvent {
     type: string;
     name: string;
     description: string;
-    leaderboards: string[];
-    leaderboardLaps: string[];
+    leaderboards: string[] | null;
+    leaderboardLaps: string[] | null;
     startDateTime: string;
     endDateTime: string | null;
     url: string | null;
