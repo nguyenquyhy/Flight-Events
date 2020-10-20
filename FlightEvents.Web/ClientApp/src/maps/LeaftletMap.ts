@@ -61,6 +61,8 @@ export default class LeafletMap implements IMap {
     onSetShowInfoHandler: (OnSetClientIdFn | null) = null;
     onSetShowRouteHandler: (OnSetClientIdFn | null) = null;
 
+    initialView?: View;
+
     isDark: boolean = false;
 
     public initialize(divId: string, view?: View) {
@@ -75,6 +77,8 @@ export default class LeafletMap implements IMap {
                 }]
             })
                 .setView(view ? [view.latitude, view.longitude] : [51.505, -0.09], view ? view.zoom : 13);
+        this.initialView = view;
+
         L.control.attribution({
             position: 'bottomleft'
         }).addTo(map);
@@ -205,7 +209,7 @@ export default class LeafletMap implements IMap {
 
         let latlng: L.LatLngExpression = [aircraftStatus.latitude, aircraftStatus.longitude];
 
-        if (Object.keys(this.markers).length === 0) {
+        if (Object.keys(this.markers).length === 0 && !this.initialView) {
             // Move to 1st aircraft
             this.mymap.setView(latlng, 11);
         } else if (isFollowing) {

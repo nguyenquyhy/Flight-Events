@@ -141,12 +141,16 @@ export default class MaptalksMap implements IMap {
     isDark: boolean = false;
     type: MapTileType = MapTileType.OpenStreetMap;
 
+    initialView?: View;
+
     initialize(divId: string, view?: View) {
         const map: Map = new maptalks.Map(divId, {
             center: view ? [view.longitude, view.latitude] : [-0.09, 51.505],
             zoom: view ? view.zoom : 13,
             pitch: 30
         });
+        this.initialView = view;
+
         var options = {
             'items': [
                 { item: 'Teleport aircraft here', click: this.moveAircraft.bind(this) }
@@ -293,7 +297,7 @@ export default class MaptalksMap implements IMap {
 
         let latlng: Coordinate = new maptalks.Coordinate([aircraftStatus.longitude, aircraftStatus.latitude]);
 
-        if (Object.keys(this.markers).length === 0) {
+        if (Object.keys(this.markers).length === 0 && !this.initialView) {
             // Move to 1st aircraft
             this.map.panTo(latlng);
             this.map.setPitch(30);
