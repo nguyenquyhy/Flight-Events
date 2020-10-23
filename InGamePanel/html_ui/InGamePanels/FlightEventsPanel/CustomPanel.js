@@ -1,76 +1,69 @@
-var IngamePanelCustomPanelLoaded = false;
-document.addEventListener('beforeunload', function () {
-    IngamePanelCustomPanelLoaded = false;
-}, false);
-class IngamePanelCustomPanel extends HTMLElement {
-    constructor() {
-        super();
-        console.log('IngamePanelCustomPanel2');
+var DEBUG = false;
+
+class IngamePanelFlightEventsPanel extends HTMLElement {
+
+    connectedCallback() {
+        Include.addScript("/JS/simvar.js", () => {
+            if (DEBUG) {
+                setTimeout(() => {
+                    this.enableDebug();
+                }, 1000);
+            } else {
+                setTimeout(() => {
+                    this.initialize();
+                }, 1000);
+            }
+        });
+    }
+
+    initialize() {
+        var m_Footer = document.querySelector("#Footer");
+        m_Footer.classList.add("hidden");
+
         var iframe = document.querySelector("#CustomPanelIframe");
+
+        var buttonFocus = document.querySelector("#ButtonFocus");
+        buttonFocus.addEventListener("click", e => {
+            this.loadMap(iframe);
+        });
+
+        this.loadMap(iframe);
+    }
+
+    loadMap(iframe) {
+        var longitude = SimVar.GetSimVarValue("GPS POSITION LON", "degree longitude");
+        var latitude = SimVar.GetSimVarValue("GPS POSITION LAT", "degree latitude");
         if (iframe) {
-            iframe.src = "https://events.flighttracker.tech/?mode=MSFS";
+            iframe.src = "https://events.flighttracker.tech/?mode=MSFS&latitude=" + latitude + "&longitude=" + longitude;
         }
     }
-    isDebugEnabled() {
-        var self = this;
+
+    enableDebug() {
         if (typeof g_modDebugMgr != "undefined") {
-            g_modDebugMgr.AddConsole(null);
-            g_modDebugMgr.AddDebugButton("ButtonCustomID1", function() {
-                console.log('ButtonCustomID1');
-                console.log(self.instrumentIdentifier);
-            });
-            g_modDebugMgr.AddDebugButton("ButtonCustomTemplateID1", function() {
-                console.log('ButtonCustomTemplateID1');
-                console.log(self.templateID);
-            });
-            g_modDebugMgr.AddDebugButton("ButtonCustomSource1", function() {
-                console.log('ButtonCustomSource1');
-                console.log(window.document.documentElement.outerHTML);
-            });
-        } else {
-            Include.addScript("/JS/debug.js", function () {
+            this.initialize();
+            this.addDebugControls()
+        }
+        else {
+            Include.addScript("/JS/debug.js", () => {
                 if (typeof g_modDebugMgr != "undefined") {
-                    g_modDebugMgr.AddConsole(null);
-                    g_modDebugMgr.AddDebugButton("ButtonCustomID2", function() {
-                        console.log('ButtonCustomID2');
-                        console.log(self.instrumentIdentifier);
-                    });
-                    g_modDebugMgr.AddDebugButton("ButtonCustomTemplateID2", function() {
-                        console.log('ButtonCustomTemplateID2');
-                        console.log(self.templateID);
-                    });
-                    g_modDebugMgr.AddDebugButton("ButtonCustomSource2", function() {
-                        console.log('ButtonCustomSource2');
-                        console.log(window.document.documentElement.outerHTML);
-                    });
+                    this.initialize();
+                    this.addDebugControls();
                 } else {
-                    /*setTimeout(() => {
-                        self.isDebugEnabled();
-                    }, 2000);*/
+                    setTimeout(() => {
+                        this.enableDebug();
+                    }, 2000);
                 }
             });
         }
     }
-    connectedCallback() {
-        var self = this;
-        /*setTimeout(() => {
-            self.isDebugEnabled();
-        }, 1000);*/
-        console.log('IngamePanelCustomPanel1');
 
-        this.m_MainDisplay = document.querySelector("#MainDisplay");
-        this.m_MainDisplay.classList.add("hidden");
-
-        this.m_Footer = document.querySelector("#Footer");
-        this.m_Footer.classList.add("hidden");
-
-        var iframe = document.querySelector("#CustomPanelIframe");
-        if (iframe) {
-            iframe.src = "https://events.flighttracker.tech/?mode=MSFS";
-        }
-    }
-    updateImage() {
+    addDebugControls() {
+        g_modDebugMgr.AddConsole(null);
+        g_modDebugMgr.AddDebugButton("Source", () => {
+            console.log('Source');
+            console.log(window.document.documentElement.outerHTML);
+        });
     }
 }
-window.customElements.define("ingamepanel-custom", IngamePanelCustomPanel);
+window.customElements.define("ingamepanel-flightevents", IngamePanelFlightEventsPanel);
 checkAutoload();
