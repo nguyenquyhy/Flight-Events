@@ -33,7 +33,7 @@ export default class Download extends React.Component<any, State> {
                     <a className="btn btn-primary" href="https://events-storage.flighttracker.tech/downloads/FlightEvents.Client.zip" target="_blank" rel="noopener noreferrer">Download MSFS Client</a>
 
                     <p style={{ margin: '10px 0 0 0' }}>You can view Flight Events map directly inside the simulator with a toolbar panel. Simply unzip the following files and put in Community folder.</p>
-                    <img style={{ maxWidth: '100%', marginBottom: 5 }} alt="Flight Events toolbar panel" src="https://events-storage.flighttracker.tech/images/InGamePanel.png" />
+                    <img style={{ maxWidth: '100%', marginBottom: 5, display: 'block' }} alt="Flight Events toolbar panel" src="https://events-storage.flighttracker.tech/images/InGamePanel.png" />
                     <a className="btn btn-primary" href="https://events-storage.flighttracker.tech/downloads/ingamepanels-flightevents.zip" target="_blank" rel="noopener noreferrer">Download MSFS Toolbar Panel</a>
 
                     <hr />
