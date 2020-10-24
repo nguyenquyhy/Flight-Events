@@ -1,10 +1,9 @@
 ﻿import * as React from 'react';
-import * as signalr from '@microsoft/signalr';
 import { Modal, ModalBody, ModalHeader } from 'reactstrap';
 import { MapPosition } from '../../maps/IMap';
 
 interface Props {
-    hub: signalr.HubConnection;
+    onRequested: (code: string, position: MapPosition, altitude: number) => void;
     onComplete: () => void;
     selectedPosition: MapPosition | null;
 }
@@ -14,18 +13,18 @@ interface State {
     teleportToken: string | null;
 }
 
-function send(hub: signalr.HubConnection, position: MapPosition, altitude: number) {
-    let code = '';
-    for (let i = 0; i < 6; i++) {
-        code += String.fromCharCode(Math.floor(Math.random() * 26) + 65);
-    }
-    hub.send('RequestTeleport', code, { ...position, altitude });
-
-    return code;
-}
-
 const TeleportDialog = (props: Props) => {
     let [state, setState] = React.useState<State>({ altitude: 10000, teleportToken: null });
+
+    const send = (position: MapPosition, altitude: number) => {
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+            code += String.fromCharCode(Math.floor(Math.random() * 26) + 65);
+        }
+        props.onRequested(code, position, altitude);
+
+        return code;
+    }
 
     return (
         <Modal isOpen={!!props.selectedPosition} toggle={() => { setState({ ...state, teleportToken: null }); props.onComplete(); }}>
@@ -46,7 +45,7 @@ const TeleportDialog = (props: Props) => {
                 {!state.teleportToken && <>
                     <div>Please enter the required altitude (ft):</div>
                     <input type="number" className="form-control" value={state.altitude} onChange={e => setState({ ...state, altitude: parseFloat(e.target.value) })} />
-                    <button className="btn btn-primary" onClick={() => props.selectedPosition && setState({ ...state, teleportToken: send(props.hub, props.selectedPosition, state.altitude) })}>Continue</button>
+                    <button className="btn btn-primary" onClick={() => props.selectedPosition && setState({ ...state, teleportToken: send(props.selectedPosition, state.altitude) })}>Continue</button>
                 </>}
 
                 {state.teleportToken && <>

@@ -102,6 +102,7 @@ export class Home extends React.Component<Props, State> {
 
         this.handleAirportsLoaded = this.handleAirportsLoaded.bind(this);
         this.handleFlightPlansLoaded = this.handleFlightPlansLoaded.bind(this);
+        this.handleTeleportRequested = this.handleTeleportRequested.bind(this);
         this.handleTeleportCompleted = this.handleTeleportCompleted.bind(this);
 
         this.cleanUp = this.cleanUp.bind(this);
@@ -456,6 +457,10 @@ export class Home extends React.Component<Props, State> {
         this.map.drawFlightPlans(flightPlans.map(o => o.data));
     }
 
+    public handleTeleportRequested(code: string, position: MapPosition, altitude: number) {
+        this.hub.send('RequestTeleport', code, position.latitude, position.longitude, altitude);
+    }
+
     public handleTeleportCompleted() {
         this.setState({ movingPosition: null });
     }
@@ -491,7 +496,7 @@ export class Home extends React.Component<Props, State> {
 
             <EventList hub={this.hub} onAirportsLoaded={this.handleAirportsLoaded} onFlightPlansLoaded={this.handleFlightPlansLoaded} />
 
-            <TeleportDialog hub={this.hub} selectedPosition={this.state.movingPosition} onComplete={this.handleTeleportCompleted} />
+            <TeleportDialog selectedPosition={this.state.movingPosition} onRequested={this.handleTeleportRequested} onComplete={this.handleTeleportCompleted} />
         </>;
     }
 }

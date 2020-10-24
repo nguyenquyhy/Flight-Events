@@ -439,9 +439,14 @@ namespace FlightEvents.Web.Hubs
 
         #endregion
 
-        public void RequestTeleport(string token, AircraftPosition position)
+        public void RequestTeleport(string token, double latitude, double longitude, double altitude)
         {
-            connectionIdToTeleportRequest[Context.ConnectionId] = (token, position);
+            connectionIdToTeleportRequest[Context.ConnectionId] = (token, new AircraftPosition
+            {
+                Latitude = latitude,
+                Longitude = longitude,
+                Altitude = altitude
+            });
             teleportTokenToConnectionId[token] = Context.ConnectionId;
         }
 
