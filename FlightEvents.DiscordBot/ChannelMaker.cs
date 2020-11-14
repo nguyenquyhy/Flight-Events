@@ -21,21 +21,32 @@ namespace FlightEvents.DiscordBot
                 CreateChannelNameFromFrequency(serverOptions, frequency) :
                 serverOptions.LoungeChannelName;
 
-            var channel = guild.Channels.FirstOrDefault(c => c.Name == channelName);
-            if (channel != null) return channel;
-
-            var voiceChannel = await guild.CreateVoiceChannelAsync(channelName, props =>
+            if (!string.IsNullOrWhiteSpace(channelName))
             {
-                props.CategoryId = serverOptions.ChannelCategoryId;
-                props.Bitrate = serverOptions.ChannelBitrate;
-            });
+                var channel = guild.Channels.FirstOrDefault(c => c.Name == channelName);
+                if (channel != null) return channel;
 
-            // Note: Bot will not try to add permission.
-            // Instead, permission should be set at the category level so that the channel can inherit.
+                var voiceChannel = await guild.CreateVoiceChannelAsync(channelName, props =>
+                {
+                    props.CategoryId = serverOptions.ChannelCategoryId;
+                    props.Bitrate = serverOptions.ChannelBitrate;
+                });
 
-            logger.LogInformation("Created new channel {channelName}", channelName);
+                // Note: Bot will not try to add permission.
+                // Instead, permission should be set at the category level so that the channel can inherit.
 
-            return voiceChannel;
+                logger.LogInformation("Created new channel {channelName}", channelName);
+
+                return voiceChannel;
+            }
+            else if (serverOptions.LoungeChannelId.HasValue)
+            {
+                return guild.Channels.FirstOrDefault(c => c.Id == serverOptions.LoungeChannelId.Value);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public string CreateChannelNameFromFrequency(DiscordServerOptions serverOptions, int? toFrequency)

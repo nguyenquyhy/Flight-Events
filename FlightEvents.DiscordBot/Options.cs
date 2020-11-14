@@ -24,8 +24,12 @@ namespace FlightEvents.DiscordBot
         [Required]
         public ulong ChannelCategoryId { get; set; }
         public ulong? CommandChannelId { get; set; }
-        [Required]
+
         public string LoungeChannelName { get; set; }
+        public ulong? LoungeChannelId { get; set; }
+
+        public ulong[] ExternalChannelIds { get; set; }
+
         [Required]
         public int ChannelBitrate { get; set; }
         public string ChannelNameSuffix { get; set; }

@@ -66,37 +66,34 @@ namespace FlightEvents.DiscordBot
                             var category = guild.GetCategoryChannel(serverOptions.ChannelCategoryId);
                             if (category != null)
                             {
-                                var channels = category.Channels.Where(channel => channel.Name != serverOptions.LoungeChannelName);
-                                foreach (var channel in channels)
+                                var channels = category.Channels
+                                    .Where(channel => channel is SocketVoiceChannel voiceChannel)
+                                    .Cast<SocketVoiceChannel>()
+                                    .Where(channel => IsExtraChannel(channel, serverOptions));
+
+                                logger.LogTrace("{guildName}: {allChannels}", guild.Name, string.Join(" | ", channels.Select(o => o.Name)));
+
+                                foreach (var voiceChannel in channels)
                                 {
-                                    if (channel is SocketVoiceChannel voiceChannel && voiceChannel.CategoryId == serverOptions.ChannelCategoryId && voiceChannel.Name != serverOptions.LoungeChannelName)
+                                    var stopwatch = AddOrGetStopwatch(voiceChannel);
+                                    if (voiceChannel.Users.Count > 0)
                                     {
-                                        var stopwatch = channelStopwatches.GetOrAdd(channel.Id, id =>
+                                        stopwatch.Restart();
+                                    }
+                                    else if (stopwatch.ElapsedMilliseconds > 60000)
+                                    {
+                                        try
                                         {
-                                            logger.LogInformation("Adding stopwatch for {channelName}.", voiceChannel.Name);
-                                            var stopwatch = new Stopwatch();
-                                            stopwatch.Start();
-                                            return stopwatch;
-                                        });
-                                        if (voiceChannel.Users.Count > 0)
-                                        {
-                                            stopwatch.Restart();
+                                            logger.LogInformation("Deleting {channelName} of guild {guildName}.", voiceChannel.Name, guild.Name);
+                                            await voiceChannel.DeleteAsync();
                                         }
-                                        else if (stopwatch.ElapsedMilliseconds > 60000)
+                                        catch (Exception ex)
                                         {
-                                            try
-                                            {
-                                                logger.LogInformation("Deleting {channelName} of guild {guildName}.", voiceChannel.Name, guild.Name);
-                                                await voiceChannel.DeleteAsync();
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                logger.LogError(ex, "Cannot delete channel {channelName} of guild {guildName}", voiceChannel.Name, guild.Name);
-                                            }
-                                            finally
-                                            {
-                                                channelStopwatches.TryRemove(channel.Id, out _);
-                                            }
+                                            logger.LogError(ex, "Cannot delete channel {channelName} of guild {guildName}!", voiceChannel.Name, guild.Name);
+                                        }
+                                        finally
+                                        {
+                                            channelStopwatches.TryRemove(voiceChannel.Id, out _);
                                         }
                                     }
                                 }
@@ -135,17 +132,26 @@ namespace FlightEvents.DiscordBot
         private void TouchVoiceChannel(SocketVoiceChannel voiceChannel)
         {
             var serverOptions = discordOptions.Servers.SingleOrDefault(o => o.ServerId == voiceChannel.Guild.Id);
-            if (voiceChannel.CategoryId == serverOptions.ChannelCategoryId && voiceChannel.Name != serverOptions.LoungeChannelName)
+            if (IsExtraChannel(voiceChannel, serverOptions))
             {
-                var stopwatch = channelStopwatches.GetOrAdd(voiceChannel.Id, id =>
-                {
-                    logger.LogInformation("Adding stopwatch for {channelName}.", voiceChannel.Name);
-                    var stopwatch = new Stopwatch();
-                    stopwatch.Start();
-                    return stopwatch;
-                });
+                var stopwatch = AddOrGetStopwatch(voiceChannel);
                 stopwatch.Restart();
             }
         }
+
+        private bool IsExtraChannel(SocketVoiceChannel channel, DiscordServerOptions serverOptions)
+            => channel.CategoryId == serverOptions.ChannelCategoryId &&
+                                                    (string.IsNullOrWhiteSpace(serverOptions.LoungeChannelName) || channel.Name != serverOptions.LoungeChannelName) &&
+                                                    (serverOptions.LoungeChannelId == null || channel.Id != serverOptions.LoungeChannelId.Value) &&
+                                                    (serverOptions.ExternalChannelIds == null || !serverOptions.ExternalChannelIds.Contains(channel.Id));
+
+        private Stopwatch AddOrGetStopwatch(SocketVoiceChannel voiceChannel)
+            => channelStopwatches.GetOrAdd(voiceChannel.Id, id =>
+            {
+                logger.LogInformation("Adding stopwatch for [{channelId}] {channelName} of category {categoryName} of guild [{guildId}] {guildName}.", voiceChannel.Id, voiceChannel.Name, voiceChannel.Category.Name, voiceChannel.Guild.Id, voiceChannel.Guild.Name);
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+                return stopwatch;
+            });
     }
 }

@@ -117,23 +117,23 @@ namespace FlightEvents.DiscordBot
                 if (serverOptions != null)
                 {
                     var category = guild.GetCategoryChannel(serverOptions.ChannelCategoryId);
-                    if (category != null)
+                    if (category != null && !string.IsNullOrWhiteSpace(serverOptions.LoungeChannelName))
                     {
                         var lounge = category.Channels.SingleOrDefault(o => o.Name == serverOptions.LoungeChannelName);
                         if (lounge == null)
                         {
-                            logger.LogInformation("Create lounge channel named {lounge}.", serverOptions.LoungeChannelName);
+                            logger.LogInformation("Create lounge channel named {lounge} in {guildName}.", serverOptions.LoungeChannelName, guild.Name);
                             var newLounge = await guild.CreateVoiceChannelAsync(serverOptions.LoungeChannelName, props =>
                             {
                                 props.CategoryId = category.Id;
                             });
-                            logger.LogInformation("Created lounge channel {loungeId}", newLounge.Id);
+                            logger.LogInformation("Created lounge channel {loungeId} in {guildName}.", newLounge.Id, guild.Name);
                         }
 
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(ex, "Cannot prepare server [{guildId}] {guildName}", guild.Id, guild.Name);
             }
