@@ -249,6 +249,7 @@
                     </TabItem.Header>
 
                     <StackPanel Margin="5">
+                        <CheckBox x:Name="ShowLandingRate" Content="Show Landing Rate" IsChecked="{Binding ShowLandingInfo, Mode=TwoWay}" Checked="ShowLandingInfo_Checked" Unchecked="ShowLandingInfo_Unchecked" />
                         <CheckBox x:Name="BroadcastUDP" Content="Broadcast data to local network" IsChecked="{Binding BroadcastUDP, Mode=TwoWay}" Checked="BroadcastUDP_Checked" Unchecked="BroadcastUDP_Unchecked" />
                         <TextBox Text="{Binding BroadcastIP, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" Width="200" LostFocus="BroadcastIP_LostFocus" HorizontalAlignment="Left" Margin="20,0,0,10" 
                                  Style="{StaticResource PlaceHolder}" Tag="IP Address or empty (for broadcast)"

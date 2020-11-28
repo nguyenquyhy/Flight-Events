@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "2.4.0",
+      "changes": "Show landing rate"
+    },
+    {
       "id": "2.3.0",
       "changes": "Show events and checklist"
     },

@@ -16,6 +16,7 @@ namespace FlightEvents.Client.Logics
         public string BroadcastIP { get; set; }
         public bool SlowMode { get; set; }
         public bool MinimizeToTaskbar { get; set; }
+        public bool ShowLandingInfo { get; set; }
     }
 
     public class UserPreferencesLoader

@@ -61,6 +61,8 @@ namespace FlightEvents.Client.SimConnectFSX
         public double GroundSpeed;
         public double IndicatedAirSpeed;
         public double VerticalSpeed;
+        public double TouchdownNormalVelocity;
+        public double GForce;
 
         public double FuelTotalQuantity;
 

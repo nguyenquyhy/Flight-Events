@@ -98,6 +98,7 @@ namespace FlightEvents.Client
             viewModel.BroadcastIP = pref.BroadcastIP;
             viewModel.SlowMode = pref.SlowMode;
             viewModel.MinimizeToTaskbar = pref.MinimizeToTaskbar;
+            viewModel.ShowLandingInfo = pref.ShowLandingInfo;
 
             var clientId = pref.ClientId;
             hub = new HubConnectionBuilder()
@@ -419,6 +420,8 @@ namespace FlightEvents.Client
         #region SimConnect
 
         DateTime lastStatusSent = DateTime.Now;
+        AircraftStatus lastStatus = null;
+        private bool landed = false;
 
         private readonly List<AircraftStatusBrief> route = new List<AircraftStatusBrief>();
 
@@ -426,6 +429,22 @@ namespace FlightEvents.Client
         {
             if (viewModel.IsTracking)
             {
+                if (lastStatus?.IsOnGround == false && e.AircraftStatus.IsOnGround)
+                {
+                    landed = true;
+                }
+                if (landed && (e.AircraftStatus.TouchdownNormalVelocity > 0 || !e.AircraftStatus.IsOnGround))
+                {
+                    landed = false;
+                    logger.LogInformation("Landing rate: {landingRate}. G-Force: {gforce}.", e.AircraftStatus.TouchdownNormalVelocity, e.AircraftStatus.GForce);
+
+                    lastStatusSent = DateTime.MinValue;
+                    if (viewModel.ShowLandingInfo)
+                    {
+                        flightConnector.Send($"Landing rate: {e.AircraftStatus.TouchdownNormalVelocity:0}fps. G-Force: {e.AircraftStatus.GForce:0.00}g.");
+                    }
+                }
+
                 e.AircraftStatus.Callsign = viewModel.Callsign;
                 e.AircraftStatus.TransponderMode = viewModel.TransponderIdent ? TransponderMode.Ident : TransponderMode.ModeC;
 
@@ -478,6 +497,8 @@ namespace FlightEvents.Client
                     logger.LogError(ex, "Cannot send network package!");
                 }
             }
+
+            lastStatus = e.AircraftStatus;
         }
 
         private void FlightConnector_AircraftPositionChanged(object sender, EventArgs e)
@@ -963,6 +984,31 @@ namespace FlightEvents.Client
             {
                 logger.LogError(ex, "Cannot uncheck SlowMode!");
                 viewModel.MinimizeToTaskbar = true;
+            }
+        }
+        private async void ShowLandingInfo_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await userPreferencesLoader.UpdateAsync(pref => pref.ShowLandingInfo = true);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot check Show Landing Info!");
+                viewModel.ShowLandingInfo = false;
+            }
+        }
+
+        private async void ShowLandingInfo_Unchecked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await userPreferencesLoader.UpdateAsync(pref => pref.ShowLandingInfo = false);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot uncheck Show Landing Info!");
+                viewModel.ShowLandingInfo = true;
             }
         }
 

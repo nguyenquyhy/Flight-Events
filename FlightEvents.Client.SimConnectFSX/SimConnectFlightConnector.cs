@@ -333,6 +333,18 @@ namespace FlightEvents.Client.SimConnectFSX
                 SIMCONNECT_DATATYPE.FLOAT64,
                 0.0f,
                 SimConnect.SIMCONNECT_UNUSED);
+            simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
+                "PLANE TOUCHDOWN NORMAL VELOCITY",
+                "Feet per minute",
+                SIMCONNECT_DATATYPE.FLOAT64,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+            simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
+                "G FORCE",
+                "GForce",
+                SIMCONNECT_DATATYPE.FLOAT64,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
 
             simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
                 "FUEL TOTAL QUANTITY",
@@ -448,7 +460,7 @@ namespace FlightEvents.Client.SimConnectFSX
                                 new AircraftStatus
                                 {
                                     //SimTime = flightStatus.Value.SimTime,
-                                    //SimRate = flightStatus.Value.SimRate,
+                                    SimRate = flightStatus.Value.SimRate,
                                     Latitude = flightStatus.Value.Latitude,
                                     Longitude = flightStatus.Value.Longitude,
                                     Altitude = flightStatus.Value.Altitude,
@@ -460,6 +472,8 @@ namespace FlightEvents.Client.SimConnectFSX
                                     GroundSpeed = flightStatus.Value.GroundSpeed,
                                     IndicatedAirSpeed = flightStatus.Value.IndicatedAirSpeed,
                                     VerticalSpeed = flightStatus.Value.VerticalSpeed,
+                                    TouchdownNormalVelocity = flightStatus.Value.TouchdownNormalVelocity,
+                                    GForce = flightStatus.Value.GForce,
                                     FuelTotalQuantity = flightStatus.Value.FuelTotalQuantity,
                                     IsOnGround = flightStatus.Value.IsOnGround == 1,
                                     StallWarning = flightStatus.Value.StallWarning == 1,

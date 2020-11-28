@@ -48,6 +48,8 @@ This includes:
   - [X] Show events and checklist
   - [ ] Notify button
   - [ ] Manual and Auto Refresh
+- [X] Landing rate
+  - [ ] Show landing rate on map
 - [ ] Private group
 - [ ] Flight plan database for ATC
 - [ ] Search airport on map

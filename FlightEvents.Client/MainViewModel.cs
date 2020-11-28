@@ -149,6 +149,9 @@ namespace FlightEvents.Client
         private bool minimizeToTaskbar;
         public bool MinimizeToTaskbar { get => minimizeToTaskbar; set => SetProperty(ref minimizeToTaskbar, value); }
 
+        private bool showLandingInfo;
+        public bool ShowLandingInfo { get { return showLandingInfo; } set { SetProperty(ref showLandingInfo, value); } }
+
         private Airport nearestAirport;
         public Airport NearestAirport { get => nearestAirport; set => SetProperty(ref nearestAirport, value); }
 

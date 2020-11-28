@@ -25,7 +25,8 @@
     {
         public string Callsign { get; set; }
 
-        public double SimTime { get; set; }
+        //public double SimTime { get; set; }
+        public int SimRate { get; set; }
         public int? LocalTime { get; set; }
         public int? ZuluTime { get; set; }
         public long? AbsoluteTime { get; set; }
@@ -41,6 +42,8 @@
         public double GroundSpeed { get; set; }
         public double IndicatedAirSpeed { get; set; }
         public double VerticalSpeed { get; set; }
+        public double TouchdownNormalVelocity { get; set; }
+        public double GForce { get; set; }
 
         public double FuelTotalQuantity { get; set; }
 
