@@ -65,6 +65,8 @@ interface Geometry {
     updateSymbol: (props: any) => void;
     animate: (animation: any, props: any) => void;
     addTo: (layer: VectorLayer) => void;
+    setInfoWindow: (infoWindow: any) => void;
+    getInfoWindow: () => any;
 }
 
 interface Marker extends Geometry {
@@ -77,7 +79,7 @@ interface Label extends Marker {
     setContent: (content: string) => void;
     getBoxStyle: () => any;
     setBoxStyle: (style: any) => void;
-    getTextSymbol:() => any;
+    getTextSymbol: () => any;
     setTextSymbol: (symbol: any) => void;
 }
 
@@ -430,6 +432,57 @@ export default class MaptalksMap implements IMap {
                 this.visibleCircle.setCoordinates(latlng);
             }
         }
+
+        this.createInfoWindow(markers, aircraftStatus, isMe, isFollowing, isShowingPlan, isMoreInfo, isShowingRoute, connectionId);
+    }
+
+    private createInfoWindow(markers: Markers, aircraftStatus: AircraftStatus, isMe: boolean, isFollowing: boolean, isShowingPlan: boolean, isMoreInfo: boolean, isShowingRoute: boolean, connectionId: string) {
+        let popup = `Altitude: ${Math.floor(aircraftStatus.altitude)}<br />Airspeed: ${Math.floor(aircraftStatus.indicatedAirSpeed)}<br />`;
+        if (aircraftStatus.callsign) {
+            popup = `<b>${aircraftStatus.callsign}</b><br />${popup}`;
+        }
+        let popupElement = document.createElement("div");
+        popupElement.innerHTML = popup;
+
+        const popupBtnGroup = document.createElement('div');
+        popupBtnGroup.className = 'btn-group-vertical';
+        popupElement.appendChild(popupBtnGroup);
+
+        const setMeButton = this.createToggleButton(popupBtnGroup, 'My aircraft', isMe);
+        const setFollowButton = this.createToggleButton(popupBtnGroup, 'Follow', isFollowing);
+        const setFlightPlanButton = this.createToggleButton(popupBtnGroup, 'Show Plan', isShowingPlan);
+        const setShowInfoButton = this.createToggleButton(popupBtnGroup, 'Show Info', isMoreInfo);
+        const setShowRouteButton = this.createToggleButton(popupBtnGroup, 'Show Route', isShowingRoute);
+
+        let infoWindow = markers.aircraft.getInfoWindow();
+        if (infoWindow) {
+            infoWindow.setContent(popupElement);
+        } else {
+            infoWindow = new maptalks.ui.InfoWindow({
+                'content': popupElement,
+                'autoCloseOn': 'click',
+                'animationOnHide': false,
+                width: 115
+            });
+            markers.aircraft.setInfoWindow(infoWindow);
+            markers.info.setInfoWindow(infoWindow);
+        }
+
+        setMeButton.addEventListener('click', () => { this.onSetMeHandler && this.onSetMeHandler(isMe ? null : connectionId); infoWindow.hide(); });
+        setFollowButton.addEventListener('click', () => { this.onSetFollowHandler && this.onSetFollowHandler(isFollowing ? null : connectionId); infoWindow.hide(); });
+        setFlightPlanButton.addEventListener('click', () => { this.onSetShowPlanHandler && this.onSetShowPlanHandler(isShowingPlan ? null : connectionId); infoWindow.hide(); });
+        setShowInfoButton.addEventListener('click', () => { this.onSetShowInfoHandler && this.onSetShowInfoHandler(connectionId); infoWindow.hide(); });
+        setShowRouteButton.addEventListener('click', () => { this.onSetShowRouteHandler && this.onSetShowRouteHandler(connectionId); infoWindow.hide(); });
+    }
+
+    private createToggleButton(container: HTMLElement, content: string, isToggled: boolean) {
+        const button = document.createElement('button');
+        button.className = 'btn btn-sm btn-info' + (isToggled ? ' active' : '');
+        button.innerHTML = content;
+        button.setAttribute('data-toggle', 'button');
+        if (isToggled) button.setAttribute('aria-pressed', 'true');
+        container.appendChild(button);
+        return button;
     }
 
     drawAirports(airports: Airport[]) {
@@ -474,7 +527,7 @@ export default class MaptalksMap implements IMap {
                 const altitudes = flightPlan.waypoints.reduce((prev: number[], curr, index) =>
                     prev.concat(MaptalksMap.FEET_TO_METER *
                         (curr.altitude ||
-                        (index === 0 || index === flightPlan.waypoints.length - 1 ? 0 : flightPlan.cruisingAltitude))),
+                            (index === 0 || index === flightPlan.waypoints.length - 1 ? 0 : flightPlan.cruisingAltitude))),
                     [])
 
                 new maptalks.LineString(latlngs, {
