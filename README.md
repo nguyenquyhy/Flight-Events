@@ -8,12 +8,27 @@ This includes:
 - A server to handle 2-way communications. The web server also provides with a web interface to display all participating aircraft and upcoming events.
 - A client to communicate with flight simulators via SimConnect and send data to the server.
 - The same client can also serve as a simplified FSD server for ATC radar software such as Euroscope or AURORA.
-- A Discord bot to automatically move players between voice channels based on their COM1 frequency
-https://discordapp.com/api/oauth2/authorize?client_id={BOT_CLIENT_ID}&scope=bot&permissions=221249553
+- A Discord bot to automatically move players between voice channels based on their COM1 frequency. Another bot that can repeat ATIS info in voice channel.
 
-### NOTES
+### Client Notes
 
 - The client automatically forces single instance unless `--multiple-instances` flag is used at launch.
+
+### Bot Notes
+
+- Flight Events bot needs the following permissions:
+  - Manage Channel (to create/remove frequency channels)
+  - Read Text Channels & See Voice Channels
+  - Send Messages (for ATIS function)
+  - Embed Links (for ATIS function)
+  - Connect (to clean up frequency channels)
+  - Move Members
+- ATIS bot needs the following permissions:
+  - Connect
+  - Speak
+  - Use Voice Activity
+  - Priority Speaker
+- Sample bot link: https://discordapp.com/api/oauth2/authorize?client_id={BOT_CLIENT_ID}&scope=bot&permissions=221249553
 
 ### TODO
 

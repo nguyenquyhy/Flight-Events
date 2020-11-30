@@ -61,36 +61,45 @@ namespace FlightEvents.DiscordBot
 
         private async Task BotClient_MessageReceived(SocketMessage message)
         {
-            if (message.Channel is SocketTextChannel channel)
+            try
             {
-                var serverOptions = discordOptions.Servers.FirstOrDefault(guild => guild.ServerId == channel.Guild.Id);
-
-                if (serverOptions?.CommandChannelId == channel.Id)
+                if (message.Channel is SocketTextChannel channel)
                 {
-                    var regexResult = regexMatcher.Match(new Dictionary<int, Regex>
-                    {
-                        [0] = regexStart,
-                        [1] = regexStop
-                    }, message.Content.Trim());
+                    var serverOptions = discordOptions.Servers.FirstOrDefault(guild => guild.ServerId == channel.Guild.Id);
 
-                    if (regexResult != null)
+                    if (serverOptions?.CommandChannelId == channel.Id)
                     {
-                        switch (regexResult.Value.key)
+                        var regexResult = regexMatcher.Match(new Dictionary<int, Regex>
                         {
-                            case 0:
-                                await HandleStartCommandAsync(regexResult.Value.match, message, channel, serverOptions);
-                                break;
-                            case 1:
-                                await HandleStopCommandAsync(regexResult.Value.match, message, channel.Guild, serverOptions);
-                                break;
+                            [0] = regexStart,
+                            [1] = regexStop
+                        }, message.Content.Trim());
+
+                        if (regexResult != null)
+                        {
+                            switch (regexResult.Value.key)
+                            {
+                                case 0:
+                                    await HandleStartCommandAsync(regexResult.Value.match, message, channel, serverOptions);
+                                    break;
+                                case 1:
+                                    await HandleStopCommandAsync(regexResult.Value.match, message, channel.Guild, serverOptions);
+                                    break;
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot process ATIS bot command: {content}", message.Content);
             }
         }
 
         private async Task HandleStartCommandAsync(Match match, SocketMessage message, SocketTextChannel channel, DiscordServerOptions serverOptions)
         {
+            logger.LogInformation("Process ATIS bot start command");
+
             if (double.TryParse(match.Groups[1].Value, out var frequency))
             {
                 if (message.Attachments.Count > 0)
@@ -113,14 +122,15 @@ namespace FlightEvents.DiscordBot
 
         private async Task HandleStopCommandAsync(Match match, SocketMessage message, SocketGuild guild, DiscordServerOptions serverOptions)
         {
+            logger.LogInformation("Process ATIS bot stop command");
+
             if (double.TryParse(match.Groups[1].Value, out var frequency))
             {
                 var channelName = channelMaker.CreateChannelNameFromFrequency(serverOptions, (int)(frequency * 1000));
 
                 if (await atisProcessManager.StopAtisAsync(guild.Id, channelName))
                 {
-                    await message.Channel.SendMessageAsync("", embed: new EmbedBuilder().WithDescription($"⏹ ATIS on channel {channelName} is stopped.").Build());
-
+                    await message.Channel.SendMessageAsync("", embed: new EmbedBuilder().WithDescription($"✅ ATIS on channel {channelName} is stopped.").Build());
                 }
                 else
                 {
@@ -135,40 +145,49 @@ namespace FlightEvents.DiscordBot
 
         private async Task ProcessBotRequestAsync(SocketMessage message, SocketTextChannel channel, DiscordServerOptions serverOptions, double frequency, string nickname)
         {
-            var response = await message.Channel.SendMessageAsync("",
-                embed: new EmbedBuilder().WithDescription("⬜ Loading the audio...").Build());
-
-            var filePath = await SaveAudioAsync(message);
-
-            await response.ModifyAsync(props =>
-            {
-                props.Embed = new EmbedBuilder().WithDescription("✅ Audio loaded\n⬜ Creating channel...").Build();
-            });
-
-            var voiceChannel = await channelMaker.CreateVoiceChannelAsync(serverOptions, channel.Guild, (int)(frequency * 1000));
-
-            await response.ModifyAsync(props =>
-            {
-                props.Embed = new EmbedBuilder().WithDescription("✅ Audio loaded\n✅ Channel created\n⬜ Activating ATIS bot...").Build();
-            });
-
             try
             {
-                await atisProcessManager.StartAtisAsync(voiceChannel, filePath, nickname);
+                logger.LogInformation("Processing ATIS bot request {guildName} {frequency} {nickname}...", channel.Guild.Name, frequency, nickname);
+
+                var response = await message.Channel.SendMessageAsync("",
+                    embed: new EmbedBuilder().WithDescription("⬜ Loading the audio...").Build());
+
+                var filePath = await SaveAudioAsync(message);
 
                 await response.ModifyAsync(props =>
                 {
-                    props.Embed = new EmbedBuilder().WithDescription("✅ Audio loaded\n✅ Channel created\n✅ ATIS Bot activated").Build();
+                    props.Embed = new EmbedBuilder().WithDescription("✅ Audio loaded\n⬜ Creating channel...").Build();
                 });
+
+                var voiceChannel = await channelMaker.CreateVoiceChannelAsync(serverOptions, channel.Guild, (int)(frequency * 1000));
+
+                await response.ModifyAsync(props =>
+                {
+                    props.Embed = new EmbedBuilder().WithDescription("✅ Audio loaded\n✅ Channel created\n⬜ Activating ATIS bot...").Build();
+                });
+
+                try
+                {
+                    await atisProcessManager.StartAtisAsync(voiceChannel, filePath, nickname);
+
+                    await response.ModifyAsync(props =>
+                    {
+                        props.Embed = new EmbedBuilder().WithDescription("✅ Audio loaded\n✅ Channel created\n✅ ATIS Bot activated").Build();
+                    });
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cannot start process");
+
+                    await response.ModifyAsync(props =>
+                    {
+                        props.Embed = new EmbedBuilder().WithDescription($"✅ Audio loaded\n✅ Channel created\n🟥 Failed to create bot. {ex.Message}").Build();
+                    });
+                }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Cannot start process");
-
-                await response.ModifyAsync(props =>
-                {
-                    props.Embed = new EmbedBuilder().WithDescription($"✅ Audio loaded\n✅ Channel created\n🟥 Failed to create bot. {ex.Message}").Build();
-                });
+                logger.LogError(ex, "Cannot process ATIS request {guildName} {frequency} {nickname}", channel.Guild.Name, frequency, nickname);
             }
         }
 
