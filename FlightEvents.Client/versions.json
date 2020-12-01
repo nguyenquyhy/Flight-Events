@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "2.3.0",
+      "changes": "Show events and checklist"
+    },
+    {
       "id": "2.2.0",
       "changes": "Fixes for ForeFlight integration"
     },
