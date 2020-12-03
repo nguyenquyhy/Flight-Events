@@ -29,7 +29,8 @@ namespace FlightEvents.Web.GraphQL
             var result = await storage.GetAllAsync();
             if (upcoming)
             {
-                result = result.Where(o => (o.EndDateTime ?? (o.StartDateTime.AddHours(4))) > DateTimeOffset.Now);
+                result = result.Where(o => (o.EndDateTime ?? (o.StartDateTime.AddHours(4))) > DateTimeOffset.Now)
+                    .OrderBy(o => o.StartDateTime);
             }
             return result;
         }
