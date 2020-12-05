@@ -2,7 +2,7 @@
 
 namespace FlightEvents.Data
 {
-    public interface IFlightPlanStorage
+    public interface IFlightPlanFileStorage
     {
         Task<string> GetFlightPlanUrlAsync(string id);
         Task<FlightPlanData> GetFlightPlanAsync(string id);

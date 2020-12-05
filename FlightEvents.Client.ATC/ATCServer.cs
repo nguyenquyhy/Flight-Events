@@ -97,17 +97,22 @@ namespace FlightEvents.Client.ATC
             }
         }
 
-        public async Task SendFlightPlanAsync(string callsign, bool isIFR, string type, string registration, string title,
-            string departure, string arrival, string route, int? speed, int altitude, TimeSpan? enroute, string pilotRemarks)
+        public async Task SendFlightPlanAsync(string callsign, string flightRule, string aircraftType, string registration, string title,
+            string departure, string arrival, string alternate, string route, int? speed, int altitude, TimeSpan? enroute, string pilotRemarks)
         {
-            var ifrs = isIFR ? "I" : "V";
-            var alternate = "NONE";
+            var ifrs = flightRule == "IFR" ? "I" : "V";
 
             // NOTE: this is not needed right now due to lack of data
             //var remarks = $"Aircraft = {title.Replace(":", "_")}. Registration = {registration.Replace(":", "_")}";
             var remarks = string.IsNullOrWhiteSpace(pilotRemarks) ? string.Empty : pilotRemarks.Replace("\n", " ").Replace(":", "_");
 
-            var fp = $"$FP{callsign}:*A:{ifrs}:{type.Replace(":", "_")}:{speed}:{departure}:::{altitude}:{arrival}:::{(enroute == null ? ":" : $"{enroute.Value.Hours:00}:{enroute.Value.Minutes:00}")}:{alternate}:{remarks}:{route}";
+            var departureEstimatedTime = "";
+            var departureActualTime = "";
+
+            var enrouteTime = enroute == null ? ":" : $"{enroute.Value.Hours:00}:{enroute.Value.Minutes:00}";
+            var fuelTime = ":";
+
+            var fp = $"$FP{callsign}:*A:{ifrs}:{aircraftType.Replace(":", "_")}:{speed}:{departure}:{departureEstimatedTime}:{departureActualTime}:{altitude}:{arrival}:{enrouteTime}:{fuelTime}:{alternate}:{remarks}:{route}";
 
             await writer?.WriteLineAsync(fp);
             await writer?.FlushAsync();

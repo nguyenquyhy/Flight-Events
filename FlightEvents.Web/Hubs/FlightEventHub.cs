@@ -33,16 +33,18 @@ namespace FlightEvents.Web.Hubs
         private readonly IDiscordConnectionStorage discordConnectionStorage;
         private readonly ILeaderboardStorage leaderboardStorage;
         private readonly IFlightEventStorage flightEventStorage;
+        private readonly IATCFlightPlanStorage flightPlanStorage;
 
         public FlightEventHub(ILogger<FlightEventHub> logger, IOptionsMonitor<FeaturesOptions> featuresOptionsAccessor,
             IDiscordConnectionStorage discordConnectionStorage, ILeaderboardStorage leaderboardStorage,
-            IFlightEventStorage flightEventStorage)
+            IFlightEventStorage flightEventStorage, IATCFlightPlanStorage flightPlanStorage)
         {
             this.logger = logger;
             this.featuresOptionsAccessor = featuresOptionsAccessor;
             this.discordConnectionStorage = discordConnectionStorage;
             this.leaderboardStorage = leaderboardStorage;
             this.flightEventStorage = flightEventStorage;
+            this.flightPlanStorage = flightPlanStorage;
         }
 
         public override async Task OnConnectedAsync()
@@ -161,14 +163,30 @@ namespace FlightEvents.Web.Hubs
             await Clients.Caller.UpdateAircraftToDiscord(discordUserId, clientIds.FirstOrDefault(), null);
         }
 
-        public async Task RequestFlightPlan(string callsign)
+        public async Task AddFlightPlan(string clientId, string callsign, string source, FlightPlanCompact flightPlan)
         {
-            await Clients.All.RequestFlightPlan(Context.ConnectionId, callsign);
+            await flightPlanStorage.SetFlightPlanAsync(callsign, clientId, flightPlan);
+
+            await Clients.Group("ATC").ReturnFlightPlan(clientId, flightPlan);
         }
 
-        public async Task ReturnFlightPlan(string connectionId, FlightPlanCompact flightPlan, List<string> atcConnectionIds)
+        public async Task RequestFlightPlan(string callsign)
         {
-            await Clients.Clients(atcConnectionIds).ReturnFlightPlan(connectionId, flightPlan);
+            var (clientId, flightPlan) = await flightPlanStorage.GetFlightPlanAsync(callsign);
+
+            if (flightPlan == null)
+            {
+                await Clients.All.RequestFlightPlan(Context.ConnectionId, callsign);
+            }
+            else
+            {
+                await Clients.Caller.ReturnFlightPlan(clientId, flightPlan);
+            }
+        }
+
+        public async Task ReturnFlightPlan(string clientId, FlightPlanCompact flightPlan, List<string> atcConnectionIds)
+        {
+            await Clients.Clients(atcConnectionIds).ReturnFlightPlan(clientId, flightPlan);
         }
 
         public async Task RequestFlightPlanDetails(string clientId)
@@ -282,6 +300,53 @@ namespace FlightEvents.Web.Hubs
 
         public async Task SendATC(string to, string message)
         {
+            var tokens = message.Split(":");
+            var command = tokens[0][..3];
+            var callsign = tokens[0][3..];
+
+            if (command == "$FP")
+            {
+                //$"$FP{callsign}:*A:{ifrs}:{aircraftType.Replace(":", "_")}:{speed}:{departure}:{departureEstimatedTime}:{departureActualTime}:{altitude}:{arrival}:{enrouteTime}:{fuelTime}:{alternate}:{remarks}:{route}";
+                var type = tokens[2];
+                var aircraftType = tokens[3];
+                var speed = tokens[4];
+                var departure = tokens[5];
+                var departureEstimatedTime = tokens[6];//
+                var departureActualTime = tokens[7];//
+                var altitude = tokens[8];
+                var arrival = tokens[9];
+                var enrouteTimeHour = tokens[10];
+                var enrouteTimeMinute = tokens[11];
+                var fuelTimeHour = tokens[12];//
+                var fuelTimeMinute = tokens[13];//
+                var alternate = tokens[14];
+                var remarks = tokens[15];
+                var route = tokens[16];
+
+                TimeSpan? enrouteTime = null;
+                int.TryParse(altitude, out int cruisingAltitude);
+                int.TryParse(speed, out int cruisingSpeed);
+                if (int.TryParse(enrouteTimeHour, out var hour) && int.TryParse(enrouteTimeMinute, out var minute))
+                {
+                    enrouteTime = new TimeSpan(hour, minute, 0);
+                }
+
+                await flightPlanStorage.SetFlightPlanAsync(callsign, null, new FlightPlanCompact
+                {
+                    Callsign = callsign,
+                    Type = type == "I" ? "IFR" : "VFR",
+                    AircraftType = aircraftType,
+                    Departure = departure,
+                    Destination = arrival,
+                    Alternate = alternate,
+                    CruisingAltitude = cruisingAltitude,
+                    CruisingSpeed = cruisingSpeed,
+                    EstimatedEnroute = enrouteTime,
+                    Route = route,
+                    Remarks = remarks,
+                });
+            }
+
             await Clients.GroupExcept("ATC", Context.ConnectionId).SendATC(to, message);
         }
 

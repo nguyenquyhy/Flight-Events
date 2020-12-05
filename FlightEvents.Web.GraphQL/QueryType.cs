@@ -15,13 +15,13 @@ namespace FlightEvents.Web.GraphQL
     {
         private readonly IFlightEventStorage storage;
         private readonly IAirportStorage airportStorage;
-        private readonly IFlightPlanStorage flightPlanStorage;
+        private readonly IFlightPlanFileStorage flightPlanFileStorage;
 
-        public Query(IFlightEventStorage eventStorage, IAirportStorage airportStorage, IFlightPlanStorage flightPlanStorage)
+        public Query(IFlightEventStorage eventStorage, IAirportStorage airportStorage, IFlightPlanFileStorage flightPlanFileStorage)
         {
             this.storage = eventStorage;
             this.airportStorage = airportStorage;
-            this.flightPlanStorage = flightPlanStorage;
+            this.flightPlanFileStorage = flightPlanFileStorage;
         }
 
         public async Task<IEnumerable<FlightEvent>> GetFlightEventsAsync(bool upcoming = false)
@@ -41,6 +41,6 @@ namespace FlightEvents.Web.GraphQL
 
         public Task<List<Airport>> GetAirportsAsync(List<string> idents) => airportStorage.GetAirportsAsync(idents);
 
-        public Task<FlightPlanData> GetFlightPlanAsync(string id) => flightPlanStorage.GetFlightPlanAsync(id);
+        public Task<FlightPlanData> GetFlightPlanAsync(string id) => flightPlanFileStorage.GetFlightPlanAsync(id);
     }
 }

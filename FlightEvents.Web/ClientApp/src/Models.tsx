@@ -70,6 +70,17 @@ export interface FlightPlan {
     downloadUrl: string;
 }
 
+export interface FlightPlanCompact {
+    callsign: string;
+    departure: string;
+    destination: string;
+    alternate: string;
+    cruisingAltitude: number;
+    cruisingSpeed: number;
+    route: string;
+    remarks: string;
+}
+
 export interface FlightPlanData {
     title: string
     description: string

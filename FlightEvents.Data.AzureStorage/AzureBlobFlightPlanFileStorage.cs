@@ -15,13 +15,13 @@ namespace FlightEvents.Data
         public string CustomDomain { get; set; }
     }
 
-    public class AzureBlobFlightPlanStorage : IFlightPlanStorage
+    public class AzureBlobFlightPlanFileStorage : IFlightPlanFileStorage
     {
         private readonly BlobContainerClient containerClient;
         private readonly string customDomain;
         private readonly XmlSerializer serializer;
 
-        public AzureBlobFlightPlanStorage(IOptionsMonitor<AzureBlobOptions> options)
+        public AzureBlobFlightPlanFileStorage(IOptionsMonitor<AzureBlobOptions> options)
         {
             var serviceClient = new BlobServiceClient(options.CurrentValue.ConnectionString);
             containerClient = serviceClient.GetBlobContainerClient(options.CurrentValue.ContainerName);

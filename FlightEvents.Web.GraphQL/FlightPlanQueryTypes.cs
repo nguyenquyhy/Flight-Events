@@ -18,8 +18,8 @@ namespace FlightEvents.Web.GraphQL
     public class FlightPlanResolver
     {
         public string GetId([Parent]string id) => id;
-        public Task<string> GetDownloadUrl([Parent]string id, [Service]IFlightPlanStorage flightPlanStorage) => flightPlanStorage.GetFlightPlanUrlAsync(id);
-        public Task<FlightPlanData> GetFlightPlanData([Parent]string id, [Service]IFlightPlanStorage flightPlanStorage) => flightPlanStorage.GetFlightPlanAsync(id);
+        public Task<string> GetDownloadUrl([Parent]string id, [Service]IFlightPlanFileStorage flightPlanStorage) => flightPlanStorage.GetFlightPlanUrlAsync(id);
+        public Task<FlightPlanData> GetFlightPlanData([Parent]string id, [Service]IFlightPlanFileStorage flightPlanStorage) => flightPlanStorage.GetFlightPlanAsync(id);
     }
 
     public class FlightPlanDataType : ObjectType<FlightPlanData>

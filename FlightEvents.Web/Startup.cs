@@ -52,10 +52,11 @@ namespace FlightEvents.Web
 
             services.AddSingleton<RandomStringGenerator>();
             services.AddSingleton<IFlightEventStorage, JsonFileFlightEventStorage>();
-            services.AddSingleton<IFlightPlanStorage, AzureBlobFlightPlanStorage>();
+            services.AddSingleton<IFlightPlanFileStorage, AzureBlobFlightPlanFileStorage>();
             services.AddSingleton<IAirportStorage, XmlFileAirportStorage>();
             services.AddSingleton<IDiscordConnectionStorage, AzureTableDiscordConnectionStorage>();
             services.AddSingleton<ILeaderboardStorage, AzureTableLeaderboardStorage>();
+            services.AddSingleton<IATCFlightPlanStorage, InMemoryATCFlightPlanStorage>();
 
             services.AddGraphQL(
                 SchemaBuilder.New()
@@ -188,9 +189,7 @@ namespace FlightEvents.Web
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller}/{action=Index}/{id?}");
+                endpoints.MapDefaultControllerRoute();
                 endpoints.MapRazorPages();
 
                 endpoints.MapHub<FlightEventHub>("/FlightEventHub");

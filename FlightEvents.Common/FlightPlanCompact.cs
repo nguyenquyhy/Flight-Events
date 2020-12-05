@@ -49,6 +49,7 @@ namespace FlightEvents
 
         public string Departure { get; set; }
         public string Destination { get; set; }
+        public string Alternate { get; set; }
 
         public string Route { get; set; }
 

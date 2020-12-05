@@ -314,7 +314,8 @@ namespace FlightEvents.Client
                     if (data != null)
                     {
                         var flightPlan = new FlightPlanCompact(data, viewModel.Callsign, aircraftData.Title, (int)aircraftData.EstimatedCruiseSpeed, viewModel.Remarks);
-                        await hub.SendAsync("ReturnFlightPlan", hub.ConnectionId, flightPlan, new string[] { atcConnectionId });
+                        var pref = await userPreferencesLoader.LoadAsync();
+                        await hub.SendAsync("ReturnFlightPlan", pref.ClientId, flightPlan, new string[] { atcConnectionId });
                     }
                 }
                 catch (TaskCanceledException ex)
@@ -620,16 +621,17 @@ namespace FlightEvents.Client
                         _ => AtcTransponderMode.Standby
                     });
             });
-            hub.On<string, FlightPlanCompact>("ReturnFlightPlan", async (connectionId, flightPlan) =>
+            hub.On<string, FlightPlanCompact>("ReturnFlightPlan", async (clientId, flightPlan) =>
             {
                 await atcServer.SendFlightPlanAsync(
                     flightPlan.Callsign,
-                    flightPlan.Type == "IFR",
+                    flightPlan.Type,
                     flightPlan.AircraftType,
                     flightPlan.Callsign,
                     flightPlan.AircraftType,
                     flightPlan.Departure,
                     flightPlan.Destination,
+                    flightPlan.Alternate,
                     flightPlan.Route,
                     flightPlan.CruisingSpeed,
                     flightPlan.CruisingAltitude,

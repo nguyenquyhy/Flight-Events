@@ -23,6 +23,15 @@ namespace FlightEvents.Web.Hubs
         Task UpdateAircraftToDiscord(ulong discordUserId, string clientId, AircraftStatus status);
 
         /// <summary>
+        /// Add flight plan to the storage for requesting later
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <param name="callsign"></param>
+        /// <param name="flightPlan"></param>
+        /// <returns></returns>
+        Task AddFlightPlan(string clientId, string callsign, string source, FlightPlanCompact flightPlan);
+
+        /// <summary>
         /// Ask client to send back flight plan if the client has a particular callsign
         /// </summary>
         Task RequestFlightPlan(string connectionId, string callsign);
@@ -30,8 +39,8 @@ namespace FlightEvents.Web.Hubs
         /// <summary>
         /// Return the flight plan to ATC
         /// </summary>
-        /// <param name="connectionId">Current Connection ID</param>
-        Task ReturnFlightPlan(string connectionId, FlightPlanCompact flightPlan);
+        /// <param name="clientId">Current Client ID</param>
+        Task ReturnFlightPlan(string clientId, FlightPlanCompact flightPlan);
 
         /// <summary>
         /// Ask client to send back full flight plan info
