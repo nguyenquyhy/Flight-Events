@@ -148,11 +148,12 @@ namespace FlightEvents.DiscordBot.AtisBot
 
             try
             {
+                using var discordStream = audioClient.CreatePCMStream(AudioApplication.Voice);
+                logger.LogInformation("Created Discord audio stream");
 
                 while (true)
                 {
                     logger.LogDebug("Start playing audio");
-                    using var discordStream = audioClient.CreatePCMStream(AudioApplication.Voice);
                     try
                     {
                         stream.Seek(0, SeekOrigin.Begin);
