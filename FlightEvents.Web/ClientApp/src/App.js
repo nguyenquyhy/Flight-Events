@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { Route } from 'react-router';
-import { Home } from './components/Home';
-import StopwatchPage from './components/StopwatchPage';
-import FlightPlanCreatePage from './components/FlightPlanCreatePage';
-import FlightPlanListPage from './components/FlightPlanListPage';
+import { Home } from './components/Pages/Home';
+import StopwatchPage from './components/Pages/StopwatchPage';
+import FlightPlanCreatePage from './components/Pages/FlightPlanCreatePage';
+import FlightPlanListPage from './components/Pages/FlightPlanListPage';
 
 import './custom.css'
 

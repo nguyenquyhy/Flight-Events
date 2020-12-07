@@ -1,7 +1,7 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
 import { Container, Button } from 'reactstrap';
-import { FlightPlanCompact } from '../Models';
+import { FlightPlanCompact } from '../../Models';
 
 interface State {
     flightPlans: FlightPlanCompact[] | null;

@@ -5,9 +5,9 @@ import { RouteComponentProps } from 'react-router-dom';
 import { Query } from '@apollo/client/react/components';
 import { ApolloQueryResult } from '@apollo/client/core';
 import { gql } from '@apollo/client';
-import { FlightEvent, LeaderboardRecord, Stopwatch } from '../Models';
-import StopwatchItem from './StopwatchItem';
-import Leaderboard, { Leaderboards, recordsToLeaderboards } from './Leaderboard';
+import { FlightEvent, LeaderboardRecord, Stopwatch } from '../../Models';
+import StopwatchItem from '../StopwatchItem';
+import Leaderboard, { Leaderboards, recordsToLeaderboards } from '../Leaderboard';
 
 interface RouteProps {
     eventCode: string;
