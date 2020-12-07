@@ -18,6 +18,12 @@ namespace FlightEvents.DiscordBot.AtisBot
         private readonly AppOptions appOptions;
         private DiscordSocketClient discord;
 
+        private CancellationTokenSource cts = null;
+        /// <summary>
+        /// The audio stream is cached so that it can be reused on reconnection.
+        /// </summary>
+        private Stream stream = null;
+
         public AtisService(ILogger<AtisService> logger, IOptionsMonitor<AppOptions> appOptions)
         {
             this.logger = logger;
@@ -73,8 +79,6 @@ namespace FlightEvents.DiscordBot.AtisBot
             return Task.CompletedTask;
         }
 
-        private CancellationTokenSource cts = null;
-
         private async Task Discord_GuildAvailable(SocketGuild guild)
         {
             logger.LogInformation("Connected to {guildId} {guildName}", guild.Id, guild.Name);
@@ -85,40 +89,11 @@ namespace FlightEvents.DiscordBot.AtisBot
                 var token = cts.Token;
 
                 var channel = guild.GetVoiceChannel(appOptions.ChannelId);
-
-                try
-                {
-                    if (!string.IsNullOrWhiteSpace(appOptions.Nickname))
-                    {
-                        if (guild.CurrentUser.Nickname != appOptions.Nickname)
-                        {
-                            logger.LogInformation("Changing nickname to {nickname}", appOptions.Nickname);
-                            await guild.CurrentUser.ModifyAsync(props =>
-                            {
-                                props.Nickname = appOptions.Nickname;
-                            });
-                        }
-                    }
-                    else
-                    {
-                        if (guild.CurrentUser != null)
-                        {
-                            logger.LogInformation("Clear nickname");
-                            await guild.CurrentUser.ModifyAsync(props =>
-                            {
-                                props.Nickname = appOptions.Nickname;
-                            });
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Cannot change nick name to {nickname} in guild {guildName}", appOptions.Nickname, guild.Name);
-                }
-
                 if (channel != null)
                 {
-                    logger.LogInformation("Start loop on channel {channelId}", appOptions.ChannelId);
+                    await SetNicknameAsync(guild);
+
+                    logger.LogInformation("Start loop on channel {channelId} {channelName} of {guildName}", appOptions.ChannelId, channel.Name, guild.Name);
                     Task.Run(async () =>
                     {
                         await PlayLoopAsync(channel, token);
@@ -131,17 +106,63 @@ namespace FlightEvents.DiscordBot.AtisBot
             }
         }
 
+        private async Task SetNicknameAsync(SocketGuild guild)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(appOptions.Nickname))
+                {
+                    if (guild.CurrentUser.Nickname != appOptions.Nickname)
+                    {
+                        logger.LogInformation("Changing nickname to {nickname}", appOptions.Nickname);
+                        await guild.CurrentUser.ModifyAsync(props =>
+                        {
+                            props.Nickname = appOptions.Nickname;
+                        });
+                    }
+                }
+                else
+                {
+                    if (guild.CurrentUser != null)
+                    {
+                        logger.LogInformation("Clear nickname");
+                        await guild.CurrentUser.ModifyAsync(props =>
+                        {
+                            props.Nickname = appOptions.Nickname;
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot change nick name to {nickname} in guild {guildName}", appOptions.Nickname, guild.Name);
+            }
+        }
+
         private async Task PlayLoopAsync(SocketVoiceChannel voiceChannel, CancellationToken cancellationToken)
         {
-            using var stream = new MemoryStream();
-
-            using (var ffmpeg = CreateStream(appOptions.AudioFilePath))
-            using (var output = ffmpeg.StandardOutput.BaseStream)
+            if (stream == null)
             {
-                await output.CopyToAsync(stream);
+                if (!File.Exists(appOptions.AudioFilePath))
+                {
+                    logger.LogError("Cannot find file {filePath}!", appOptions.AudioFilePath);
+                    return;
+                }
+
+                stream = new MemoryStream();
+
+                using (var ffmpeg = CreateStream(appOptions.AudioFilePath))
+                using (var output = ffmpeg.StandardOutput.BaseStream)
+                {
+                    await output.CopyToAsync(stream);
+                }
+                File.Delete(appOptions.AudioFilePath);
+                logger.LogInformation("Read & deleted file {fileName}", appOptions.AudioFilePath);
             }
-            File.Delete(appOptions.AudioFilePath);
-            logger.LogInformation("Read & deleted file {fileName}", appOptions.AudioFilePath);
+            else
+            {
+                logger.LogInformation("Use cached stream of {byteCount} bytes", stream.Length);
+            }
 
             using var audioClient = await voiceChannel.ConnectAsync();
             logger.LogInformation("Connected to voice channel {channelId} {channelName}", voiceChannel.Id, voiceChannel.Name);
