@@ -304,47 +304,63 @@ namespace FlightEvents.Web.Hubs
             var command = tokens[0][..3];
             var callsign = tokens[0][3..];
 
-            if (command == "$FP")
+            switch (command)
             {
-                //$"$FP{callsign}:*A:{ifrs}:{aircraftType.Replace(":", "_")}:{speed}:{departure}:{departureEstimatedTime}:{departureActualTime}:{altitude}:{arrival}:{enrouteTime}:{fuelTime}:{alternate}:{remarks}:{route}";
-                var type = tokens[2];
-                var aircraftType = tokens[3];
-                var speed = tokens[4];
-                var departure = tokens[5];
-                var departureEstimatedTime = tokens[6];//
-                var departureActualTime = tokens[7];//
-                var altitude = tokens[8];
-                var arrival = tokens[9];
-                var enrouteTimeHour = tokens[10];
-                var enrouteTimeMinute = tokens[11];
-                var fuelTimeHour = tokens[12];//
-                var fuelTimeMinute = tokens[13];//
-                var alternate = tokens[14];
-                var remarks = tokens[15];
-                var route = tokens[16];
+                case "$FP":
+                    {
+                        //$"$FP{callsign}:*A:{ifrs}:{aircraftType.Replace(":", "_")}:{speed}:{departure}:{departureEstimatedTime}:{departureActualTime}:{altitude}:{arrival}:{enrouteTime}:{fuelTime}:{alternate}:{remarks}:{route}";
+                        var type = tokens[2];
+                        var aircraftType = tokens[3];
+                        var speed = tokens[4];
+                        var departure = tokens[5];
+                        var departureEstimatedTime = tokens[6];//
+                        var departureActualTime = tokens[7];//
+                        var altitude = tokens[8];
+                        var arrival = tokens[9];
+                        var enrouteTimeHour = tokens[10];
+                        var enrouteTimeMinute = tokens[11];
+                        var fuelTimeHour = tokens[12];//
+                        var fuelTimeMinute = tokens[13];//
+                        var alternate = tokens[14];
+                        var remarks = tokens[15];
+                        var route = tokens[16];
 
-                TimeSpan? enrouteTime = null;
-                int.TryParse(altitude, out int cruisingAltitude);
-                int.TryParse(speed, out int cruisingSpeed);
-                if (int.TryParse(enrouteTimeHour, out var hour) && int.TryParse(enrouteTimeMinute, out var minute))
-                {
-                    enrouteTime = new TimeSpan(hour, minute, 0);
-                }
+                        TimeSpan? enrouteTime = null;
+                        int.TryParse(altitude, out int cruisingAltitude);
+                        int.TryParse(speed, out int cruisingSpeed);
+                        if (int.TryParse(enrouteTimeHour, out var hour) && int.TryParse(enrouteTimeMinute, out var minute))
+                        {
+                            enrouteTime = new TimeSpan(hour, minute, 0);
+                        }
 
-                await flightPlanStorage.SetFlightPlanAsync(callsign, null, new FlightPlanCompact
-                {
-                    Callsign = callsign,
-                    Type = type == "I" ? "IFR" : "VFR",
-                    AircraftType = aircraftType,
-                    Departure = departure,
-                    Destination = arrival,
-                    Alternate = alternate,
-                    CruisingAltitude = cruisingAltitude,
-                    CruisingSpeed = cruisingSpeed,
-                    EstimatedEnroute = enrouteTime,
-                    Route = route,
-                    Remarks = remarks,
-                });
+                        await flightPlanStorage.SetFlightPlanAsync(callsign, null, new FlightPlanCompact
+                        {
+                            Callsign = callsign,
+                            Type = type == "I" ? "IFR" : "VFR",
+                            AircraftType = aircraftType,
+                            Departure = departure,
+                            Destination = arrival,
+                            Alternate = alternate,
+                            CruisingAltitude = cruisingAltitude,
+                            CruisingSpeed = cruisingSpeed,
+                            EstimatedEnroute = enrouteTime,
+                            Route = route,
+                            Remarks = remarks,
+                        });
+                    }
+                    break;
+                case "#TM":
+                    if (tokens.Length == 3 && tokens[1] == "FP")
+                    {
+                        if (!tokens[2].EndsWith(" GET") && !tokens[2].EndsWith(" release") && !tokens[2].Contains(" SET "))
+                        {
+                            logger.LogInformation("Unknown flight plan message '{message}' to {to}", message, to);
+                        }
+
+                        // Skip message sending to FP
+                        return;
+                    }
+                    break;
             }
 
             await Clients.GroupExcept("ATC", Context.ConnectionId).SendATC(to, message);
