@@ -6,6 +6,7 @@ import { Query } from '@apollo/client/react/components';
 import { ApolloQueryResult } from '@apollo/client/core';
 import { gql } from '@apollo/client';
 import { FlightEvent, LeaderboardRecord, Stopwatch } from '../../Models';
+import StopwatchHub from '../StopwatchHub';
 import StopwatchItem from '../StopwatchItem';
 import Leaderboard, { Leaderboards, recordsToLeaderboards } from '../Leaderboard';
 
@@ -41,7 +42,7 @@ const hub = new HubConnectionBuilder()
 
 window["shift"] = 0;
 
-const StopwatchPage = (props: RouteComponentProps<RouteProps>) => {
+export default (props: RouteComponentProps<RouteProps>) => {
     const [state, setState] = React.useState<State>({ stopwatches: {}, name: '', leaderboardName: '', leaderboards: {} });
 
     return <Query query={QUERY} variables={{ id: props.match.params.id }}>{({ loading, error, data }: ApolloQueryResult<{ flightEvent: FlightEvent }>) => {
@@ -97,6 +98,7 @@ const StopwatchPage = (props: RouteComponentProps<RouteProps>) => {
         return <Container>
             <StopwatchHub
                 eventId={event.id}
+                hub={hub}
                 onUpdateStopwatch={handleUpdateStopwatch}
                 onRemoveStopwatch={handleRemoveStopwatch}
                 onUpdateLeaderboard={onUpdateLeaderboard}
@@ -143,33 +145,3 @@ const StopwatchPage = (props: RouteComponentProps<RouteProps>) => {
     }}
     </Query>
 }
-
-interface StopwatchHubProps {
-    eventId: string;
-
-    onUpdateStopwatch: (stopwatch: Stopwatch, serverDateString: string) => void;
-    onRemoveStopwatch: (stopwatch: Stopwatch) => void;
-    onUpdateLeaderboard: (records: LeaderboardRecord[]) => void;
-}
-
-const StopwatchHub = (props: StopwatchHubProps) => {
-    React.useEffect(() => {
-        const f = async () => {
-            hub.on("UpdateStopwatch", props.onUpdateStopwatch);
-            hub.on("RemoveStopwatch", props.onRemoveStopwatch);
-            hub.on("UpdateLeaderboard", props.onUpdateLeaderboard)
-            await hub.start();
-            await hub.send("Join", "Stopwatch:" + props.eventId);
-        }
-        f();
-
-        return () => {
-            hub.stop();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);//props.eventId, props.onUpdateStopwatch, props.onRemoveStopwatch, props.onUpdateLeaderboard])
-
-    return <></>
-}
-
-export default StopwatchPage;

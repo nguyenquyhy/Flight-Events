@@ -41,7 +41,10 @@ export default () => {
                                 <p>{flightEvent.type}</p>
                                 <ButtonGroup>
                                     <Link to={`Events/${flightEvent.id}`} className='btn btn-primary'>Details</Link>
-                                    <Link to={`Events/${flightEvent.id}/Stopwatch`} className='btn btn-secondary'>Stopwatch</Link>
+                                    {flightEvent.type === 'RACE' && <>
+                                        <Link to={`Events/${flightEvent.id}/Stopwatch`} className='btn btn-secondary'>Stopwatch</Link>
+                                        <Link to={`Events/${flightEvent.id}/Leaderboard`} className='btn btn-info'>Leaderboard</Link>
+                                    </>}
                                 </ButtonGroup>
                             </li>
                         ))}
