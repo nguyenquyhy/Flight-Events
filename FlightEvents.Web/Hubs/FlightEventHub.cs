@@ -1,4 +1,5 @@
 ﻿using FlightEvents.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -374,6 +375,7 @@ namespace FlightEvents.Web.Hubs
 
         private static ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, EventStopwatch>> stopwatches = new ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, EventStopwatch>>();
 
+        [Authorize(Policy = "StopwatchManager")]
         public async Task AddStopwatch(EventStopwatch input)
         {
             var stopwatch = new EventStopwatch
@@ -391,6 +393,7 @@ namespace FlightEvents.Web.Hubs
             }
         }
 
+        [Authorize(Policy = "StopwatchManager")]
         public async Task StartAllStopwatches(Guid eventId)
         {
             var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
@@ -406,6 +409,7 @@ namespace FlightEvents.Web.Hubs
             }
         }
 
+        [Authorize(Policy = "StopwatchManager")]
         public async Task StartStopwatch(Guid eventId, Guid id)
         {
             var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
@@ -419,6 +423,7 @@ namespace FlightEvents.Web.Hubs
             }
         }
 
+        [Authorize(Policy = "StopwatchManager")]
         public async Task RestartStopwatch(Guid eventId, Guid id)
         {
             var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
@@ -431,6 +436,7 @@ namespace FlightEvents.Web.Hubs
             }
         }
 
+        [Authorize(Policy = "StopwatchManager")]
         public async Task LapStopwatch(Guid eventId, Guid id)
         {
             var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
@@ -450,6 +456,7 @@ namespace FlightEvents.Web.Hubs
             }
         }
 
+        [Authorize(Policy = "StopwatchManager")]
         public async Task StopStopwatch(Guid eventId, Guid id)
         {
             var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
@@ -460,6 +467,7 @@ namespace FlightEvents.Web.Hubs
             }
         }
 
+        [Authorize(Policy = "StopwatchManager")]
         public async Task RemoveStopwatch(Guid eventId, Guid id)
         {
             var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
@@ -469,6 +477,7 @@ namespace FlightEvents.Web.Hubs
             }
         }
 
+        [Authorize(Policy = "StopwatchManager")]
         public async Task SaveStopwatch(Guid eventId, Guid id)
         {
             var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());

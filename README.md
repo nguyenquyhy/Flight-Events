@@ -50,6 +50,8 @@ This includes:
   - [ ] Manual and Auto Refresh
 - [X] Landing rate
   - [ ] Show landing rate on map
+- [X] User database
+  - [X] Mods & admins
 - [ ] Private group
 - [ ] Flight plan database for ATC
 - [ ] Search airport on map

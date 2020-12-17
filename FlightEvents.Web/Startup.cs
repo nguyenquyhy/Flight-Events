@@ -2,10 +2,12 @@ using FlightEvents.Data;
 using FlightEvents.Data.AzureStorage;
 using FlightEvents.Web.GraphQL;
 using FlightEvents.Web.Hubs;
+using FlightEvents.Web.Identity;
 using FlightEvents.Web.Logics;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
@@ -17,10 +19,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace FlightEvents.Web
@@ -40,9 +40,6 @@ namespace FlightEvents.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var adminUsernames = new List<string>();
-            Configuration.GetSection("Authentication:AdminUsernames").Bind(adminUsernames);
-
             services.AddOptions<FeaturesOptions>().Bind(Configuration.GetSection("Features")).ValidateDataAnnotations();
             services.AddOptions<EventOptions>().Bind(Configuration.GetSection("Events")).ValidateDataAnnotations();
             services.AddOptions<DiscordOptions>().Bind(Configuration.GetSection("Discord")).ValidateDataAnnotations();
@@ -128,23 +125,19 @@ namespace FlightEvents.Web
                     {
                         OnTokenValidated = (context) =>
                         {
-                            if (context.Principal.Identity is ClaimsIdentity identity)
-                            {
-                                var username = identity.Claims.FirstOrDefault(o => o.Type == "preferred_username")?.Value;
-
-                                if (adminUsernames.Contains(username))
-                                {
-                                    identity.AddClaim(new Claim(ClaimTypes.Role, "Admin"));
-                                }
-                            }
                             return Task.CompletedTask;
                         }
                     };
                 });
+            services.AddScoped<IClaimsTransformation, RoleClaimsTransformation>();
+
+            services.AddSingleton<IUserStorage, AzureTableUserStorage>();
 
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("Authenticated", policy => policy.RequireAuthenticatedUser());
+                options.AddPolicy("EventManager", policy => policy.RequireRole("Admin"));
+                options.AddPolicy("StopwatchManager", policy => policy.RequireRole("Admin", "Mod"));
             });
 
             var builder = services.AddSignalR();

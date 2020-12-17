@@ -1,22 +1,11 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace FlightEvents.Data
 {
-    public class AzureTableOptions
-    {
-        [Required]
-        public string ConnectionString { get; set; }
-        [Required]
-        public string DiscordConnectionTable { get; set; }
-        [Required]
-        public string LeaderboardTable { get; set; }
-    }
-
     public class AzureTableDiscordConnectionStorage : IDiscordConnectionStorage
     {
         private readonly CloudTable table;
