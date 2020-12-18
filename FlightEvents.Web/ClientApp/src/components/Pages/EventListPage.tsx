@@ -1,8 +1,9 @@
 ﻿import * as React from 'react';
+import styled from 'styled-components';
 import { Query } from '@apollo/client/react/components';
 import { gql } from '@apollo/client';
 import { ApolloQueryResult } from '@apollo/client/core';
-import { Container, Row, Col, ButtonGroup, Breadcrumb, BreadcrumbItem } from 'reactstrap';
+import { Container, Row, Col, ButtonGroup, Breadcrumb, BreadcrumbItem, Badge } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import { FlightEvent } from '../../Models';
 
@@ -33,17 +34,26 @@ export default () => {
                     if (loading) return <p>Loading...</p>
                     if (error) return <p>Cannot load events!</p>
 
+                    const events = [...data.flightEvents]
+                    events.sort((a, b) =>
+                        a.startDateTime === b.startDateTime ?
+                            (
+                                a.endDateTime === b.endDateTime ? 0 : (a.startDateTime < b.startDateTime ? 1 : -1)
+                            )
+                            :
+                            (a.startDateTime < b.startDateTime ? 1 : -1)
+                    )
+
                     return <ul>
-                        {data.flightEvents.map(flightEvent => (
+                        {events.map(flightEvent => (
                             <li key={flightEvent.id}>
-                                <h6>{flightEvent.name}</h6>
-                                <p>{flightEvent.startDateTime}</p>
-                                <p>{flightEvent.type}</p>
+                                <StyledTitle>{flightEvent.name} <Badge>{flightEvent.type}</Badge></StyledTitle>
+                                <StyledTime>{flightEvent.startDateTime}</StyledTime>
                                 <ButtonGroup>
-                                    <Link to={`Events/${flightEvent.id}`} className='btn btn-primary'>Details</Link>
+                                    <Link to={`Events/${flightEvent.id}`} className='btn btn-primary btn-sm'>Details</Link>
                                     {flightEvent.type === 'RACE' && <>
-                                        <Link to={`Events/${flightEvent.id}/Stopwatch`} className='btn btn-secondary'>Stopwatch</Link>
-                                        <Link to={`Events/${flightEvent.id}/Leaderboard`} className='btn btn-info'>Leaderboard</Link>
+                                        <Link to={`Events/${flightEvent.id}/Stopwatch`} className='btn btn-secondary btn-sm'>Stopwatch</Link>
+                                        <Link to={`Events/${flightEvent.id}/Leaderboard`} className='btn btn-info btn-sm'>Leaderboard</Link>
                                     </>}
                                 </ButtonGroup>
                             </li>
@@ -54,3 +64,12 @@ export default () => {
         </Row>
     </Container>
 }
+
+const StyledTitle = styled.div`
+font-weight: bold;
+margin-top: 10px;
+`
+
+const StyledTime = styled.div`
+font-size: 0.9em;
+`
