@@ -23,6 +23,8 @@ namespace FlightEvents.Data.AzureStorage
             SubIndex = record.SubIndex;
             Score = record.Score;
             ScoreDisplay = record.ScoreDisplay;
+            TimeSinceStart = record.TimeSinceStart;
+            TimeSinceLast = record.TimeSinceLast;
         }
 
         public LeaderboardRecord ToRecord()
@@ -34,7 +36,9 @@ namespace FlightEvents.Data.AzureStorage
                 SubIndex = SubIndex,
                 PlayerName = PlayerName,
                 Score = Score,
-                ScoreDisplay = ScoreDisplay
+                ScoreDisplay = ScoreDisplay,
+                TimeSinceStart = TimeSinceStart,
+                TimeSinceLast = TimeSinceLast
             };
         }
 
@@ -44,6 +48,8 @@ namespace FlightEvents.Data.AzureStorage
         public int SubIndex { get; set; }
         public long Score { get; set; }
         public string ScoreDisplay { get; set; }
+        public long TimeSinceStart { get; set; }
+        public long TimeSinceLast { get; set; }
     }
 
     public class AzureTableLeaderboardStorage : ILeaderboardStorage

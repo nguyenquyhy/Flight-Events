@@ -123,6 +123,7 @@ export interface LeaderboardRecord {
     subIndex: number;
     score: number;
     scoreDisplay: string;
+    timeSinceStart: number;
 }
 
 export interface Stopwatch {
