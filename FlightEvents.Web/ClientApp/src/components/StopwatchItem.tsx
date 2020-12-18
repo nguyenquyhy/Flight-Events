@@ -47,8 +47,12 @@ const StopwatchItem = (props: ItemProps & Stopwatch) => {
         props.hub.send("StopStopwatch", props.eventId, props.id);
     }
 
-    const handleReset = () => {
+    const handleRestart = () => {
         props.hub.send("RestartStopwatch", props.eventId, props.id);
+    }
+
+    const handleReset = () => {
+        props.hub.send("ResetStopwatch", props.eventId, props.id);
     }
 
     const handleSave = () => {
@@ -74,7 +78,8 @@ const StopwatchItem = (props: ItemProps & Stopwatch) => {
                 {props.stoppedDateTime ? <Button color="info" onClick={handleSave}>Save</Button> : null}
             </ButtonGroup>
             <ButtonGroup style={{ float: 'right' }}>
-                {props.stoppedDateTime ? <Button onClick={handleReset}>Restart</Button> : null}
+                {props.stoppedDateTime ? <Button onClick={handleRestart}>Restart</Button> : null}
+                {props.stoppedDateTime ? <Button onClick={handleReset}>Reset</Button> : null}
                 {!props.startedDateTime || props.stoppedDateTime ? <Button color="danger" onClick={handleRemove}>Remove</Button> : null}
             </ButtonGroup>
         </div>

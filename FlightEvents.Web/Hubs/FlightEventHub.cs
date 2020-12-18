@@ -437,6 +437,19 @@ namespace FlightEvents.Web.Hubs
         }
 
         [Authorize(Policy = "StopwatchManager")]
+        public async Task ResetStopwatch(Guid eventId, Guid id)
+        {
+            var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
+            if (eventStopwatches.TryGetValue(id, out var stopwatch))
+            {
+                stopwatch.StartedDateTime = null;
+                stopwatch.StoppedDateTime = null;
+                stopwatch.LapsDateTime.Clear();
+                await Clients.Group("Stopwatch:" + eventId).UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
+            }
+        }
+
+        [Authorize(Policy = "StopwatchManager")]
         public async Task LapStopwatch(Guid eventId, Guid id)
         {
             var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
@@ -529,7 +542,14 @@ namespace FlightEvents.Web.Hubs
                 await Clients.Group("Stopwatch:" + eventId).UpdateLeaderboard(records);
                 await Clients.Group("Leaderboard:" + evt.Id).UpdateLeaderboard(records);
             }
+        }
 
+        [Authorize(Policy = "StopwatchManager")]
+        public async Task ReloadLeaderboard(Guid eventId)
+        {
+            var records = await leaderboardStorage.LoadAsync(eventId);
+            await Clients.Group("Stopwatch:" + eventId).UpdateLeaderboard(records);
+            await Clients.Group("Leaderboard:" + eventId).UpdateLeaderboard(records);
         }
 
         #endregion

@@ -1,6 +1,6 @@
 ﻿import * as React from 'react';
 import { HubConnectionBuilder } from '@microsoft/signalr';
-import { Form, Container, Row, Col, Breadcrumb, BreadcrumbItem, Button, Input, InputGroup, InputGroupAddon, ListGroup } from 'reactstrap';
+import { Form, Container, Row, Col, Breadcrumb, BreadcrumbItem, Button, Input, InputGroup, InputGroupAddon, ListGroup, ButtonGroup } from 'reactstrap';
 import { RouteComponentProps, Link } from 'react-router-dom';
 import { Query } from '@apollo/client/react/components';
 import { ApolloQueryResult } from '@apollo/client/core';
@@ -71,6 +71,10 @@ export default (props: RouteComponentProps<RouteProps>) => {
             await hub.send("StartAllStopwatches", event.id);
         }
 
+        const handleReloadLeaderboard = async () => {
+            await hub.send("ReloadLeaderboard", event.id);
+        }
+
         const handleUpdateStopwatch = (stopwatch, serverDateString) => {
             window["shift"] = new Date().getTime() - new Date(serverDateString).getTime();
 
@@ -128,7 +132,10 @@ export default (props: RouteComponentProps<RouteProps>) => {
                         </InputGroup>
                     </Form>
                     <hr />
-                    {Object.keys(state.stopwatches).length > 0 && <Button color="primary" onClick={handleStartAll}>Start All</Button>}
+                    <ButtonGroup>
+                        {Object.keys(state.stopwatches).length > 0 && <Button color="primary" onClick={handleStartAll}>Start All</Button>}
+                        <Button color="info" onClick={handleReloadLeaderboard}>Reload Leaderboard</Button>
+                    </ButtonGroup>
                     <br />
                     <ListGroup>
                         {Object.keys(state.stopwatches).map(id => <StopwatchItem key={id} eventId={event.id} hub={hub} {...state.stopwatches[id]} />)}
