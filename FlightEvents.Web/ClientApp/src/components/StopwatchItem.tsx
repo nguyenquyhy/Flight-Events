@@ -7,10 +7,7 @@ import { Stopwatch } from '../Models';
 interface ItemProps {
     hub: HubConnection;
     eventId: string;
-}
-
-interface ItemState {
-    elapsed: number;
+    removed: boolean;
 }
 
 function formatTime(elapsed: number) {
@@ -18,20 +15,20 @@ function formatTime(elapsed: number) {
 }
 
 const StopwatchItem = (props: ItemProps & Stopwatch) => {
-    const [state, setState] = React.useState<ItemState>({ elapsed: 0 });
+    const [elapsed, setElapsed] = React.useState<number>(0);
 
     React.useEffect(() => {
         if (!props.stoppedDateTime && props.startedDateTime) {
             const start = new Date(props.startedDateTime).getTime();
             const interval = setInterval(() => {
-                setState({ elapsed: new Date().getTime() - start - window['shift'] })
+                setElapsed(new Date().getTime() - start - window['shift'])
             }, 100);
 
             return () => {
                 clearInterval(interval)
             }
         } else if (props.stoppedDateTime && props.startedDateTime) {
-            setState({ elapsed: new Date(props.stoppedDateTime).getTime() - new Date(props.startedDateTime).getTime() })
+            setElapsed(new Date(props.stoppedDateTime).getTime() - new Date(props.startedDateTime).getTime())
         }
     }, [props])
 
@@ -68,19 +65,19 @@ const StopwatchItem = (props: ItemProps & Stopwatch) => {
     return <ListGroupItem>
         <div>{props.name} ({props.leaderboardName})</div>
         <div>
-            <StyledTime>{formatTime(state.elapsed)}</StyledTime>
+            <StyledTime>{props.removed ? "Removed" : formatTime(elapsed)}</StyledTime>
         </div>
         <div>
             <ButtonGroup>
-                {!props.startedDateTime ? <Button color="primary" onClick={handleStart}>Start</Button> : null}
-                {props.startedDateTime && !props.stoppedDateTime ? <Button onClick={handleLap}>Lap</Button> : null}
-                {props.startedDateTime && !props.stoppedDateTime ? <Button color="warning" onClick={handleStop}>Stop</Button> : null}
-                {props.stoppedDateTime ? <Button color="info" onClick={handleSave}>Save</Button> : null}
+                {!props.startedDateTime ? <Button color="primary" onClick={handleStart} disabled={props.removed}>Start</Button> : null}
+                {props.startedDateTime && !props.stoppedDateTime ? <Button onClick={handleLap} disabled={props.removed}>Lap</Button> : null}
+                {props.startedDateTime && !props.stoppedDateTime ? <Button color="warning" onClick={handleStop} disabled={props.removed}>Stop</Button> : null}
+                {props.stoppedDateTime ? <Button color="info" onClick={handleSave} disabled={props.removed}>Save</Button> : null}
             </ButtonGroup>
             <ButtonGroup style={{ float: 'right' }}>
-                {props.stoppedDateTime ? <Button onClick={handleRestart}>Restart</Button> : null}
-                {props.stoppedDateTime ? <Button onClick={handleReset}>Reset</Button> : null}
-                {!props.startedDateTime || props.stoppedDateTime ? <Button color="danger" onClick={handleRemove}>Remove</Button> : null}
+                {props.stoppedDateTime ? <Button onClick={handleRestart} disabled={props.removed}>Restart</Button> : null}
+                {props.stoppedDateTime ? <Button onClick={handleReset} disabled={props.removed}>Reset</Button> : null}
+                {!props.startedDateTime || props.stoppedDateTime ? <Button color="danger" onClick={handleRemove} disabled={props.removed}>Remove</Button> : null}
             </ButtonGroup>
         </div>
 

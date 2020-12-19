@@ -31,6 +31,8 @@ interface State {
     stopwatches: { [id: string]: Stopwatch };
     leaderboards: Leaderboards;
 
+    removedStopwatches: { [id: string]: boolean };
+
     name: string;
     leaderboardName: string;
 }
@@ -43,7 +45,7 @@ const hub = new HubConnectionBuilder()
 window["shift"] = 0;
 
 export default (props: RouteComponentProps<RouteProps>) => {
-    const [state, setState] = React.useState<State>({ stopwatches: {}, name: '', leaderboardName: '', leaderboards: {} });
+    const [state, setState] = React.useState<State>({ stopwatches: {}, removedStopwatches: {}, name: '', leaderboardName: '', leaderboards: {} });
 
     return <Query query={QUERY} variables={{ id: props.match.params.id }}>{({ loading, error, data }: ApolloQueryResult<{ flightEvent: FlightEvent }>) => {
         if (loading) return <>Loading...</>
@@ -84,12 +86,13 @@ export default (props: RouteComponentProps<RouteProps>) => {
         }
 
         const handleRemoveStopwatch = (stopwatch: Stopwatch) => {
-            setState(state => {
-                delete state.stopwatches[stopwatch.id];
-                return {
-                    ...state, stopwatches: { ...state.stopwatches }
-                }
-            })
+            setState(state => ({
+                ...state,
+                removedStopwatches: {
+                    ...state.removedStopwatches,
+                    [stopwatch.id]: true
+                } 
+            }))
         }
 
         const onUpdateLeaderboard = (records: LeaderboardRecord[]) => {
@@ -138,7 +141,7 @@ export default (props: RouteComponentProps<RouteProps>) => {
                     </ButtonGroup>
                     <br />
                     <ListGroup>
-                        {Object.keys(state.stopwatches).map(id => <StopwatchItem key={id} eventId={event.id} hub={hub} {...state.stopwatches[id]} />)}
+                        {Object.keys(state.stopwatches).map(id => <StopwatchItem key={id} eventId={event.id} hub={hub} {...state.stopwatches[id]} removed={!!state.removedStopwatches[id]} />)}
                     </ListGroup>
                     <br />
                 </Col>
