@@ -10,6 +10,7 @@
         // a route with query params (e.g. auth callbacks).
         new RegExp('/[^/?]+\\.[^/]+$'),
         new RegExp('^/GraphQL', 'i'),
+        new RegExp('^/api/', 'i'),
         new RegExp('^/Error', 'i'),
         new RegExp('^/Discord', 'i'),
         new RegExp('^/Login', 'i'),
