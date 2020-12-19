@@ -50,11 +50,16 @@ export interface FlightEvent {
     name: string;
     description: string;
     leaderboards: string[] | null;
-    leaderboardLaps: string[] | null;
+    checkpoints: Checkpoint[] | null;
     startDateTime: string;
     endDateTime: string | null;
     url: string | null;
     waypoints: string | null;
+}
+
+export interface Checkpoint {
+    waypoint: string;
+    symbol: string;
 }
 
 export interface Airport {

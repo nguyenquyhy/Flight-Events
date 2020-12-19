@@ -28,9 +28,9 @@ export const recordsToLeaderboards = (records: LeaderboardRecord[]) => {
 
 const Leaderboard = (props: LeaderboardProps) => {
     const milestones = ['Full race'];
-    if (props.event.leaderboardLaps) {
-        for (let i = 0; i < props.event.leaderboardLaps.length; i++) {
-            milestones.push((i === 0 ? 'Start' : props.event.leaderboardLaps[i - 1]) + ' → ' + props.event.leaderboardLaps[i]);
+    if (props.event.checkpoints) {
+        for (let i = 1; i < props.event.checkpoints.length; i++) {
+            milestones.push(props.event.checkpoints[i - 1].waypoint + ' → ' + props.event.checkpoints[i].waypoint);
         }
     }
 

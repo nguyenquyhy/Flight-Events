@@ -34,7 +34,10 @@ namespace FlightEvents.Data
         public string Route { get; set; }
 
         public List<string> Leaderboards { get; set; }
-        public List<string> LeaderboardLaps { get; set; }
+        /// <summary>
+        /// Note: First/Last points are assumed to be start/finish respectively.
+        /// </summary>
+        public List<FlightEventCheckpoint> Checkpoints { get; set; }
 
         public List<string> FlightPlanIds { get; set; }
 
@@ -55,11 +58,17 @@ namespace FlightEvents.Data
             if (Route != default) current.Route = Route;
 
             if (Leaderboards != default) current.Leaderboards = Leaderboards;
-            if (LeaderboardLaps != default) current.LeaderboardLaps = LeaderboardLaps;
+            if (Checkpoints != default) current.Checkpoints = Checkpoints;
 
             if (FlightPlanIds != default) current.FlightPlanIds = FlightPlanIds;
             if (ChecklistItems != default) current.ChecklistItems = ChecklistItems;
         }
+    }
+
+    public class FlightEventCheckpoint
+    {
+        public string Waypoint { get; set; }
+        public string Symbol { get; set; }
     }
 
     public class FlightEventChecklistItem

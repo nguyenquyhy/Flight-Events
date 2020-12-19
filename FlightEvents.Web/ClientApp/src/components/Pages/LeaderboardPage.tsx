@@ -18,7 +18,10 @@ const QUERY = gql`query getEvent($id: Uuid!) {
         url
         waypoints
         leaderboards
-        leaderboardLaps
+        checkpoints {
+            waypoint
+            symbol
+        }
     }
 }`
 

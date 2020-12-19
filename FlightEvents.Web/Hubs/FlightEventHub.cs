@@ -460,7 +460,7 @@ namespace FlightEvents.Web.Hubs
                 stopwatch.LapsDateTime.Add(dateTime);
 
                 var evt = await flightEventStorage.GetAsync(eventId);
-                if (stopwatch.LapsDateTime.Count == evt.LeaderboardLaps.Count)
+                if (stopwatch.LapsDateTime.Count == evt.Checkpoints.Count - 1)
                 {
                     stopwatch.StoppedDateTime = dateTime;
                 }
@@ -500,7 +500,7 @@ namespace FlightEvents.Web.Hubs
 
                 var evt = await flightEventStorage.GetAsync(eventId);
                 // Create leaderboard for each lap and full race
-                if (stopwatch.LapsDateTime.Count == evt.LeaderboardLaps.Count)
+                if (stopwatch.LapsDateTime.Count == evt.Checkpoints.Count - 1)
                 {
                     var lapTime = stopwatch.LapsDateTime[^1] - stopwatch.StartedDateTime.Value;
 

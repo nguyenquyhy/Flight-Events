@@ -78,7 +78,10 @@ export default class EventModal extends React.Component<Props, State> {
         url
         waypoints
         leaderboards
-        leaderboardLaps
+        checkpoints {
+            waypoint
+            symbol
+        }
     }
 }`} variables={{ id: this.props.flightEvent.id }}>{({ loading, error, data }: ApolloQueryResult<{ flightEvent: FlightEvent }>) => {
                         if (loading) return <>Loading...</>
