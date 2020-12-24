@@ -12,13 +12,15 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.1.101
-    - name: Build with dotnet
-      run: dotnet build --configuration Release
+      - uses: actions/checkout@v2
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.101
+      - name: Clean
+        run: dotnet clean --configuration Release && dotnet nuget locals all --clear
+      - name: Build with dotnet
+        run: dotnet build --configuration Release
 
   package-web:
     runs-on: [windows-latest]
@@ -26,6 +28,8 @@ jobs:
     needs: [build]
     steps:
       - uses: actions/checkout@v2
+      - name: Clean
+        run: dotnet clean --configuration Release && dotnet nuget locals all --clear
       - name: Publish with dotnet
         run: dotnet publish --configuration Release --output publish-web FlightEvents.Web
       - name: Collect artifact
@@ -40,6 +44,8 @@ jobs:
     needs: [build]
     steps:
       - uses: actions/checkout@v2
+      - name: Clean
+        run: dotnet clean --configuration Release && dotnet nuget locals all --clear
       - name: Publish with dotnet
         run: dotnet publish --configuration Release --output publish-client --runtime win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishReadyToRun=true FlightEvents.Client
       - name: Copy extra content
