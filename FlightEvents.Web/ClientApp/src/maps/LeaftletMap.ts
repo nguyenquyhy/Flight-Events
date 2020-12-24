@@ -65,7 +65,7 @@ export default class LeafletMap implements IMap {
 
     isDark: boolean = false;
 
-    public initialize(divId: string, view?: View) {
+    public initialize(divId: string, view: View | undefined, mode: string | null) {
         const map = this.mymap =
             L.map(divId, {
                 attributionControl: false,
@@ -82,6 +82,7 @@ export default class LeafletMap implements IMap {
         L.control.attribution({
             position: 'bottomleft'
         }).addTo(map);
+        if (mode === 'none') map.removeControl(map.zoomControl);
 
         this.mymap.on('moveend', (e) => {
             const zoom = map.getZoom();
@@ -208,13 +209,6 @@ export default class LeafletMap implements IMap {
         const infoBoxWidth = 100
 
         let latlng: L.LatLngExpression = [aircraftStatus.latitude, aircraftStatus.longitude];
-
-        if (Object.keys(this.markers).length === 0 && !this.initialView) {
-            // Move to 1st aircraft
-            this.mymap.setView(latlng, 11);
-        } else if (isFollowing) {
-            this.mymap.setView(latlng, this.mymap.getZoom());
-        }
 
         let markers = this.markers[connectionId];
         if (markers) {
@@ -409,7 +403,7 @@ export default class LeafletMap implements IMap {
                         title: waypoint.id,
                         icon: L.divIcon({
                             className: 'divicon-waypoint',
-                            html: `<div style="width: 8px; height: 8px; background-color: black; border-radius: 4px"></div><div>${waypoint.id}</div>`,
+                            html: !!waypoint.id ? `<div style="width: 8px; height: 8px; background-color: black; border-radius: 4px"></div><div>${waypoint.id}</div>` : '',
                             iconSize: [8, 8],
                             iconAnchor: [4, 4],
                         })

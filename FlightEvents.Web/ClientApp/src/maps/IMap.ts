@@ -1,7 +1,7 @@
 ﻿import { ATCStatus, ATCInfo, AircraftStatus, Airport, FlightPlanData, AircraftStatusBrief } from '../Models';
 
 export interface IMap {
-    initialize(divId: string, view?: View)
+    initialize(divId: string, view: View | undefined, mode: string | null)
     deinitialize();
 
     moveATCMarker(clientId: string, atcStatus: ATCStatus | null, atcInfo: ATCInfo | null)

@@ -145,7 +145,7 @@ export default class MaptalksMap implements IMap {
 
     initialView?: View;
 
-    initialize(divId: string, view?: View) {
+    initialize(divId: string, view: View | undefined, mode: string | null) {
         const map: Map = new maptalks.Map(divId, {
             center: view ? [view.longitude, view.latitude] : [-0.09, 51.505],
             zoom: view ? view.zoom : 13,
@@ -298,14 +298,6 @@ export default class MaptalksMap implements IMap {
         if (!this.map || !this.aircraftLayer) return;
 
         let latlng: Coordinate = new maptalks.Coordinate([aircraftStatus.longitude, aircraftStatus.latitude]);
-
-        if (Object.keys(this.markers).length === 0 && !this.initialView) {
-            // Move to 1st aircraft
-            this.map.panTo(latlng);
-            this.map.setPitch(30);
-        } else if (isFollowing) {
-            this.map.panTo(latlng);
-        }
 
         const altitude = aircraftStatus.altitude * MaptalksMap.FEET_TO_METER
 

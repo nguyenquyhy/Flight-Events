@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { FlightEvent, Airport, FlightPlan, LeaderboardRecord } from '../Models';
 import { Query } from '@apollo/client/react/components';
-import { useQuery } from '@apollo/client/react/hooks';
 import { ApolloQueryResult } from '@apollo/client/core';
 import { gql } from '@apollo/client';
 import parseJSON from 'date-fns/parseJSON';
@@ -11,6 +10,7 @@ import ReactMarkdown from 'react-markdown';
 import { HubConnection } from '@microsoft/signalr';
 import { convertPropertyNames, pascalCaseToCamelCase } from '../Converters';
 import Leaderboard, { Leaderboards, recordsToLeaderboards } from './Leaderboard';
+import FlightPlanComponent from './FlightPlanComponent';
 
 interface Props {
     hub: HubConnection;
@@ -125,72 +125,3 @@ const StyledTime = styled.span`
 border-bottom: 1px dashed #909090;
 margin-bottom: 10px;
 `
-
-const Header = styled.h5`
-margin-top: 12px;
-`;
-
-const FlightPlanComponent = (props: {
-    id: string,
-    onFlightPlansLoaded: (flightPlans: FlightPlan[]) => void;
-}) => {
-    const { loading, error, data } = useQuery<{ flightEvent: { flightPlans: FlightPlan[] } }>(gql`query GetFlightPlans($id: Uuid!) {
-    flightEvent(id: $id) {
-        id
-        flightPlans {
-            id
-            downloadUrl
-            data {
-                title
-                description
-                cruisingAltitude
-                type
-                routeType
-                departure {
-                    id
-                    name
-                    latitude
-                    longitude
-                }
-                destination {
-                    id
-                    name
-                    latitude
-                    longitude
-                }
-                waypoints {
-                    id
-                    airway
-                    type
-                    latitude
-                    longitude
-                    icao {
-                        ident
-                        airport
-                        region
-                    }
-                }
-            }
-        }
-    }
-}`, { variables: { id: props.id } });
-
-    if (loading) return <div>Checking flight plan...</div>;
-    if (error || !data) return <div>Cannot load flight plan!</div>;
-
-    const flightPlans = data.flightEvent.flightPlans;
-
-    props.onFlightPlansLoaded(flightPlans);
-
-    return <>
-        <Header>Flight Plans</Header>
-        {flightPlans.length === 0 ?
-            <p><em>No flight plan is available for this event.</em></p> :
-            <ul>
-                {flightPlans.map(flightPlan => (
-                    <li key={flightPlan.id}><a href={flightPlan.downloadUrl} target="_blank" rel="noopener noreferrer" download={flightPlan.id}>{flightPlan.data.title}</a></li>
-                ))}
-            </ul>
-        }
-    </>;
-}

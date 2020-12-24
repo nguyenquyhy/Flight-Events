@@ -2,9 +2,11 @@ import * as React from 'react';
 import * as signalr from '@microsoft/signalr';
 import 'msgpack5';
 import * as protocol from '@microsoft/signalr-protocol-msgpack';
+import { Query } from '@apollo/client/react/components';
+import { ApolloQueryResult, gql } from '@apollo/client';
 import { RouteComponentProps } from 'react-router-dom';
 import { convertPropertyNames, pascalCaseToCamelCase } from '../../Converters';
-import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../../Models';
+import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief, FlightEvent } from '../../Models';
 import AircraftList, { AircraftStatusInList } from '../AircraftList';
 import ControllerList from '../ControllerList';
 import EventList from '../EventList';
@@ -16,6 +18,7 @@ import MaptalksMap from '../../maps/MaptalksMap';
 import Storage from '../../Storage';
 import { deepEqual } from '../../Compare';
 import TeleportDialog from '../Dialogs/TeleportDialog';
+import FlightPlanComponent from '../FlightPlanComponent';
 
 const CONTROLLER_TIMEOUT_MILLISECONDS = 30000;
 const AIRCRAFT_TIMEOUT_MILLISECONDS = 10000;
@@ -55,6 +58,8 @@ export class Home extends React.Component<Props, State> {
     private focusCallsign: string | null = null;
     private latitude: number | null = null;
     private longitude: number | null = null;
+    private eventId: string | null = null;
+    private callsigns: string[] | null = null;
 
     private aircrafts: { [clientId: string]: { lastUpdated: Date, status: AircraftStatus } } = {};
     private controllers: { [clientId: string]: { lastUpdated: Date } } = {};
@@ -114,6 +119,8 @@ export class Home extends React.Component<Props, State> {
         this.focusCallsign = searchParams.get('focusCallsign');
         this.latitude = searchParams.get('latitude') ? Number(searchParams.get('latitude')) : null;
         this.longitude = searchParams.get('longitude') ? Number(searchParams.get('longitude')) : null;
+        this.eventId = searchParams.get('eventId');
+        this.callsigns = searchParams.get('callsigns')?.split(',') || null;
 
         if (this.latitude && this.longitude) {
             this.currentView = {
@@ -169,6 +176,10 @@ export class Home extends React.Component<Props, State> {
         hub.on("UpdateAircraft", (clientId, aircraftStatus: AircraftStatus) => {
             aircraftStatus = convertPropertyNames(aircraftStatus, pascalCaseToCamelCase);
 
+            if (this.callsigns && !this.callsigns.includes(aircraftStatus.callsign)) {
+                return 
+            }
+
             try {
                 const isReady = !(Math.abs(aircraftStatus.latitude) < 0.02 && Math.abs(aircraftStatus.longitude) < 0.02);
 
@@ -187,10 +198,18 @@ export class Home extends React.Component<Props, State> {
                     }
                 };
 
-                const focusAircraft = !this.state.followingClientId && !this.latitude && !this.longitude
+                const focusAircraft = !this.state.followingClientId && !this.latitude && !this.longitude && !this.eventId
 
+                // Focus the first ready aircraft
+                if (focusAircraft && isReady && Object.values(this.state.aircrafts).filter(o => o.isReady).length === 0) {
+                    this.map.focus(aircraftStatus);
+                }
+                // Follow an aircraft
+                else if (this.state.followingClientId === clientId) {
+                    this.map.focus(aircraftStatus);
+                }
                 // Set focus aircraft from URL
-                if (this.focusCallsign && aircraftStatus.callsign === this.focusCallsign) {
+                else if (this.focusCallsign && aircraftStatus.callsign === this.focusCallsign) {
                     if (focusAircraft) {
                         // Only when not following or with initial coordinate
                         this.map.focus(aircraftStatus);
@@ -198,7 +217,7 @@ export class Home extends React.Component<Props, State> {
                     this.focusCallsign = null;
                 }
                 // Set follow aircraft from URL
-                if (this.followCallsign && aircraftStatus.callsign === this.followCallsign) {
+                else if (this.followCallsign && aircraftStatus.callsign === this.followCallsign) {
                     newState = {
                         ...newState,
                         followingClientId: clientId
@@ -206,7 +225,7 @@ export class Home extends React.Component<Props, State> {
                     this.followCallsign = null;
                 }
                 // Set own aircraft from URL
-                if (this.myCallsign && aircraftStatus.callsign === this.myCallsign) {
+                else if (this.myCallsign && aircraftStatus.callsign === this.myCallsign) {
                     newState = {
                         ...newState,
                         myClientId: clientId
@@ -281,7 +300,7 @@ export class Home extends React.Component<Props, State> {
         this.map.onSetShowRoute(clientId => {
             this.handleShowPathChanged(clientId);
         });
-        this.map.initialize('mapid', this.currentView);
+        this.map.initialize('mapid', this.currentView, this.mode);
         this.map.setTileLayer(this.state.mapTileType);
         this.map.changeMode(this.state.isDark);
     }
@@ -470,33 +489,75 @@ export class Home extends React.Component<Props, State> {
             {this.state.isDark && <style dangerouslySetInnerHTML={{ __html: `.leaflet-container { background-color: black } .leaflet-tile, .icon-aircraft-marker { -webkit-filter: hue-rotate(180deg) invert(100%); }` }} />}
             <div id="mapid" style={{ height: '100%' }}></div>
 
-            <Display
-                isDark={this.state.isDark} onIsDarkChanged={this.handleIsDarkChanged}
-                dimension={this.state.map3D ? "3D" : "2D"} onDimensionChanged={this.handleMapDimensionChanged}
-                tileType={this.state.mapTileType} onTileTypeChanged={this.handleTileTypeChanged} />
+            {this.mode !== 'none' && <>
+                <Display
+                    isDark={this.state.isDark} onIsDarkChanged={this.handleIsDarkChanged}
+                    dimension={this.state.map3D ? "3D" : "2D"} onDimensionChanged={this.handleMapDimensionChanged}
+                    tileType={this.state.mapTileType} onTileTypeChanged={this.handleTileTypeChanged} />
 
-            <Hud
-                mode={this.mode}
-                aircrafts={this.state.aircraftCallsigns} onAircraftClick={this.handleAircraftClick}
-                onMeChanged={this.handleMeChanged} myClientId={this.state.myClientId}
-                onFollowingChanged={this.handleFollowingChanged} followingClientId={this.state.followingClientId}
-                onFlightPlanChanged={this.handleFlightPlanChanged} flightPlanClientId={this.state.flightPlanClientId}
-            />
+                <Hud
+                    mode={this.mode}
+                    aircrafts={this.state.aircraftCallsigns} onAircraftClick={this.handleAircraftClick}
+                    onMeChanged={this.handleMeChanged} myClientId={this.state.myClientId}
+                    onFollowingChanged={this.handleFollowingChanged} followingClientId={this.state.followingClientId}
+                    onFlightPlanChanged={this.handleFlightPlanChanged} flightPlanClientId={this.state.flightPlanClientId}
+                />
 
-            <ControllerList controllers={this.state.controllers} onControllerClick={this.handleControllerClick} />
+                <ControllerList controllers={this.state.controllers} onControllerClick={this.handleControllerClick} />
 
-            <AircraftList
-                aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
-                myClientId={this.state.myClientId}
-                followingClientId={this.state.followingClientId}
-                flightPlanClientId={this.state.flightPlanClientId}
-                onShowPathChanged={this.handleShowPathChanged} showPathClientIds={this.state.showPathClientIds}
-                onMoreInfoChanged={this.handleMoreInfoChanged} moreInfoClientIds={this.state.moreInfoClientIds}
-            />
+                <AircraftList
+                    aircrafts={this.state.aircrafts} onAircraftClick={this.handleAircraftClick}
+                    myClientId={this.state.myClientId}
+                    followingClientId={this.state.followingClientId}
+                    flightPlanClientId={this.state.flightPlanClientId}
+                    onShowPathChanged={this.handleShowPathChanged} showPathClientIds={this.state.showPathClientIds}
+                    onMoreInfoChanged={this.handleMoreInfoChanged} moreInfoClientIds={this.state.moreInfoClientIds}
+                />
 
-            <EventList hub={this.hub} onAirportsLoaded={this.handleAirportsLoaded} onFlightPlansLoaded={this.handleFlightPlansLoaded} />
+                <EventList hub={this.hub} onAirportsLoaded={this.handleAirportsLoaded} onFlightPlansLoaded={this.handleFlightPlansLoaded} />
+            </>}
+
+            {!!this.eventId && <FlightPlanLoader eventId={this.eventId} onFlightPlansLoaded={this.handleFlightPlansLoaded} onAirportsLoaded={this.handleAirportsLoaded} />}
 
             <TeleportDialog selectedPosition={this.state.movingPosition} onRequested={this.handleTeleportRequested} onComplete={this.handleTeleportCompleted} />
         </>;
     }
+}
+
+interface FlightPlanLoaderProps {
+    eventId: string;
+
+    onAirportsLoaded: (airports: Airport[]) => void;
+    onFlightPlansLoaded: (flightPlans: FlightPlan[]) => void;
+}
+
+const FlightPlanLoader = (props: FlightPlanLoaderProps) => {
+    return <>
+        <Query query={gql`query GetFlightEvent($id: Uuid!) {
+    flightEvent(id: $id) {
+        id
+        waypoints
+    }
+}`} variables={{ id: props.eventId }}>{({ loading, error, data }: ApolloQueryResult<{ flightEvent: FlightEvent }>) => {
+                if (loading) return <>Loading...</>
+                if (error) return <>Error!</>
+
+                const event = data.flightEvent;
+
+                return <>
+                    {!!event.waypoints && <Query query={gql`query GetAirports($idents: [String]!) {
+    airports(idents: $idents) {
+        ident
+        name
+        longitude
+        latitude
+    }
+}`} variables={{ idents: event.waypoints.split(' ') }}>{({ loading, error, data }: ApolloQueryResult<{ airports: Airport[] }>) => {
+                            if (!loading && !error && data) props.onAirportsLoaded(data.airports);
+                            return null;
+                        }}</Query>}
+                    <FlightPlanComponent id={event.id} onFlightPlansLoaded={props.onFlightPlansLoaded} hideList={true} />
+                </>;
+            }}</Query>
+    </>
 }
