@@ -19,6 +19,7 @@ import Storage from '../../Storage';
 import { deepEqual } from '../../Compare';
 import TeleportDialog from '../Dialogs/TeleportDialog';
 import FlightPlanComponent from '../FlightPlanComponent';
+import UserIcon from '../UserIcon';
 
 const CONTROLLER_TIMEOUT_MILLISECONDS = 30000;
 const AIRCRAFT_TIMEOUT_MILLISECONDS = 10000;
@@ -520,6 +521,8 @@ export class Home extends React.Component<Props, State> {
             {!!this.eventId && <FlightPlanLoader eventId={this.eventId} onFlightPlansLoaded={this.handleFlightPlansLoaded} onAirportsLoaded={this.handleAirportsLoaded} />}
 
             <TeleportDialog selectedPosition={this.state.movingPosition} onRequested={this.handleTeleportRequested} onComplete={this.handleTeleportCompleted} />
+
+            <UserIcon />
         </>;
     }
 }

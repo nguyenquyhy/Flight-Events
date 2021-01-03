@@ -123,8 +123,14 @@ namespace FlightEvents.Web
 
                     config.Events = new OpenIdConnectEvents
                     {
-                        OnTokenValidated = (context) =>
+                        OnRedirectToIdentityProvider = context =>
                         {
+                            if (context.Request.Path.StartsWithSegments(new Microsoft.AspNetCore.Http.PathString("/api")))
+                            {
+                                // Prevent default redirect behavior for /api endpoints
+                                context.Response.StatusCode = 401;
+                                context.HandleResponse();
+                            }
                             return Task.CompletedTask;
                         }
                     };
@@ -135,7 +141,6 @@ namespace FlightEvents.Web
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("Authenticated", policy => policy.RequireAuthenticatedUser());
                 options.AddPolicy("EventManager", policy => policy.RequireRole("Admin"));
                 options.AddPolicy("StopwatchManager", policy => policy.RequireRole("Admin", "Mod"));
             });
