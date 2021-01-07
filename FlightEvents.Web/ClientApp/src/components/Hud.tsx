@@ -85,7 +85,7 @@ position: fixed;
 top: 0px;
 left: 0px;
 right: 0px;
-z-index: 1000;
+z-index: 900;
 background-color: rgba(255, 255, 255, 0);
 padding: 10px 10px 10px 44px;
 
