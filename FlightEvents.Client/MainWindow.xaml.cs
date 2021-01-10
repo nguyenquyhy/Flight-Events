@@ -442,7 +442,7 @@ namespace FlightEvents.Client
                     lastStatusSent = DateTime.MinValue;
                     if (viewModel.ShowLandingInfo)
                     {
-                        flightConnector.Send($"Landing rate: {e.AircraftStatus.TouchdownNormalVelocity:0}fps. G-Force: {e.AircraftStatus.GForce:0.00}g.");
+                        flightConnector.Send($"Landing rate: {e.AircraftStatus.TouchdownNormalVelocity:0}fpm. G-Force: {e.AircraftStatus.GForce:0.00}g.");
                     }
                 }
 
