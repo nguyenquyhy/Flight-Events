@@ -4,6 +4,8 @@ import { ButtonGroup, Button, FormGroup, Input, Label } from 'reactstrap';
 import { MapTileType } from '../maps/IMap';
 
 interface Props {
+    mode: string | null;
+
     isDark: boolean;
     onIsDarkChanged: (isDark: boolean) => void;
 
@@ -45,12 +47,12 @@ export default (props: Props) => {
                     <Input type="checkbox" name="checkIsDark" id="checkIsDark" checked={props.isDark} onChange={handleIsDark} />
                     <Label for="checkIsDark" check>Dark Mode</Label>
                 </StyledFormGroup>
-                <TypeWrapper className="btn-group-vertical">
+                {props.mode !== "MSFS" && <TypeWrapper className="btn-group-vertical">
                     <ButtonGroup>
                         <Button className="btn btn-light" active={props.dimension === "2D"} onClick={handleMap2D}>2D</Button>
                         <Button className="btn btn-light" active={props.dimension === "3D"} onClick={handleMap3D}>3D</Button>
                     </ButtonGroup>
-                </TypeWrapper>
+                </TypeWrapper>}
                 <LayerWrapper className="btn-group-vertical">
                     <Button className="btn btn-light" active={props.tileType === MapTileType.OpenStreetMap} onClick={handleOpenStreetMap}>OpenStreetMap</Button>
                     <Button className="btn btn-light" active={props.tileType === MapTileType.OpenTopoMap} onClick={handleOpenTopoMap}>OpenTopoMap</Button>

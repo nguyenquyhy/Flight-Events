@@ -70,6 +70,35 @@ export class Home extends React.Component<Props, State> {
 
         const pref = this.storage.loadPreferences();
 
+        const searchParams = new URLSearchParams(props.location.search);
+        this.mode = searchParams.get('mode');
+        this.myCallsign = searchParams.get('myCallsign');
+        this.followCallsign = searchParams.get('followCallsign');
+        this.focusCallsign = searchParams.get('focusCallsign');
+        this.latitude = searchParams.get('latitude') ? Number(searchParams.get('latitude')) : null;
+        this.longitude = searchParams.get('longitude') ? Number(searchParams.get('longitude')) : null;
+        this.eventId = searchParams.get('eventId');
+        this.callsigns = searchParams.get('callsigns')?.split(',') || null;
+
+        const panelVersion = searchParams.get('version');
+        if (panelVersion) {
+            const elem = document.getElementById('divUpdateMsg');
+            if (elem) {
+                elem.innerHTML = panelVersion;
+                elem.style.display = 'block';
+            }
+        }
+
+        if (this.latitude && this.longitude) {
+            this.currentView = {
+                latitude: this.latitude, longitude: this.longitude, zoom: 13
+            };
+        }
+
+        if (this.mode === "MSFS" && pref && pref.map3D) {
+            pref.map3D = false;
+        }
+
         this.state = {
             controllers: {},
             aircrafts: {},
@@ -112,22 +141,6 @@ export class Home extends React.Component<Props, State> {
         this.handleTeleportCompleted = this.handleTeleportCompleted.bind(this);
 
         this.cleanUp = this.cleanUp.bind(this);
-
-        const searchParams = new URLSearchParams(props.location.search);
-        this.mode = searchParams.get('mode');
-        this.myCallsign = searchParams.get('myCallsign');
-        this.followCallsign = searchParams.get('followCallsign');
-        this.focusCallsign = searchParams.get('focusCallsign');
-        this.latitude = searchParams.get('latitude') ? Number(searchParams.get('latitude')) : null;
-        this.longitude = searchParams.get('longitude') ? Number(searchParams.get('longitude')) : null;
-        this.eventId = searchParams.get('eventId');
-        this.callsigns = searchParams.get('callsigns')?.split(',') || null;
-
-        if (this.latitude && this.longitude) {
-            this.currentView = {
-                latitude: this.latitude, longitude: this.longitude, zoom: 13
-            };
-        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -136,6 +149,14 @@ export class Home extends React.Component<Props, State> {
 
     async componentDidMount() {
         this.initializeMap();
+
+        window.addEventListener('message', (message) => {
+            if (message.origin === 'coui://html_ui') {
+                if (this.map) {
+                    this.map.focus({ longitude: message.data.longitude, latitude: message.data.latitude }, 13);
+                }
+            }
+        });
 
         const hub = this.hub;
 
@@ -178,7 +199,7 @@ export class Home extends React.Component<Props, State> {
             aircraftStatus = convertPropertyNames(aircraftStatus, pascalCaseToCamelCase);
 
             if (this.callsigns && !this.callsigns.includes(aircraftStatus.callsign)) {
-                return 
+                return
             }
 
             try {
@@ -492,6 +513,7 @@ export class Home extends React.Component<Props, State> {
 
             {this.mode !== 'none' && <>
                 <Display
+                    mode={this.mode}
                     isDark={this.state.isDark} onIsDarkChanged={this.handleIsDarkChanged}
                     dimension={this.state.map3D ? "3D" : "2D"} onDimensionChanged={this.handleMapDimensionChanged}
                     tileType={this.state.mapTileType} onTileTypeChanged={this.handleTileTypeChanged} />

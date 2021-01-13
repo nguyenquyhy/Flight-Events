@@ -433,10 +433,10 @@ export default class LeafletMap implements IMap {
         }
     }
 
-    public focus(location: { longitude: number, latitude: number }) {
+    public focus(location: { longitude: number, latitude: number }, zoom?: number) {
         if (this.mymap) {
             let latlng: L.LatLngExpression = [location.latitude, location.longitude];
-            this.mymap.setView(latlng, this.mymap.getZoom());
+            this.mymap.setView(latlng, zoom || this.mymap.getZoom());
         }
     }
 

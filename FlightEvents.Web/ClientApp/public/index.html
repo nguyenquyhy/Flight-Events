@@ -43,7 +43,7 @@
 
     <title>Flight Events</title>
     <meta name="description" content="Follow your aircraft on a real-life map and enhance your experience in Microsoft Flight Simulator. Suitable for individuals, small groups of friends or even large communities.">
-    
+
     <!-- Google / Search Engine Tags -->
     <meta itemprop="name" content="Flight Events">
     <meta itemprop="description" content="Follow your aircraft on a real-life map and enhance your experience in Microsoft Flight Simulator. Suitable for individuals, small groups of friends or even large communities.">
@@ -81,7 +81,7 @@
     <noscript>
         You need to enable JavaScript to run this app.
     </noscript>
-    <div id="root"></div>
+    <div id="root">Loading...</div>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
@@ -93,5 +93,10 @@
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
     <div id="divUpdateMsg"></div>
+    <script>
+        window.onerror = function (e, url, line, col, error) {
+            document.getElementById('root').innerHTML = url + ' ' + line + ' ' + col + ' ' + error;
+        }
+    </script>
 </body>
 </html>

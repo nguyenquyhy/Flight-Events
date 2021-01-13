@@ -551,9 +551,12 @@ export default class MaptalksMap implements IMap {
         }
     }
 
-    focus(location: { longitude: number, latitude: number }) {
+    focus(location: { longitude: number, latitude: number }, zoom?: number) {
         if (this.map) {
             this.map.panTo(new maptalks.Coordinate([location.longitude, location.latitude]));
+            if (zoom) {
+                this.map.setZoom(zoom);
+            }
         }
     }
 
