@@ -33,6 +33,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\dotnetcore.yml = .github\workflows\dotnetcore.yml
 		README.md = README.md
+		SERVER.md = SERVER.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bot", "Bot", "{285ACFD8-0FCA-4917-B73A-06435E65EB1F}"
@@ -43,7 +44,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{13516696
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightEvents.Common.Tests", "FlightEvents.Common.Tests\FlightEvents.Common.Tests.csproj", "{373A618D-42DB-421A-94A8-C62A4F0665DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightEvents.DiscordBot.AtisBot", "FlightEvents.DiscordBot.AtisBot\FlightEvents.DiscordBot.AtisBot.csproj", "{9A1304A3-5567-4B3E-A5C0-D4DA7B60AC64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightEvents.DiscordBot.AtisBot", "FlightEvents.DiscordBot.AtisBot\FlightEvents.DiscordBot.AtisBot.csproj", "{9A1304A3-5567-4B3E-A5C0-D4DA7B60AC64}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

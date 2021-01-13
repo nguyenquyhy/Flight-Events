@@ -10,6 +10,10 @@ This includes:
 - The same client can also serve as a simplified FSD server for ATC radar software such as Euroscope or AURORA.
 - A Discord bot to automatically move players between voice channels based on their COM1 frequency. Another bot that can repeat ATIS info in voice channel.
 
+### Discord Servers
+
+For Discord communities that want to use Flight Events for their events, please check out the server guide [SERVER.md](SERVER.md) for instructions.
+
 ### Client Notes
 
 - The client automatically forces single instance unless `--multiple-instances` flag is used at launch.
