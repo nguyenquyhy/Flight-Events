@@ -1,4 +1,7 @@
 var DEBUG = false;
+var VERSION = "0.3.0";
+var BASE_URL = "https://events.flighttracker.tech";
+//var BASE_URL = "https://localhost:44359";
 
 class IngamePanelFlightEventsPanel extends HTMLElement {
 
@@ -17,14 +20,12 @@ class IngamePanelFlightEventsPanel extends HTMLElement {
     }
 
     initialize() {
-        var m_Footer = document.querySelector("#Footer");
-        m_Footer.classList.add("hidden");
-
         var iframe = document.querySelector("#CustomPanelIframe");
 
-        var buttonFocus = document.querySelector("#ButtonFocus");
-        buttonFocus.addEventListener("click", e => {
-            this.loadMap(iframe);
+        ButtonFocus.addEventListener("click", e => {
+            var longitude = SimVar.GetSimVarValue("GPS POSITION LON", "degree longitude");
+            var latitude = SimVar.GetSimVarValue("GPS POSITION LAT", "degree latitude");
+            iframe.contentWindow.postMessage({ longitude: longitude, latitude: latitude }, "*");
         });
 
         this.loadMap(iframe);
@@ -34,7 +35,7 @@ class IngamePanelFlightEventsPanel extends HTMLElement {
         var longitude = SimVar.GetSimVarValue("GPS POSITION LON", "degree longitude");
         var latitude = SimVar.GetSimVarValue("GPS POSITION LAT", "degree latitude");
         if (iframe) {
-            iframe.src = "https://events.flighttracker.tech/?mode=MSFS&latitude=" + latitude + "&longitude=" + longitude;
+            iframe.src = `${BASE_URL}/?mode=MSFS&latitude=${latitude}&longitude=${longitude}&version=${VERSION}`;
         }
     }
 
