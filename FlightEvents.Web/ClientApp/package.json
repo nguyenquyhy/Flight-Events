@@ -31,6 +31,7 @@
     "@craco/craco": "^5.9.0",
     "@types/leaflet": "^1.5.19",
     "@types/leaflet-rotatedmarker": "^0.2.1",
+    "@types/lodash": "^4.14.167",
     "@types/react": "^17.0.0",
     "@types/react-router-dom": "^5.1.7",
     "@types/reactstrap": "^8.7.2",
@@ -64,10 +65,9 @@
       "not op_mini all"
     ],
     "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version",
-      "chrome 49"
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
     ]
   }
 }

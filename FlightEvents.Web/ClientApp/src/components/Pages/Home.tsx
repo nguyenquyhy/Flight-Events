@@ -4,6 +4,7 @@ import 'msgpack5';
 import * as protocol from '@microsoft/signalr-protocol-msgpack';
 import { Query } from '@apollo/client/react/components';
 import { ApolloQueryResult, gql } from '@apollo/client';
+import { omit } from 'lodash';
 import { RouteComponentProps } from 'react-router-dom';
 import { convertPropertyNames, pascalCaseToCamelCase } from '../../Converters';
 import { AircraftStatus, Airport, FlightPlan, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief, FlightEvent } from '../../Models';
@@ -29,11 +30,12 @@ interface State {
 
     aircrafts: { [clientId: string]: AircraftStatusInList };
     aircraftCallsigns: { [clientId: string]: string };
+
     myClientId: string | null;
-    showPathClientIds: string[];
     followingClientId: string | null;
-    moreInfoClientIds: string[];
     flightPlanClientId: string | null;
+    showPathClientIds: string[];
+    moreInfoClientIds: string[];
 
     isDark: boolean;
     map3D: boolean;
@@ -346,43 +348,23 @@ export class Home extends React.Component<Props, State> {
     private cleanUpController(clientId: string) {
         this.map.cleanUpController(clientId);
 
-        let newControllers = {
-            ...this.state.controllers
-        };
-        delete newControllers[clientId];
-        this.setState({
-            controllers: newControllers
-        });
+        this.setState({ controllers: omit(this.state.controllers, clientId) });
 
+        // Remove cache
         delete this.controllers[clientId];
     }
 
     private cleanUpAircraft(clientId: string) {
+        /// NOTE: we do not clean up Own, Follow, Flight Plan, More Info and Show Route selection here to allow restoring on reconnection
+
         this.map.cleanUpAircraft(clientId, clientId === this.state.myClientId);
 
-        if (clientId === this.state.myClientId) {
-            this.setState({
-                myClientId: null
-            });
-        }
-        if (clientId === this.state.followingClientId) {
-            this.setState({
-                followingClientId: null
-            });
-        }
-        let newAircrafts = {
-            ...this.state.aircrafts
-        };
-        let newAircraftCallsigns = {
-            ...this.state.aircraftCallsigns
-        }
-        delete newAircrafts[clientId];
-        delete newAircraftCallsigns[clientId];
         this.setState({
-            aircrafts: newAircrafts,
-            aircraftCallsigns: newAircraftCallsigns
+            aircrafts: omit(this.state.aircrafts, clientId),
+            aircraftCallsigns: omit(this.state.aircraftCallsigns, clientId)
         })
 
+        // Remove cache
         delete this.aircrafts[clientId];
     }
 

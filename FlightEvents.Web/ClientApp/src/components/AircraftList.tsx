@@ -57,7 +57,8 @@ export default class AircraftList extends React.Component<Props, State> {
             .sort((a, b) => (a[1].callsign || a[0].substring(5)).localeCompare((b[1].callsign || b[0].substring(5))))
             .map(o => o[0]);
 
-        if (this.props.myClientId) {
+        if (this.props.myClientId && clientIds.includes(this.props.myClientId)) {
+            // Move own aircraft to the top
             clientIds = clientIds.filter(o => o !== this.props.myClientId);
             clientIds = [this.props.myClientId].concat(clientIds);
         }
