@@ -58,6 +58,7 @@ export class Home extends React.Component<Props, State> {
     private mode: string | null = null;
     private myCallsign: string | null = null;
     private followCallsign: string | null = null;
+    private showRouteCallsign: string | null = null;
     private focusCallsign: string | null = null;
     private latitude: number | null = null;
     private longitude: number | null = null;
@@ -76,6 +77,7 @@ export class Home extends React.Component<Props, State> {
         this.mode = searchParams.get('mode');
         this.myCallsign = searchParams.get('myCallsign');
         this.followCallsign = searchParams.get('followCallsign');
+        this.showRouteCallsign = searchParams.get('showRouteCallsign');
         this.focusCallsign = searchParams.get('focusCallsign');
         this.latitude = searchParams.get('latitude') ? Number(searchParams.get('latitude')) : null;
         this.longitude = searchParams.get('longitude') ? Number(searchParams.get('longitude')) : null;
@@ -258,6 +260,17 @@ export class Home extends React.Component<Props, State> {
                         this.map.focus(aircraftStatus);
                     }
                     this.myCallsign = null;
+                }
+
+                // Set show route from URL
+                if (this.showRouteCallsign && aircraftStatus.callsign === this.showRouteCallsign) {
+                    if (!newState.showPathClientIds.includes(clientId)) {
+                        newState = {
+                            ...newState,
+                            showPathClientIds: newState.showPathClientIds.concat(clientId)
+                        }
+                    }
+                    this.showRouteCallsign = null;
                 }
 
                 this.setState(newState);
