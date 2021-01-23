@@ -47,3 +47,7 @@ code {
 .divicon-aircraft-info.me.dark div {
     color: gold;
 }
+
+.nav-tabs .nav-link {
+    cursor: pointer;
+}
