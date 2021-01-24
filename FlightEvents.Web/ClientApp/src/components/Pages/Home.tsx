@@ -58,6 +58,7 @@ export class Home extends React.Component<Props, State> {
     private mode: string | null = null;
     private myCallsign: string | null = null;
     private followCallsign: string | null = null;
+    private showPlanCallsign: string | null = null;
     private showRouteCallsign: string | null = null;
     private focusCallsign: string | null = null;
     private latitude: number | null = null;
@@ -75,8 +76,10 @@ export class Home extends React.Component<Props, State> {
 
         const searchParams = new URLSearchParams(props.location.search);
         this.mode = searchParams.get('mode');
+        const theme = searchParams.get('theme');
         this.myCallsign = searchParams.get('myCallsign');
         this.followCallsign = searchParams.get('followCallsign');
+        this.showPlanCallsign = searchParams.get('showPlanCallsign');
         this.showRouteCallsign = searchParams.get('showRouteCallsign');
         this.focusCallsign = searchParams.get('focusCallsign');
         this.latitude = searchParams.get('latitude') ? Number(searchParams.get('latitude')) : null;
@@ -112,7 +115,7 @@ export class Home extends React.Component<Props, State> {
             followingClientId: null,
             moreInfoClientIds: [],
             flightPlanClientId: null,
-            isDark: pref ? pref.isDark : false,
+            isDark: theme === 'dark' ? true : (pref ? pref.isDark : false),
             map3D: pref ? pref.map3D : false,
             mapTileType: pref ? pref.mapTileType : MapTileType.OpenStreetMap,
             movingPosition: null
@@ -244,24 +247,23 @@ export class Home extends React.Component<Props, State> {
                 }
                 // Set follow aircraft from URL
                 else if (this.followCallsign && aircraftStatus.callsign === this.followCallsign) {
-                    newState = {
-                        ...newState,
-                        followingClientId: clientId
-                    };
+                    newState.followingClientId = clientId
                     this.followCallsign = null;
                 }
                 // Set own aircraft from URL
                 else if (this.myCallsign && aircraftStatus.callsign === this.myCallsign) {
-                    newState = {
-                        ...newState,
-                        myClientId: clientId
-                    };
+                    newState.myClientId = clientId;
                     if (focusAircraft) {
                         this.map.focus(aircraftStatus);
                     }
                     this.myCallsign = null;
                 }
 
+                // Set show plan from URL
+                if (this.showPlanCallsign && aircraftStatus.callsign === this.showPlanCallsign) {
+                    newState.flightPlanClientId = clientId;
+                    this.showPlanCallsign = null;
+                }
                 // Set show route from URL
                 if (this.showRouteCallsign && aircraftStatus.callsign === this.showRouteCallsign) {
                     if (!newState.showPathClientIds.includes(clientId)) {
