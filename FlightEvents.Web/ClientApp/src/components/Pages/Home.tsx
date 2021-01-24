@@ -110,9 +110,9 @@ export class Home extends React.Component<Props, State> {
             controllers: {},
             aircrafts: {},
             aircraftCallsigns: {},
-            myClientId: null,
+            myClientId: pref ? pref.myClientId : null,
+            followingClientId: pref ? pref.followingClientId : null,
             showPathClientIds: [],
-            followingClientId: null,
             moreInfoClientIds: [],
             flightPlanClientId: null,
             isDark: theme === 'dark' ? true : (pref ? pref.isDark : false),
@@ -399,7 +399,10 @@ export class Home extends React.Component<Props, State> {
         this.storage.savePreferences({
             isDark: this.state.isDark,
             map3D: this.state.map3D,
-            mapTileType: this.state.mapTileType
+            mapTileType: this.state.mapTileType,
+
+            myClientId: this.state.myClientId,
+            followingClientId: this.state.followingClientId,
         });
     }
 
@@ -428,13 +431,15 @@ export class Home extends React.Component<Props, State> {
     }
 
     private handleMeChanged(clientId: string | null) {
-        this.setState({ myClientId: clientId });
+        this.setState({ myClientId: clientId }, () => {
+            if (clientId) {
+                this.map.addRangeCircle();
+            } else {
+                this.map.removeRangeCircle();
+            }
+            this.savePreferences();
+        });
 
-        if (clientId) {
-            this.map.addRangeCircle();
-        } else {
-            this.map.removeRangeCircle();
-        }
     }
 
     private handleShowPathChanged(clientId: string) {
@@ -464,7 +469,9 @@ export class Home extends React.Component<Props, State> {
     }
 
     private handleFollowingChanged(clientId: string | null) {
-        this.setState({ followingClientId: clientId });
+        this.setState({ followingClientId: clientId }, () => {
+            this.savePreferences();
+        });
     }
 
     private handleMoreInfoChanged(clientId: string) {

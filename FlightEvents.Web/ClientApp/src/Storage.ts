@@ -19,4 +19,7 @@ export interface Preferences {
     isDark: boolean;
     map3D: boolean;
     mapTileType: MapTileType;
+
+    myClientId: string | null;
+    followingClientId: string | null;
 }
