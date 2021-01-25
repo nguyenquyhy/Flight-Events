@@ -259,11 +259,6 @@ export class Home extends React.Component<Props, State> {
                     this.myCallsign = null;
                 }
 
-                // Set show plan from URL
-                if (this.showPlanCallsign && aircraftStatus.callsign === this.showPlanCallsign) {
-                    newState.flightPlanClientId = clientId;
-                    this.showPlanCallsign = null;
-                }
                 // Set show route from URL
                 if (this.showRouteCallsign && aircraftStatus.callsign === this.showRouteCallsign) {
                     if (!newState.showPathClientIds.includes(clientId)) {
@@ -275,7 +270,13 @@ export class Home extends React.Component<Props, State> {
                     this.showRouteCallsign = null;
                 }
 
-                this.setState(newState);
+                this.setState(newState, () => {
+                    // Set show plan from URL
+                    if (this.showPlanCallsign && aircraftStatus.callsign === this.showPlanCallsign) {
+                        this.handleFlightPlanChanged(clientId);
+                        this.showPlanCallsign = null;
+                    }
+                });
 
                 this.aircrafts[clientId] = {
                     lastUpdated: new Date(),
