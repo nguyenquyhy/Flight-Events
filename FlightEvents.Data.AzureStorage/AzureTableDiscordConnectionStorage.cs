@@ -10,7 +10,7 @@ namespace FlightEvents.Data
     {
         private readonly CloudTable table;
 
-        public AzureTableDiscordConnectionStorage(IOptionsMonitor<AzureTableOptions> options)
+        public AzureTableDiscordConnectionStorage(IOptionsMonitor<AzureTableDiscordOptions> options)
         {
             var account = CloudStorageAccount.Parse(options.CurrentValue.ConnectionString);
             var tableClient = account.CreateCloudTableClient();

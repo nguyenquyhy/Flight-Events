@@ -39,7 +39,7 @@ namespace FlightEvents.Data
     {
         private readonly CloudTable table;
 
-        public AzureTableUserStorage(IOptionsMonitor<AzureTableOptions> options)
+        public AzureTableUserStorage(IOptionsMonitor<AzureTableUserOptions> options)
         {
             var account = CloudStorageAccount.Parse(options.CurrentValue.ConnectionString);
             var tableClient = account.CreateCloudTableClient();

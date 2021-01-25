@@ -20,7 +20,7 @@ namespace FlightEvents.DiscordBot
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .UseWindowsService()
-                .ConfigureAppConfiguration(configBuilder => 
+                .ConfigureAppConfiguration(configBuilder =>
                 {
                     configBuilder.AddJsonFile("appsettings.Release.json", optional: true);
                 })
@@ -44,8 +44,8 @@ namespace FlightEvents.DiscordBot
                 {
                     services.AddOptions<AppOptions>().Bind(hostContext.Configuration).ValidateDataAnnotations();
                     services.AddOptions<DiscordOptions>().Bind(hostContext.Configuration.GetSection("Discord")).ValidateDataAnnotations();
-                    services.AddOptions<AzureTableOptions>().Bind(hostContext.Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();
                     services.AddOptions<AtisOptions>().Bind(hostContext.Configuration.GetSection("Atis")).ValidateDataAnnotations();
+                    services.AddOptions<AzureTableDiscordOptions>().Bind(hostContext.Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();
 
                     var appOptions = new AppOptions();
                     hostContext.Configuration.Bind(appOptions);

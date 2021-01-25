@@ -44,7 +44,9 @@ namespace FlightEvents.Web
             services.AddOptions<EventOptions>().Bind(Configuration.GetSection("Events")).ValidateDataAnnotations();
             services.AddOptions<DiscordOptions>().Bind(Configuration.GetSection("Discord")).ValidateDataAnnotations();
             services.AddOptions<AzureBlobOptions>().Bind(Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();
-            services.AddOptions<AzureTableOptions>().Bind(Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();
+            services.AddOptions<AzureTableDiscordOptions>().Bind(Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();
+            services.AddOptions<AzureTableLeaderboardOptions>().Bind(Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();
+            services.AddOptions<AzureTableUserOptions>().Bind(Configuration.GetSection("FlightPlan:AzureStorage")).ValidateDataAnnotations();
             services.AddOptions<BroadcastOptions>().Bind(Configuration.GetSection("Broadcast")).ValidateDataAnnotations();
 
             services.AddSingleton<RandomStringGenerator>();

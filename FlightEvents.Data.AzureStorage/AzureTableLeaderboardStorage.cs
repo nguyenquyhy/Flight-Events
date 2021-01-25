@@ -56,7 +56,7 @@ namespace FlightEvents.Data.AzureStorage
     {
         private readonly CloudTable table;
 
-        public AzureTableLeaderboardStorage(IOptionsMonitor<AzureTableOptions> options)
+        public AzureTableLeaderboardStorage(IOptionsMonitor<AzureTableLeaderboardOptions> options)
         {
             var account = CloudStorageAccount.Parse(options.CurrentValue.ConnectionString);
             var tableClient = account.CreateCloudTableClient();
