@@ -76,7 +76,7 @@ export default class LeafletMap implements IMap {
                     callback: this.moveAircraft.bind(this)
                 }]
             })
-                .setView(view ? [view.latitude, view.longitude] : [51.505, -0.09], view ? view.zoom : 13);
+            .setView([view?.latitude || 51.505, view?.longitude || -0.09], view?.zoom || 13);
         this.initialView = view;
 
         L.control.attribution({

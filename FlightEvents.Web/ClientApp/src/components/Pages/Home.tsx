@@ -77,6 +77,7 @@ export class Home extends React.Component<Props, State> {
         const searchParams = new URLSearchParams(props.location.search);
         this.mode = searchParams.get('mode');
         const theme = searchParams.get('theme');
+        const zoom = Number(searchParams.get('zoom'));
         this.myCallsign = searchParams.get('myCallsign');
         this.followCallsign = searchParams.get('followCallsign');
         this.showPlanCallsign = searchParams.get('showPlanCallsign');
@@ -96,11 +97,9 @@ export class Home extends React.Component<Props, State> {
             }
         }
 
-        if (this.latitude && this.longitude) {
-            this.currentView = {
-                latitude: this.latitude, longitude: this.longitude, zoom: 13
-            };
-        }
+        this.currentView = {
+            latitude: this.latitude, longitude: this.longitude, zoom: zoom
+        };
 
         if (this.mode === "MSFS" && pref && pref.map3D) {
             pref.map3D = false;

@@ -147,8 +147,8 @@ export default class MaptalksMap implements IMap {
 
     initialize(divId: string, view: View | undefined, mode: string | null) {
         const map: Map = new maptalks.Map(divId, {
-            center: view ? [view.longitude, view.latitude] : [-0.09, 51.505],
-            zoom: view ? view.zoom : 13,
+            center: [view?.longitude || -0.09, view?.latitude || 51.505],
+            zoom: view?.zoom || 13,
             pitch: 30
         });
         this.initialView = view;

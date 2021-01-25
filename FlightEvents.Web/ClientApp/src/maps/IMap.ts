@@ -33,9 +33,9 @@ export interface IMap {
 export type OnViewChangedFn = (view: View) => void;
 
 export interface View {
-    latitude: number
-    longitude: number
-    zoom: number
+    latitude: number | null
+    longitude: number | null
+    zoom: number | null
 }
 
 export type OnAircraftMovedFn = (position: MapPosition) => void;
