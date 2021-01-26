@@ -29,7 +29,10 @@ namespace FlightEvents.DiscordBot
                 var voiceChannel = await guild.CreateVoiceChannelAsync(channelName, props =>
                 {
                     props.CategoryId = serverOptions.ChannelCategoryId;
-                    props.Bitrate = serverOptions.ChannelBitrate;
+                    if (serverOptions.ChannelBitrate.HasValue)
+                    {
+                        props.Bitrate = serverOptions.ChannelBitrate.Value;
+                    }
                 });
 
                 // Note: Bot will not try to add permission.

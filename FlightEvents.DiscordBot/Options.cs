@@ -30,8 +30,7 @@ namespace FlightEvents.DiscordBot
 
         public ulong[] ExternalChannelIds { get; set; }
 
-        [Required]
-        public int ChannelBitrate { get; set; }
+        public int? ChannelBitrate { get; set; }
         public string ChannelNameSuffix { get; set; }
 
         /// <summary>
