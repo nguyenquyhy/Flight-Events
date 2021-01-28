@@ -25,4 +25,10 @@ namespace FlightEvents.Data
         [Required]
         public string UserTable { get; set; }
     }
+
+    public class AzureTableAtisChannelOptions : AzureTableBaseOptions
+    {
+        [Required]
+        public string AtisChannelTable { get; set; }
+    }
 }

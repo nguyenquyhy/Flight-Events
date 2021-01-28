@@ -1,5 +1,7 @@
 ﻿using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
+using FlightEvents.Data;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,6 +25,7 @@ namespace FlightEvents.DiscordBot
         private readonly ChannelMaker channelMaker;
         private readonly RegexMatcher regexMatcher;
         private readonly AtisProcessManager atisProcessManager;
+        private readonly IAtisChannelStorage atisChannelStorage;
         private readonly AtisOptions atisOptions;
         private readonly DiscordOptions discordOptions;
 
@@ -31,12 +34,14 @@ namespace FlightEvents.DiscordBot
             IOptionsMonitor<DiscordOptions> discordOptions,
             ChannelMaker channelMaker,
             RegexMatcher regexMatcher,
-            AtisProcessManager atisProcessManager)
+            AtisProcessManager atisProcessManager,
+            IAtisChannelStorage atisChannelStorage)
         {
             this.logger = logger;
             this.channelMaker = channelMaker;
             this.regexMatcher = regexMatcher;
             this.atisProcessManager = atisProcessManager;
+            this.atisChannelStorage = atisChannelStorage;
             this.atisOptions = atisOptions.CurrentValue;
             this.discordOptions = discordOptions.CurrentValue;
         }
@@ -159,35 +164,50 @@ namespace FlightEvents.DiscordBot
                     props.Embed = new EmbedBuilder().WithDescription("✅ Audio loaded\n⬜ Creating channel...").Build();
                 });
 
-                var voiceChannel = await channelMaker.CreateVoiceChannelAsync(serverOptions, channel.Guild, (int)(frequency * 1000));
+                await CreateVoiceChannelAndStartBotAsync(channel.Guild, serverOptions, frequency, nickname, filePath, response);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot process ATIS request {guildName} {frequency} {nickname}", channel.Guild.Name, frequency, nickname);
+            }
+        }
 
+        private async Task CreateVoiceChannelAndStartBotAsync(SocketGuild guild, DiscordServerOptions serverOptions, double frequency, string nickname,
+            string filePath, RestUserMessage response = null)
+        {
+            var voiceChannel = await channelMaker.CreateVoiceChannelAsync(serverOptions, guild, (int)(frequency * 1000));
+
+            if (response != null)
+            {
                 await response.ModifyAsync(props =>
                 {
                     props.Embed = new EmbedBuilder().WithDescription("✅ Audio loaded\n✅ Channel created\n⬜ Activating ATIS bot...").Build();
                 });
+            }
 
-                try
+            try
+            {
+                await atisProcessManager.StartAtisAsync(voiceChannel, frequency, filePath, nickname);
+
+                if (response != null)
                 {
-                    await atisProcessManager.StartAtisAsync(voiceChannel, filePath, nickname);
-
                     await response.ModifyAsync(props =>
                     {
                         props.Embed = new EmbedBuilder().WithDescription("✅ Audio loaded\n✅ Channel created\n✅ ATIS Bot activated").Build();
                     });
                 }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Cannot start process");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot start process");
 
-                    await response.ModifyAsync(props =>
+                if (response != null)
+                {
+                    await response?.ModifyAsync(props =>
                     {
                         props.Embed = new EmbedBuilder().WithDescription($"✅ Audio loaded\n✅ Channel created\n🟥 Failed to create bot. {ex.Message}").Build();
                     });
                 }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Cannot process ATIS request {guildName} {frequency} {nickname}", channel.Guild.Name, frequency, nickname);
             }
         }
 
@@ -212,7 +232,18 @@ namespace FlightEvents.DiscordBot
 
         private async Task BotClient_GuildAvailable(SocketGuild guild)
         {
+            var serverOptions = discordOptions.Servers.FirstOrDefault(option => option.ServerId == guild.Id);
 
+            if (serverOptions?.CommandChannelId != null)
+            {
+                var atisChannels = await atisChannelStorage.GetByGuildAsync(guild.Id);
+                logger.LogInformation("Try to recover {channelCount} ATIS channels in {guildName}.", atisChannels.Count(), guild.Name);
+                foreach (var atisChannel in atisChannels)
+                {
+                    await CreateVoiceChannelAndStartBotAsync(guild, serverOptions, atisChannel.Frequency, atisChannel.Nickname, atisChannel.FilePath);
+                    logger.LogInformation("Recovered ATIS channels {channelName} in {guildName}.", atisChannel.ChannelName, guild.Name);
+                }
+            }
         }
     }
 }

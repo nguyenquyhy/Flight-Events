@@ -156,8 +156,9 @@ namespace FlightEvents.DiscordBot.AtisBot
                 {
                     await output.CopyToAsync(stream);
                 }
-                File.Delete(appOptions.AudioFilePath);
-                logger.LogInformation("Read & deleted file {fileName}", appOptions.AudioFilePath);
+                // NOTE: let FE bot handle cleaning up the file
+                //File.Delete(appOptions.AudioFilePath);
+                logger.LogInformation("Read file {fileName}", appOptions.AudioFilePath);
             }
             else
             {

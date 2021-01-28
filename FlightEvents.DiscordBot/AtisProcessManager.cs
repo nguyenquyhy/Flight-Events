@@ -1,10 +1,13 @@
 ﻿using Discord;
+using FlightEvents.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,37 +21,43 @@ namespace FlightEvents.DiscordBot
 
     public class AtisProcessManager
     {
-        private readonly Dictionary<ulong, AtisGuildRecord> memory = new Dictionary<ulong, AtisGuildRecord>();
-
         private readonly ILogger<AtisProcessManager> logger;
+        private readonly IAtisChannelStorage atisChannelStorage;
         private readonly AtisOptions atisOptions;
 
         public AtisProcessManager(
             ILogger<AtisProcessManager> logger,
-            IOptionsMonitor<AtisOptions> atisOptions)
+            IOptionsMonitor<AtisOptions> atisOptions,
+            IAtisChannelStorage atisChannelStorage)
         {
             this.logger = logger;
+            this.atisChannelStorage = atisChannelStorage;
             this.atisOptions = atisOptions.CurrentValue;
         }
 
         private static readonly SemaphoreSlim sm = new SemaphoreSlim(1);
 
-        public async Task StartAtisAsync(IGuildChannel channel, string filePath, string nickname)
+        public async Task StartAtisAsync(IGuildChannel channel, double frequency, string filePath, string nickname)
         {
+            await sm.WaitAsync();
             try
             {
-                await sm.WaitAsync();
+                var botToken = await GetAvailableBotTokenAsync(channel);
 
+                var process = StartProcess(channel.GuildId, channel.Id, filePath, botToken, nickname);
 
-                if (!memory.ContainsKey(channel.GuildId))
+                await atisChannelStorage.AddChannelAsync(new AtisChannel
                 {
-                    memory.Add(channel.GuildId, new AtisGuildRecord());
-                }
-                var guildData = memory[channel.GuildId];
-
-                var botToken = FindToken(channel, guildData);
-
-                StartProcess(channel, filePath, botToken, guildData, nickname);
+                    GuildId = channel.GuildId,
+                    GuildName = channel.Guild.Name,
+                    ChannelId = channel.Id,
+                    ChannelName = channel.Name,
+                    Frequency = frequency,
+                    BotToken = botToken,
+                    FilePath = filePath,
+                    Nickname = nickname,
+                    ProcessId = process.Id
+                });
             }
             finally
             {
@@ -58,20 +67,17 @@ namespace FlightEvents.DiscordBot
 
         public async Task<bool> StopAtisAsync(ulong serverId, string channelName)
         {
+            await sm.WaitAsync();
             try
             {
-                await sm.WaitAsync();
-                if (memory.TryGetValue(serverId, out var guildData))
+                var atisChannel = await atisChannelStorage.GetByChannelNameAsync(serverId, channelName);
+                if (atisChannel != null)
                 {
-                    if (guildData.BotTokenByChannelName.TryGetValue(channelName, out var botToken))
+                    var cacheKey = atisChannel.GuildId + ":" + atisChannel.ChannelId;
+                    if (cachedProcesses.TryGetValue(cacheKey, out var process))
                     {
-                        if (guildData.ProcessesByToken.TryGetValue(botToken, out var process))
-                        {
-                            process.Kill();
-                            guildData.BotTokenByChannelName.Remove(channelName);
-                            guildData.ProcessesByToken.Remove(botToken);
-                            return true;
-                        }
+                        await TerminateProcessAndCleanUpAsync(process, atisChannel);
+                        return true;
                     }
                 }
             }
@@ -82,32 +88,27 @@ namespace FlightEvents.DiscordBot
             return false;
         }
 
-        private string FindToken(IGuildChannel channel, AtisGuildRecord guildData)
+        private ConcurrentDictionary<string, Process> cachedProcesses = new ConcurrentDictionary<string, Process>();
+
+        private async Task<string> GetAvailableBotTokenAsync(IGuildChannel channel)
         {
-            if (guildData.BotTokenByChannelName.ContainsKey(channel.Name))
+            var atis = await atisChannelStorage.GetByChannelNameAsync(channel.GuildId, channel.Name);
+            if (atis != null)
             {
-                // If the channel is already handled by a bot, restart to change audio
-                var token = guildData.BotTokenByChannelName[channel.Name];
-                if (guildData.ProcessesByToken.TryGetValue(token, out var currentProcess))
+                // If the channel is already handled by a bot, restart to change audio and return current token
+                if (cachedProcesses.TryGetValue(channel.GuildId + ":" + channel.Id, out var currentProcess))
                 {
-                    currentProcess.Kill();
-                    logger.LogDebug("Kill existing process");
-                    guildData.ProcessesByToken.Remove(token);
+                    await TerminateProcessAndCleanUpAsync(currentProcess, atis);
                 }
-                return token;
+                return atis.BotToken;
             }
             else
             {
                 // Find available token
-                string availableToken = null;
-                foreach (var token in atisOptions.BotTokens)
-                {
-                    if (!guildData.ProcessesByToken.ContainsKey(token))
-                    {
-                        availableToken = token;
-                        break;
-                    }
-                }
+                var atisChannels = await atisChannelStorage.GetByGuildAsync(channel.GuildId);
+                var usedTokens = atisChannels.Select(o => o.BotToken).ToList();
+
+                var availableToken = atisOptions.BotTokens.Except(usedTokens).FirstOrDefault();
 
                 if (availableToken == null)
                 {
@@ -118,9 +119,30 @@ namespace FlightEvents.DiscordBot
             }
         }
 
-        private void StartProcess(IGuildChannel channel, string filePath, string botToken, AtisGuildRecord guildData, string nickname)
+        private async Task TerminateProcessAndCleanUpAsync(Process currentProcess, AtisChannel atisChannel)
         {
-            var arguments = $"--BotToken {botToken} --AudioFilePath {filePath} --ServerId {channel.Guild.Id} --ChannelId {channel.Id} --Nickname \"{nickname}\"";
+            var processId = currentProcess.Id;
+            currentProcess.Kill();
+            currentProcess.Dispose();
+            cachedProcesses.Remove(atisChannel.GuildId + ":" + atisChannel.ChannelId, out _);
+            logger.LogInformation("Killed existing process {processId}", processId);
+
+            try
+            {
+                File.Delete(atisChannel.FilePath);
+                logger.LogInformation("Deleted file {filePath}", atisChannel.FilePath);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cannot deleted file {filePath}", atisChannel.FilePath);
+            }
+
+            await atisChannelStorage.RemoveAsync(atisChannel);
+        }
+
+        private Process StartProcess(ulong guildId, ulong channelId, string filePath, string botToken, string nickname)
+        {
+            var arguments = $"--BotToken {botToken} --AudioFilePath {filePath} --ServerId {guildId} --ChannelId {channelId} --Nickname \"{nickname}\"";
             logger.LogDebug("Launching Bot {filePath} {arguments}", atisOptions.BotExecutionPath, arguments);
             var process = new Process
             {
@@ -134,13 +156,14 @@ namespace FlightEvents.DiscordBot
 
             process.Start();
 
-            guildData.ProcessesByToken.TryAdd(botToken, process);
-            guildData.BotTokenByChannelName.TryAdd(channel.Name, botToken);
+            cachedProcesses.TryAdd(guildId + ":" + channelId, process);
 
             //if (!process.HasExited)
             //{
             //    process.WaitForExit();
             //}
+
+            return process;
         }
     }
 }
