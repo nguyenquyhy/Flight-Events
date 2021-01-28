@@ -76,6 +76,7 @@ There are also some additional settings that your might be interested in:
 
 *For ATIS bots:*
 - View channel: you should set this to Allow. Sometimes due to server setup to hide channels until clicking some emote, the bot cannot see any channels in the server without this permission.
+- Change nickname: you should set this to Allow. ATIS bot will change its nickname to what you specify in the command.
 - Connect: Allow
 - Speak: Allow
 - Priority Speaker: Allow
