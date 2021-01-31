@@ -2,7 +2,7 @@
 import styled from 'styled-components';
 import { Badge } from 'reactstrap';
 
-export default () => {
+const UserInfo = () => {
     const [profile, setProfile] = React.useState<UserProfile | null>(null);
     React.useEffect(() => {
         if (!profile) {
@@ -77,3 +77,5 @@ interface UserProfile {
     username: string;
     role: string;
 }
+
+export default React.memo(UserInfo);
