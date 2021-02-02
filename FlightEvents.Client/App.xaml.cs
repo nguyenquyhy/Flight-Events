@@ -64,12 +64,21 @@ namespace FlightEvents.Client
 #if !DEBUG
             AppCenter.Start("6a75536f-3bd1-446c-b707-c31aabe3fb6f", typeof(Analytics), typeof(Crashes));
 #endif
+            try
+            {
+                var builder = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                Configuration = builder.Build();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                var builder = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory());
 
-            Configuration = builder.Build();
+                Configuration = builder.Build();
+            }
 
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
