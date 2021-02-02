@@ -86,10 +86,10 @@ namespace FlightEvents.Client
             {
                 pref = await userPreferencesLoader.LoadAsync();
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException ex)
             {
-                MessageBox.Show("Please extract Flight Events before running.\n\nIf you have done so, please try to extract to another folder that does not require Administrator right.", "Cannot Save Preference", MessageBoxButton.OK, MessageBoxImage.Error);
-                Application.Current.Shutdown();
+                logger.LogError(ex, "Cannot save preferences!");
+                ShowSavingPreferenceErrorMessageAndShutDown();
                 return;
             }
 
@@ -210,7 +210,16 @@ namespace FlightEvents.Client
 
             viewModel.IsTracking = true;
 
-            await userPreferencesLoader.UpdateAsync(o => o.LastCallsign = viewModel.Callsign);
+            try
+            {
+                await userPreferencesLoader.UpdateAsync(o => o.LastCallsign = viewModel.Callsign);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                logger.LogError(ex, "Cannot save preferences!");
+                ShowSavingPreferenceErrorMessageAndShutDown();
+                return;
+            }
 
             ButtonStartTrack.Visibility = Visibility.Collapsed;
             ButtonStopTrack.Visibility = Visibility.Visible;
@@ -1115,6 +1124,12 @@ Please make sure you have installed Microsoft Flight Simulator and restart the c
                 "Needed component is missing",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
+        }
+
+        public void ShowSavingPreferenceErrorMessageAndShutDown()
+        {
+            MessageBox.Show("Please extract Flight Events before running.\n\nIf you have already done so, please try to extract to another folder that does not require Administrator right.", "Cannot Save Preference", MessageBoxButton.OK, MessageBoxImage.Error);
+            Application.Current.Shutdown();
         }
     }
 }
