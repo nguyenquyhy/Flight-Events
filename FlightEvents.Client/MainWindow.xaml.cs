@@ -191,15 +191,6 @@ namespace FlightEvents.Client
 
         private async void ButtonStartTrack_Click(object sender, RoutedEventArgs e)
         {
-            route.Clear();
-
-            viewModel.IsTracking = true;
-
-            await userPreferencesLoader.UpdateAsync(o => o.LastCallsign = viewModel.Callsign);
-
-            ButtonStartTrack.Visibility = Visibility.Collapsed;
-            ButtonStopTrack.Visibility = Visibility.Visible;
-
             try
             {
                 flightConnector.Send("Connected to Flight Events!");
@@ -208,6 +199,21 @@ namespace FlightEvents.Client
             {
                 // broken pipe
             }
+            catch (BadImageFormatException ex)
+            {
+                logger.LogError(ex, "Cannot initialize SimConnect!");
+                ShowSimConnectErrorMessage();
+                return;
+            }
+
+            route.Clear();
+
+            viewModel.IsTracking = true;
+
+            await userPreferencesLoader.UpdateAsync(o => o.LastCallsign = viewModel.Callsign);
+
+            ButtonStartTrack.Visibility = Visibility.Collapsed;
+            ButtonStopTrack.Visibility = Visibility.Visible;
 
             if (!viewModel.DisableDiscordRP)
             {
@@ -322,6 +328,10 @@ namespace FlightEvents.Client
                 {
                     logger.LogError(ex, "Cannot get flight plan for ATC!");
                 }
+                catch (COMException ex)
+                {
+                    logger.LogError(ex, "Cannot get flight plan for ATC!");
+                }
             }
         }
 
@@ -336,6 +346,10 @@ namespace FlightEvents.Client
                 await hub.SendAsync("ReturnFlightPlanDetails", hub.ConnectionId, data, webConnectionId);
             }
             catch (TaskCanceledException ex)
+            {
+                logger.LogError(ex, "Cannot get flight plan for map!");
+            }
+            catch (COMException ex)
             {
                 logger.LogError(ex, "Cannot get flight plan for map!");
             }
@@ -1083,5 +1097,16 @@ namespace FlightEvents.Client
         }
 
         #endregion
+
+        public void ShowSimConnectErrorMessage()
+        {
+            MessageBox.Show(this,
+                @"SimConnect is not found. This component is needed to connect to flight simulator.
+
+Please make sure you have installed Microsoft Flight Simulator and restart the client.",
+                "Needed component is missing",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
     }
 }

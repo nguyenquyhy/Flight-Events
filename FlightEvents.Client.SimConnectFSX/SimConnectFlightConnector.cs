@@ -43,7 +43,7 @@ namespace FlightEvents.Client.SimConnectFSX
 
         #region Public Methods
 
-        // Simconnect client will send a win32 message when there is 
+        // Simconnect client will send a win32 message when there is
         // a packet to process. ReceiveMessage must be called to
         // trigger the events. This model keeps simconnect processing on the main thread.
         public IntPtr HandleSimConnectEvents(IntPtr hWnd, int message, IntPtr wParam, IntPtr lParam, ref bool isHandled)
@@ -186,22 +186,31 @@ namespace FlightEvents.Client.SimConnectFSX
                 return aircraftDataTcs.Task;
             }
 
-            var tcs = new TaskCompletionSource<AircraftData>();
-            aircraftDataTcs = tcs;
+            var connect = simconnect;
 
-            cancellationToken.Register(() =>
+            if (connect != null)
             {
-                if (tcs.TrySetCanceled())
+                var tcs = new TaskCompletionSource<AircraftData>();
+                aircraftDataTcs = tcs;
+
+                cancellationToken.Register(() =>
                 {
-                    logger.LogWarning("Cannot get aircraft data in time limit!");
-                    aircraftDataTcs = null;
-                }
-            }, useSynchronizationContext: false);
+                    if (tcs.TrySetCanceled())
+                    {
+                        logger.LogWarning("Cannot get aircraft data in time limit!");
+                        aircraftDataTcs = null;
+                    }
+                }, useSynchronizationContext: false);
 
-            logger.LogInformation("Requesting aircraft data...");
-            simconnect.RequestDataOnSimObjectType(DATA_REQUESTS.AIRCRAFT_DATA, DEFINITIONS.AircraftData, 0, SIMCONNECT_SIMOBJECT_TYPE.USER);
+                logger.LogInformation("Requesting aircraft data...");
+                connect.RequestDataOnSimObjectType(DATA_REQUESTS.AIRCRAFT_DATA, DEFINITIONS.AircraftData, 0, SIMCONNECT_SIMOBJECT_TYPE.USER);
 
-            return aircraftDataTcs.Task;
+                return aircraftDataTcs.Task;
+            }
+            else
+            {
+                return Task.FromException<AircraftData>(new TaskCanceledException());
+            }
         }
 
         #endregion
@@ -605,8 +614,8 @@ namespace FlightEvents.Client.SimConnectFSX
         {
             logger.LogInformation("Connected to Flight Simulator");
 
-            simconnect.RequestDataOnSimObject(DATA_REQUESTS.FLIGHT_STATUS, DEFINITIONS.FlightStatus, 0, 
-                SlowMode ? SIMCONNECT_PERIOD.SECOND : SIMCONNECT_PERIOD.SIM_FRAME, 
+            simconnect.RequestDataOnSimObject(DATA_REQUESTS.FLIGHT_STATUS, DEFINITIONS.FlightStatus, 0,
+                SlowMode ? SIMCONNECT_PERIOD.SECOND : SIMCONNECT_PERIOD.SIM_FRAME,
                 SIMCONNECT_DATA_REQUEST_FLAG.DEFAULT, 0, 0, 0);
 
             simconnect.SubscribeToFacilities(SIMCONNECT_FACILITY_LIST_TYPE.AIRPORT, DATA_REQUESTS.SUBSCRIBE_GENERIC);

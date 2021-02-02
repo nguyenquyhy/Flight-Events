@@ -158,14 +158,7 @@ namespace FlightEvents.Client
                 catch (BadImageFormatException ex)
                 {
                     ServiceProvider.GetService<ILogger<MainWindow>>().LogError(ex, "Cannot initialize SimConnect!");
-
-                    var result = MessageBox.Show(mainWindow,
-                        @"SimConnect is not found. This component is needed to connect to flight simulator.
-
-Please make sure you have installed Microsoft Flight Simulator and restart the client.",
-                        "Needed component is missing",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
+                    mainWindow.ShowSimConnectErrorMessage();
                 }
             }
         }
