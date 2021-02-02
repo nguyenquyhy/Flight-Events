@@ -745,8 +745,16 @@ namespace FlightEvents.Client
             };
             if (dialog.ShowDialog() == true)
             {
-                var token = dialog.TextToken.Text;
-                await hub.SendAsync("AcceptTeleport", token);
+                try
+                {
+                    var token = dialog.TextToken.Text;
+                    await hub.SendAsync("AcceptTeleport", token);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cannot accept teleport token!");
+                    MessageBox.Show("Cannot accept teleport token!", "Flight Events", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
