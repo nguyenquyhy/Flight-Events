@@ -204,7 +204,7 @@ namespace FlightEvents.Client
             {
                 flightConnector.Send("Connected to Flight Events!");
             }
-            catch (COMException ex) when (ex.Message == "0xC000014B")
+            catch (COMException ex) when (ex.Message == "0xC000014B" || ex.Message == "0xC00000B0")
             {
                 // broken pipe
             }
