@@ -232,6 +232,7 @@ namespace FlightEvents.Client.SimConnectFSX
         private void RegisterFlightStatusDefinition()
         {
             RegisterDataDefineStruct<FlightStatusStruct>(DEFINITIONS.FlightStatus,
+                //("ENGINE TYPE", null, SIMCONNECT_DATATYPE.STRING64),
                 //("SIM TIME", "Seconds", SIMCONNECT_DATATYPE.FLOAT32),
                 ("SIMULATION RATE", "number", SIMCONNECT_DATATYPE.INT32),
                 ("PLANE LATITUDE", "Degrees", SIMCONNECT_DATATYPE.FLOAT64),
@@ -245,12 +246,18 @@ namespace FlightEvents.Client.SimConnectFSX
                 ("GROUND ALTITUDE", "Meters", SIMCONNECT_DATATYPE.FLOAT64),
                 ("GROUND VELOCITY", "Knots", SIMCONNECT_DATATYPE.FLOAT64),
                 ("AIRSPEED INDICATED", "Knots", SIMCONNECT_DATATYPE.FLOAT64),
+                ("AIRSPEED TRUE", "Knots", SIMCONNECT_DATATYPE.FLOAT64),
                 ("VERTICAL SPEED", "Feet per minute", SIMCONNECT_DATATYPE.FLOAT64),
+
                 ("PLANE TOUCHDOWN NORMAL VELOCITY", "Feet per minute", SIMCONNECT_DATATYPE.FLOAT64),
                 ("G FORCE", "GForce", SIMCONNECT_DATATYPE.FLOAT64),
 
                 ("FUEL TOTAL QUANTITY", "Gallons", SIMCONNECT_DATATYPE.FLOAT64),
+                ("FUEL TOTAL QUANTITY WEIGHT", "Pounds", SIMCONNECT_DATATYPE.FLOAT64),
+                ("UNLIMITED FUEL", "Bool", SIMCONNECT_DATATYPE.INT32),
 
+                ("BAROMETER PRESSURE", "Millibars", SIMCONNECT_DATATYPE.FLOAT64),
+                ("TOTAL AIR TEMPERATURE", "Celsius", SIMCONNECT_DATATYPE.FLOAT64),
                 ("AMBIENT WIND VELOCITY", "Knots", SIMCONNECT_DATATYPE.FLOAT64),
                 ("AMBIENT WIND DIRECTION", "Degrees", SIMCONNECT_DATATYPE.FLOAT64),
 
@@ -325,10 +332,17 @@ namespace FlightEvents.Client.SimConnectFSX
                                     TrueHeading = flightStatus.Value.TrueHeading,
                                     GroundSpeed = flightStatus.Value.GroundSpeed,
                                     IndicatedAirSpeed = flightStatus.Value.IndicatedAirSpeed,
+                                    TrueAirSpeed = flightStatus.Value.TrueAirSpeed,
                                     VerticalSpeed = flightStatus.Value.VerticalSpeed,
                                     TouchdownNormalVelocity = flightStatus.Value.TouchdownNormalVelocity,
                                     GForce = flightStatus.Value.GForce,
                                     FuelTotalQuantity = flightStatus.Value.FuelTotalQuantity,
+                                    FuelTotalQuantityWeight = flightStatus.Value.FuelTotalQuantityWeight,
+                                    IsUnlimitedFuel = flightStatus.Value.IsUnlimitedFuel,
+                                    BarometerPressure = flightStatus.Value.BarometerPressure,
+                                    TotalAirTemperature = flightStatus.Value.TotalAirTemperature,
+                                    WindVelocity = flightStatus.Value.WindVelocity,
+                                    WindDirection = flightStatus.Value.WindDirection,
                                     IsOnGround = flightStatus.Value.IsOnGround == 1,
                                     StallWarning = flightStatus.Value.StallWarning == 1,
                                     OverspeedWarning = flightStatus.Value.OverspeedWarning == 1,

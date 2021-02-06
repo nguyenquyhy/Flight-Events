@@ -46,6 +46,8 @@ namespace FlightEvents.Client.SimConnectFSX
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     struct FlightStatusStruct
     {
+        //[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
+        //public string EngineType;
         //public float SimTime;
         public int SimRate;
 
@@ -60,12 +62,17 @@ namespace FlightEvents.Client.SimConnectFSX
         public double GroundAltitude;
         public double GroundSpeed;
         public double IndicatedAirSpeed;
+        public double TrueAirSpeed;
         public double VerticalSpeed;
         public double TouchdownNormalVelocity;
         public double GForce;
 
         public double FuelTotalQuantity;
+        public double FuelTotalQuantityWeight;
+        public int IsUnlimitedFuel;
 
+        public double BarometerPressure;
+        public double TotalAirTemperature;
         public double WindVelocity;
         public double WindDirection;
 

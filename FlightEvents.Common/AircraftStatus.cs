@@ -36,19 +36,26 @@
         public double Altitude { get; set; }
         public double AltitudeAboveGround { get; set; }
 
+        public double Pitch { get; set; }
+        public double Bank { get; set; }
         public double Heading { get; set; }
         public double TrueHeading { get; set; }
 
         public double GroundSpeed { get; set; }
         public double IndicatedAirSpeed { get; set; }
+        public double TrueAirSpeed { get; set; }
         public double VerticalSpeed { get; set; }
         public double TouchdownNormalVelocity { get; set; }
         public double GForce { get; set; }
 
         public double FuelTotalQuantity { get; set; }
+        public double FuelTotalQuantityWeight { get; set; }
+        public int IsUnlimitedFuel { get; set; }
 
-        public double Pitch { get; set; }
-        public double Bank { get; set; }
+        public double BarometerPressure { get; set; }
+        public double TotalAirTemperature { get; set; }
+        public double WindVelocity { get; set; }
+        public double WindDirection { get; set; }
 
         public bool IsOnGround { get; set; }
         public bool StallWarning { get; set; }
