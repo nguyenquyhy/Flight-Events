@@ -86,7 +86,7 @@ namespace FlightEvents.DiscordBot.MessageHandlers
                                     }
                                     catch (Exception ex)
                                     {
-                                        logger.LogError(ex, $"Cannot get ICAO code of {status.Latitude} {status.Longitude}!");
+                                        logger.LogError(ex, "Cannot get ICAO code of {latitude} {longitude}!", status.Latitude, status.Longitude);
                                     }
 
                                     string country = null;
@@ -100,7 +100,7 @@ namespace FlightEvents.DiscordBot.MessageHandlers
                                         }
                                         catch (Exception ex)
                                         {
-                                            logger.LogError(ex, $"Cannot get airport information of {icao}!");
+                                            logger.LogError(ex, "Cannot get airport information of {icao}!", icao);
                                         }
                                     }
 

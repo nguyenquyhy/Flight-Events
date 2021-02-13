@@ -84,12 +84,14 @@ namespace FlightEvents.DiscordBot
                                     {
                                         try
                                         {
-                                            logger.LogInformation("Deleting {channelName} of guild {guildName}.", voiceChannel.Name, guild.Name);
+                                            logger.LogInformation("Deleting [{channelId}] {channelName} of guild [{guildId}] {guildName}.",
+                                                voiceChannel.Id, voiceChannel.Name, guild.Id, guild.Name);
                                             await voiceChannel.DeleteAsync();
                                         }
                                         catch (Exception ex)
                                         {
-                                            logger.LogError(ex, "Cannot delete channel {channelName} of guild {guildName}!", voiceChannel.Name, guild.Name);
+                                            logger.LogError(ex, "Cannot delete channel [{channelId}] {channelName} of guild [{guildId}] {guildName}!",
+                                                voiceChannel.Id, voiceChannel.Name, guild.Id, guild.Name);
                                         }
                                         finally
                                         {
