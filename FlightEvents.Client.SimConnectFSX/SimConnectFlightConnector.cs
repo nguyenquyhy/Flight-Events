@@ -408,6 +408,24 @@ namespace FlightEvents.Client.SimConnectFSX
                 0.0f,
                 SimConnect.SIMCONNECT_UNUSED);
             simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
+                "COM RECIEVE ALL",
+                "Bool",
+                SIMCONNECT_DATATYPE.INT32,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+            simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
+                "COM TRANSMIT:1",
+                "Bool",
+                SIMCONNECT_DATATYPE.INT32,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+            simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
+                "COM TRANSMIT:2",
+                "Bool",
+                SIMCONNECT_DATATYPE.INT32,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+            simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
                 "COM ACTIVE FREQUENCY:1",
                 "kHz",
                 SIMCONNECT_DATATYPE.INT32,
@@ -489,6 +507,9 @@ namespace FlightEvents.Client.SimConnectFSX
                                     OverspeedWarning = flightStatus.Value.OverspeedWarning == 1,
                                     IsAutopilotOn = flightStatus.Value.IsAutopilotOn == 1,
                                     Transponder = flightStatus.Value.Transponder.ToString().PadLeft(4, '0'),
+                                    ReceiveAllCom = flightStatus.Value.ComReceiveAll == 1,
+                                    TransmitCom1 = flightStatus.Value.Com1Transmit == 1,
+                                    TransmitCom2 = flightStatus.Value.Com2Transmit == 1,
                                     FrequencyCom1 = flightStatus.Value.Com1,
                                     FrequencyCom2 = flightStatus.Value.Com2,
                                 }));

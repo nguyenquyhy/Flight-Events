@@ -131,14 +131,14 @@ namespace FlightEvents.Web.Hubs
                 int fromFrequency = 0;
                 if (connectionIdToAircraftStatuses.TryGetValue(Context.ConnectionId, out var lastStatus))
                 {
-                    fromFrequency = lastStatus.FrequencyCom1;
+                    fromFrequency = lastStatus.TransmitCom2 ? lastStatus.FrequencyCom2 : lastStatus.FrequencyCom1;
                 }
                 connectionIdToAircraftStatuses[Context.ConnectionId] = status;
 
                 if (!connectionIdToAtcStatuses.TryGetValue(Context.ConnectionId, out _))
                 {
                     // Switch Discord channel based on COM1 change if ATC Mode is not active
-                    var toFrequency = status.FrequencyCom1;
+                    var toFrequency = status.TransmitCom2 ? status.FrequencyCom2 : status.FrequencyCom1;
                     if (fromFrequency != toFrequency)
                     {
                         logger.LogDebug("Send signal to Bot on changing frequency of {clientId} from {from} to {to}", clientId, fromFrequency, toFrequency);
