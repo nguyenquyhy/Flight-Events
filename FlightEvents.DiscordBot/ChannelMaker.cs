@@ -15,7 +15,7 @@ namespace FlightEvents.DiscordBot
             this.logger = logger;
         }
 
-        public async Task<IGuildChannel> CreateVoiceChannelAsync(DiscordServerOptions serverOptions, SocketGuild guild, int? frequency)
+        public async Task<IGuildChannel> GetOrCreateVoiceChannelAsync(DiscordServerOptions serverOptions, SocketGuild guild, int? frequency)
         {
             var channelName = frequency.HasValue ?
                 CreateChannelNameFromFrequency(serverOptions, frequency) :

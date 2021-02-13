@@ -101,11 +101,11 @@ namespace FlightEvents.Data
             return entity.ToData();
         }
 
-        public async Task RemoveAsync(AtisChannel atisChannel)
+        public async Task RemoveAsync(ulong guildId, ulong channelId)
         {
             await table.CreateIfNotExistsAsync();
 
-            var result = await table.ExecuteAsync(TableOperation.Retrieve<AtisChannelEntity>(atisChannel.GuildId.ToString(), atisChannel.ChannelId.ToString()));
+            var result = await table.ExecuteAsync(TableOperation.Retrieve<AtisChannelEntity>(guildId.ToString(), channelId.ToString()));
             if (result.Result is AtisChannelEntity entity)
             {
                 await table.ExecuteAsync(TableOperation.Delete(entity));

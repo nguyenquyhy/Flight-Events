@@ -171,7 +171,7 @@ namespace FlightEvents.DiscordBot
 
             var guild = guildUser.Guild;
 
-            var channel = await channelMaker.CreateVoiceChannelAsync(serverOptions, guild, toFrequency);
+            var channel = await channelMaker.GetOrCreateVoiceChannelAsync(serverOptions, guild, toFrequency);
             await MoveMemberAsync(guildUser, channel);
         }
 

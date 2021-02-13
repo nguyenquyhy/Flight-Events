@@ -173,9 +173,9 @@ namespace FlightEvents.DiscordBot
         }
 
         private async Task CreateVoiceChannelAndStartBotAsync(SocketGuild guild, DiscordServerOptions serverOptions, double frequency, string nickname,
-            string filePath, RestUserMessage response = null)
+            string filePath, RestUserMessage response = null, ulong? previousChannelId = null, string previousFilePath = null)
         {
-            var voiceChannel = await channelMaker.CreateVoiceChannelAsync(serverOptions, guild, (int)(frequency * 1000));
+            var voiceChannel = await channelMaker.GetOrCreateVoiceChannelAsync(serverOptions, guild, (int)(frequency * 1000));
 
             if (response != null)
             {
@@ -187,7 +187,9 @@ namespace FlightEvents.DiscordBot
 
             try
             {
-                await atisProcessManager.StartAtisAsync(voiceChannel, frequency, filePath, nickname);
+                // When trying to restore channel on bot reboot, the old channel may already be removed and a new channel is created for the same frequency
+                // => Some special handling & cleaning up is required
+                await atisProcessManager.StartAtisAsync(voiceChannel, frequency, filePath, nickname, previousChannelId, previousFilePath);
 
                 if (response != null)
                 {
@@ -230,6 +232,9 @@ namespace FlightEvents.DiscordBot
             return filePath;
         }
 
+        /// <summary>
+        /// NOTE: this event can happen both on 1st launch and on Discord reconnection
+        /// </summary>
         private async Task BotClient_GuildAvailable(SocketGuild guild)
         {
             var serverOptions = discordOptions.Servers.FirstOrDefault(option => option.ServerId == guild.Id);
@@ -240,8 +245,17 @@ namespace FlightEvents.DiscordBot
                 logger.LogInformation("Try to recover {channelCount} ATIS channels in {guildName}.", atisChannels.Count(), guild.Name);
                 foreach (var atisChannel in atisChannels)
                 {
-                    await CreateVoiceChannelAndStartBotAsync(guild, serverOptions, atisChannel.Frequency, atisChannel.Nickname, atisChannel.FilePath);
-                    logger.LogInformation("Recovered ATIS channels {channelName} in {guildName}.", atisChannel.ChannelName, guild.Name);
+                    try
+                    {
+                        await CreateVoiceChannelAndStartBotAsync(guild, serverOptions, atisChannel.Frequency, atisChannel.Nickname, atisChannel.FilePath,
+                            previousChannelId: atisChannel.ChannelId, previousFilePath: atisChannel.FilePath);
+                        logger.LogInformation("Recovered ATIS channels {channelName} in {guildName}.", atisChannel.ChannelName, guild.Name);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Cannot recover ATIS channel [{channelId}] {channelName} in [{guildId}] {guildName}",
+                            atisChannel.ChannelId, atisChannel.ChannelName, atisChannel.GuildId, atisChannel.GuildName);
+                    }
                 }
             }
         }

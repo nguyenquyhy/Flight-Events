@@ -23,6 +23,6 @@ namespace FlightEvents.Data
         Task<AtisChannel> GetByChannelNameAsync(ulong guildId, string channelName);
         Task<IEnumerable<AtisChannel>> GetByGuildAsync(ulong guildId);
         Task<AtisChannel> AddChannelAsync(AtisChannel atisChannel);
-        Task RemoveAsync(AtisChannel atisChannel);
+        Task RemoveAsync(ulong guildId, ulong channelId);
     }
 }

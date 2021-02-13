@@ -25,6 +25,9 @@ namespace FlightEvents.DiscordBot
         private readonly IAtisChannelStorage atisChannelStorage;
         private readonly AtisOptions atisOptions;
 
+        private readonly ConcurrentDictionary<string, Process> cachedProcesses = new ConcurrentDictionary<string, Process>();
+        private static readonly SemaphoreSlim sm = new SemaphoreSlim(1);
+
         public AtisProcessManager(
             ILogger<AtisProcessManager> logger,
             IOptionsMonitor<AtisOptions> atisOptions,
@@ -35,29 +38,37 @@ namespace FlightEvents.DiscordBot
             this.atisOptions = atisOptions.CurrentValue;
         }
 
-        private static readonly SemaphoreSlim sm = new SemaphoreSlim(1);
-
-        public async Task StartAtisAsync(IGuildChannel channel, double frequency, string filePath, string nickname)
+        public async Task StartAtisAsync(IGuildChannel channel, double frequency, string filePath, string nickname, ulong? previousChannelId, string previousFilePath)
         {
             await sm.WaitAsync();
             try
             {
-                var botToken = await GetAvailableBotTokenAsync(channel);
+                var botToken = await GetAvailableBotTokenAsync(channel, filePath == previousFilePath);
 
-                var process = StartProcess(channel.GuildId, channel.Id, filePath, botToken, nickname);
-
-                await atisChannelStorage.AddChannelAsync(new AtisChannel
+                if (botToken != null)
                 {
-                    GuildId = channel.GuildId,
-                    GuildName = channel.Guild.Name,
-                    ChannelId = channel.Id,
-                    ChannelName = channel.Name,
-                    Frequency = frequency,
-                    BotToken = botToken,
-                    FilePath = filePath,
-                    Nickname = nickname,
-                    ProcessId = process.Id
-                });
+                    var process = StartProcess(channel.GuildId, channel.Id, filePath, botToken, nickname);
+
+                    await atisChannelStorage.AddChannelAsync(new AtisChannel
+                    {
+                        GuildId = channel.GuildId,
+                        GuildName = channel.Guild.Name,
+                        ChannelId = channel.Id,
+                        ChannelName = channel.Name,
+                        Frequency = frequency,
+                        BotToken = botToken,
+                        FilePath = filePath,
+                        Nickname = nickname,
+                        ProcessId = process.Id
+                    });
+
+                    if (previousChannelId.HasValue && previousChannelId != channel.Id)
+                    {
+                        logger.LogInformation("Removing deleted ATIS channel [{channelId}] {channelName} from storage of guild [{guildId}] {guildName}",
+                            previousChannelId, channel.Name, channel.GuildId, channel.Guild.Name);
+                        await atisChannelStorage.RemoveAsync(channel.GuildId, previousChannelId.Value);
+                    }
+                }
             }
             finally
             {
@@ -88,9 +99,7 @@ namespace FlightEvents.DiscordBot
             return false;
         }
 
-        private ConcurrentDictionary<string, Process> cachedProcesses = new ConcurrentDictionary<string, Process>();
-
-        private async Task<string> GetAvailableBotTokenAsync(IGuildChannel channel)
+        private async Task<string> GetAvailableBotTokenAsync(IGuildChannel channel, bool sameFile)
         {
             var atis = await atisChannelStorage.GetByChannelNameAsync(channel.GuildId, channel.Name);
             if (atis != null)
@@ -98,7 +107,16 @@ namespace FlightEvents.DiscordBot
                 // If the channel is already handled by a bot, restart to change audio and return current token
                 if (cachedProcesses.TryGetValue(channel.GuildId + ":" + channel.Id, out var currentProcess))
                 {
-                    await TerminateProcessAndCleanUpAsync(currentProcess, atis);
+                    if (sameFile)
+                    {
+                        // If the request is for the same file, and there is already a running process, we can skip creating new one
+                        logger.LogInformation("Process {processId} is already playing {filePath}.", currentProcess.Id, atis.FilePath);
+                        return null;
+                    }
+                    else
+                    {
+                        await TerminateProcessAndCleanUpAsync(currentProcess, atis);
+                    }
                 }
                 return atis.BotToken;
             }
@@ -137,7 +155,7 @@ namespace FlightEvents.DiscordBot
                 logger.LogError(ex, "Cannot deleted file {filePath}", atisChannel.FilePath);
             }
 
-            await atisChannelStorage.RemoveAsync(atisChannel);
+            await atisChannelStorage.RemoveAsync(atisChannel.GuildId, atisChannel.ChannelId);
         }
 
         private Process StartProcess(ulong guildId, ulong channelId, string filePath, string botToken, string nickname)
