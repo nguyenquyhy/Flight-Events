@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Events;
+using System;
 using System.IO;
 using System.Reflection;
 
@@ -12,9 +14,33 @@ namespace FlightEvents.DiscordBot
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Debug()
+                .WriteTo.Console()
+                .WriteTo.File(Path.Combine(assemblyDirectory, "flightevents-bot.log"), rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3)
+                .WriteTo.File(Path.Combine(assemblyDirectory, "flightevents-bot-error.log"), restrictedToMinimumLevel: LogEventLevel.Error, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 10)
+                .CreateLogger();
+
+            try
+            {
+                Log.Information("Starting host");
+                CreateHostBuilder(args).Build().Run();
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Application start-up failed");
+                return 1;
+            }
+            finally
+            {
+                Log.Information("Stopping host");
+                Log.CloseAndFlush();
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -26,15 +52,6 @@ namespace FlightEvents.DiscordBot
                 })
                 .ConfigureLogging(logging =>
                 {
-                    var assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-                    Log.Logger = new LoggerConfiguration()
-                        .MinimumLevel.Debug()
-                        .WriteTo.Debug()
-                        .WriteTo.Console()
-                        .WriteTo.File(Path.Combine(assemblyDirectory, "flightevents-bot.log"), rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3)
-                        .CreateLogger();
-
                     logging
                         .ClearProviders()
                         .AddSerilog()
