@@ -131,14 +131,14 @@ namespace FlightEvents.Web.Hubs
                 int fromFrequency = 0;
                 if (connectionIdToAircraftStatuses.TryGetValue(Context.ConnectionId, out var lastStatus))
                 {
-                    fromFrequency = lastStatus.TransmitCom2 ? lastStatus.FrequencyCom2 : lastStatus.FrequencyCom1;
+                    fromFrequency = GetActiveFrequency(lastStatus);
                 }
                 connectionIdToAircraftStatuses[Context.ConnectionId] = status;
 
                 if (!connectionIdToAtcStatuses.TryGetValue(Context.ConnectionId, out _))
                 {
                     // Switch Discord channel based on COM1 change if ATC Mode is not active
-                    var toFrequency = status.TransmitCom2 ? status.FrequencyCom2 : status.FrequencyCom1;
+                    var toFrequency = GetActiveFrequency(status);
                     if (fromFrequency != toFrequency)
                     {
                         logger.LogDebug("Send signal to Bot on changing frequency of {clientId} from {from} to {to}", clientId, fromFrequency, toFrequency);
@@ -578,6 +578,9 @@ namespace FlightEvents.Web.Hubs
             connectionIdToAircraftStatuses.TryRemove(connectionId, out _);
             connectionIdToAtcStatuses.TryRemove(connectionId, out _);
         }
+
+        private static int GetActiveFrequency(AircraftStatus status)
+            => status.TransmitCom3 ? status.FrequencyCom3 : (status.TransmitCom2 ? status.FrequencyCom2 : status.FrequencyCom1);
     }
 
     public class EventStopwatch

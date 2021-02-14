@@ -79,8 +79,10 @@ namespace FlightEvents.Client.SimConnectFSX
         public int ComReceiveAll;
         public int Com1Transmit;
         public int Com2Transmit;
+        public int Com3Transmit;
         public int Com1;
         public int Com2;
+        public int Com3;
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]

@@ -426,6 +426,12 @@ namespace FlightEvents.Client.SimConnectFSX
                 0.0f,
                 SimConnect.SIMCONNECT_UNUSED);
             simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
+                "COM TRANSMIT:3",
+                "Bool",
+                SIMCONNECT_DATATYPE.INT32,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+            simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
                 "COM ACTIVE FREQUENCY:1",
                 "kHz",
                 SIMCONNECT_DATATYPE.INT32,
@@ -433,6 +439,12 @@ namespace FlightEvents.Client.SimConnectFSX
                 SimConnect.SIMCONNECT_UNUSED);
             simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
                 "COM ACTIVE FREQUENCY:2",
+                "kHz",
+                SIMCONNECT_DATATYPE.INT32,
+                0.0f,
+                SimConnect.SIMCONNECT_UNUSED);
+            simconnect.AddToDataDefinition(DEFINITIONS.FlightStatus,
+                "COM ACTIVE FREQUENCY:3",
                 "kHz",
                 SIMCONNECT_DATATYPE.INT32,
                 0.0f,
@@ -510,8 +522,10 @@ namespace FlightEvents.Client.SimConnectFSX
                                     ReceiveAllCom = flightStatus.Value.ComReceiveAll == 1,
                                     TransmitCom1 = flightStatus.Value.Com1Transmit == 1,
                                     TransmitCom2 = flightStatus.Value.Com2Transmit == 1,
+                                    TransmitCom3 = flightStatus.Value.Com3Transmit == 1,
                                     FrequencyCom1 = flightStatus.Value.Com1,
                                     FrequencyCom2 = flightStatus.Value.Com2,
+                                    FrequencyCom3 = flightStatus.Value.Com3,
                                 }));
                         }
                     }

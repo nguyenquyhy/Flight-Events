@@ -59,8 +59,10 @@
         public bool ReceiveAllCom { get; set; }
         public bool TransmitCom1 { get; set; }
         public bool TransmitCom2 { get; set; }
+        public bool TransmitCom3 { get; set; }
         public int FrequencyCom1 { get; set; }
         public int FrequencyCom2 { get; set; }
+        public int FrequencyCom3 { get; set; }
         public TransponderMode TransponderMode { get; set; } = TransponderMode.ModeC;
     }
 
