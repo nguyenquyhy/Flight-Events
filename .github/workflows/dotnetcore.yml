@@ -37,7 +37,7 @@ jobs:
         with:
           name: Website package
           path: publish-web
-          
+
   package-client:
     runs-on: [windows-latest]
     name: Package Client
@@ -57,17 +57,18 @@ jobs:
         uses: actions/upload-artifact@1.0.0
         with:
           name: FlightEvents.Client
-          path: publish-client      
+          path: publish-client
       - name: Collect version artifact
         uses: actions/upload-artifact@1.0.0
         with:
           name: versions.json
           path: FlightEvents.Client/versions.json
-  
+
   publish-client:
     runs-on: [ubuntu-latest]
     name: Publish Client
     needs: [package-client]
+    if: "contains(github.event.head_commit.message, '/publish')"
     steps:
       - name: Download build artifact
         uses: actions/download-artifact@1.0.0
