@@ -186,13 +186,29 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
-                            <Button x:Name="ButtonDiscord" Content="Connect" Click="ButtonDiscord_Click"
+
+                            <StackPanel Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Margin="0,0,0,5">
+                                <StackPanel.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Margin" Value="0" />
+                                    </Style>
+                                </StackPanel.Resources>
+                                <TextBlock Text="To use Discord channel switching, you need to link this client to your Discord account:" TextWrapping="Wrap" />
+                                <TextBlock Text="1. Click Connect button" TextWrapping="Wrap" />
+                                <TextBlock Text="2. Authorize Flight Events bot to access your info" TextWrapping="Wrap" />
+                                <TextBlock Text="3. Copy the code displayed to you &amp; paste below" TextWrapping="Wrap" />
+                                <TextBlock Text="4. Click confirm" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Button x:Name="ButtonDiscord" Grid.Row="1" Content="Connect" Click="ButtonDiscord_Click"
                                 Grid.ColumnSpan="2" />
 
-                            <TextBlock Text="Confirm Code:" Grid.Row="1" />
-                            <TextBox x:Name="TextDiscordConfirm" Grid.Row="1" Grid.Column="1" />
-                            <Button x:Name="ButtonDiscordConfirm" Content="Confirm" Grid.Row="2" Grid.Column="1" Click="ButtonDiscordConfirm_Click" />
+                            <TextBlock Text="Confirm Code:" Grid.Row="2" />
+                            <TextBox x:Name="TextDiscordConfirm" Grid.Row="2" Grid.Column="1" />
+                            <Button x:Name="ButtonDiscordConfirm" Content="Confirm" Grid.Row="3" Grid.Column="1" Click="ButtonDiscordConfirm_Click" />
                         </Grid>
 
                         <Grid Margin="5" Visibility="{Binding DiscordConnection, Converter={StaticResource NullToCollapsedConverter}}">
