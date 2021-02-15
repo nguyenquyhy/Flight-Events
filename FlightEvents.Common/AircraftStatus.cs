@@ -56,6 +56,7 @@
 
         public bool IsAutopilotOn { get; set; }
         public string Transponder { get; set; }
+        public int TransponderState { get; set; }
         public bool ReceiveAllCom { get; set; }
         public bool TransmitCom1 { get; set; }
         public bool TransmitCom2 { get; set; }

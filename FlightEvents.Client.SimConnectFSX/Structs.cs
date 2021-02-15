@@ -76,6 +76,7 @@ namespace FlightEvents.Client.SimConnectFSX
         public int IsAutopilotOn;
 
         public int Transponder;
+        public int TransponderState;
         public int ComReceiveAll;
         public int Com1Transmit;
         public int Com2Transmit;
