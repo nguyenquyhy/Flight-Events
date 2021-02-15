@@ -88,6 +88,10 @@ namespace FlightEvents.DiscordBot
                                                 voiceChannel.Id, voiceChannel.Name, guild.Id, guild.Name);
                                             await voiceChannel.DeleteAsync();
                                         }
+                                        catch (Discord.Net.HttpException ex) when (ex.DiscordCode == 10003)
+                                        {
+                                            // Channel not found => ignore
+                                        }
                                         catch (Exception ex)
                                         {
                                             logger.LogError(ex, "Cannot delete channel [{channelId}] {channelName} of guild [{guildId}] {guildName}!",
