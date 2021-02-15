@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "2.5.0",
+      "changes": "Transmit more data for ATC and racing events"
+    },
+    {
       "id": "2.4.0",
       "changes": "Show landing rate"
     },
