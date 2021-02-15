@@ -100,25 +100,6 @@ namespace FlightEvents.Client
             viewModel.MinimizeToTaskbar = pref.MinimizeToTaskbar;
             viewModel.ShowLandingInfo = pref.ShowLandingInfo;
 
-            var clientId = pref.ClientId;
-            hub = new HubConnectionBuilder()
-                .WithUrl($"{this.appSettings.WebServerUrl}/FlightEventHub?clientType=Client&clientVersion={currentVersion}&clientId={clientId}")
-                .WithAutomaticReconnect()
-                .AddMessagePackProtocol()
-                .Build();
-
-            hub.Closed += Hub_Closed;
-            hub.Reconnecting += Hub_Reconnecting;
-            hub.Reconnected += Hub_Reconnected;
-
-            hub.On<string, string>("RequestFlightPlan", Hub_OnRequestFlightPlan);
-            hub.On<string>("RequestFlightPlanDetails", Hub_OnRequestFlightPlanDetails);
-            hub.On<string>("RequestFlightRoute", Hub_OnRequestFlightRoute);
-            hub.On<string, string, string>("SendMessage", Hub_OnMessageSent);
-            hub.On<string, int>("ChangeUpdateRateByCallsign", Hub_OnChangeUpdateRateByCallsign);
-            hub.On<string, AircraftStatus>("UpdateAircraft", Hub_OnAircraftUpdated);
-            hub.On<string, AircraftPosition>("Teleport", Hub_OnTeleport);
-
             atcServer.FlightPlanRequested += AtcServer_FlightPlanRequested;
             atcServer.Connected += AtcServer_Connected;
             atcServer.MessageSent += AtcServer_MessageSent;
@@ -164,24 +145,33 @@ namespace FlightEvents.Client
 
             discordRichPresentLogic.Initialize();
 
+            using var httpClient = new HttpClient();
+            ClientVersion versionData;
             while (true)
             {
                 try
                 {
                     viewModel.HubConnectionState = ConnectionState.Connecting;
-                    await hub.StartAsync();
-                    viewModel.HubConnectionState = ConnectionState.Connected;
 
-                    ButtonStartATC.IsEnabled = true;
+                    var dataString = await httpClient.GetStringAsync($"{this.appSettings.WebServerUrl}/api/ClientVersions/{currentVersion}");
+                    versionData = JsonSerializer.Deserialize<ClientVersion>(dataString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
                     break;
                 }
-                catch (HttpRequestException ex)
+                catch (Exception ex)
                 {
-                    logger.LogWarning(ex, "Cannot connect to SignalR server! Retry in 5s...");
-                    await Task.Delay(5000);
+                    logger.LogWarning(ex, "Cannot connect to server! Retry in 10s...");
+                    await Task.Delay(10000);
                 }
             }
+
+            var announcement = versionData?.Announcements?.FirstOrDefault()?.Content;
+            if (!string.IsNullOrWhiteSpace(announcement))
+            {
+                MessageBox.Show(announcement, "Flight Events", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+
+            await InitializeHubAsync(currentVersion, pref.ClientId, versionData?.Features?.UseWebpack == true);
 
             if (viewModel.BroadcastUDP)
             {
@@ -292,6 +282,50 @@ namespace FlightEvents.Client
         #endregion
 
         #region SignalR
+
+        private async Task InitializeHubAsync(Version currentVersion, string clientId, bool useWebpack)
+        {
+            var builder = new HubConnectionBuilder()
+                .WithUrl($"{this.appSettings.WebServerUrl}/FlightEventHub?clientType=Client&clientVersion={currentVersion}&clientId={clientId}")
+                .WithAutomaticReconnect();
+            if (useWebpack)
+            {
+                builder.AddMessagePackProtocol();
+            }
+
+            hub = builder.Build();
+
+            hub.Closed += Hub_Closed;
+            hub.Reconnecting += Hub_Reconnecting;
+            hub.Reconnected += Hub_Reconnected;
+
+            hub.On<string, string>("RequestFlightPlan", Hub_OnRequestFlightPlan);
+            hub.On<string>("RequestFlightPlanDetails", Hub_OnRequestFlightPlanDetails);
+            hub.On<string>("RequestFlightRoute", Hub_OnRequestFlightRoute);
+            hub.On<string, string, string>("SendMessage", Hub_OnMessageSent);
+            hub.On<string, int>("ChangeUpdateRateByCallsign", Hub_OnChangeUpdateRateByCallsign);
+            hub.On<string, AircraftStatus>("UpdateAircraft", Hub_OnAircraftUpdated);
+            hub.On<string, AircraftPosition>("Teleport", Hub_OnTeleport);
+
+            while (true)
+            {
+                try
+                {
+                    viewModel.HubConnectionState = ConnectionState.Connecting;
+                    await hub.StartAsync();
+                    viewModel.HubConnectionState = ConnectionState.Connected;
+
+                    ButtonStartATC.IsEnabled = true;
+
+                    break;
+                }
+                catch (HttpRequestException ex)
+                {
+                    logger.LogWarning(ex, "Cannot connect to SignalR server! Retry in 5s...");
+                    await Task.Delay(5000);
+                }
+            }
+        }
 
         private async Task Hub_Reconnected(string arg)
         {
