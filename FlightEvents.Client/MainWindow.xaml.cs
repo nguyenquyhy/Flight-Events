@@ -299,6 +299,7 @@ namespace FlightEvents.Client
             hub.Reconnecting += Hub_Reconnecting;
             hub.Reconnected += Hub_Reconnected;
 
+            hub.On<string>("RequestAircraftInfo", Hub_OnRequestAircraftInfo);
             hub.On<string, string>("RequestFlightPlan", Hub_OnRequestFlightPlan);
             hub.On<string>("RequestFlightPlanDetails", Hub_OnRequestFlightPlanDetails);
             hub.On<string>("RequestFlightRoute", Hub_OnRequestFlightRoute);
@@ -347,6 +348,26 @@ namespace FlightEvents.Client
         {
             viewModel.HubConnectionState = ConnectionState.Failed;
             return Task.CompletedTask;
+        }
+
+        private async void Hub_OnRequestAircraftInfo(string requesterConnectionId)
+        {
+            try
+            {
+                var aircraftData = await flightConnector.RequestAircraftDataAsync(new CancellationTokenSource(5000).Token);
+                if (aircraftData != null)
+                {
+                    await hub.SendAsync("ReturnAircraftInfo", requesterConnectionId, aircraftData);
+                }
+            }
+            catch (TaskCanceledException ex)
+            {
+                logger.LogError(ex, "Cannot get aircraft info!");
+            }
+            catch (COMException ex)
+            {
+                logger.LogError(ex, "Cannot get aircraft info!");
+            }
         }
 
         /// <summary>

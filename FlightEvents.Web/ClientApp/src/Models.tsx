@@ -9,6 +9,13 @@
     rating: string;
 }
 
+export interface AircraftData {
+    type: string;
+    model: string;
+    title: string;
+    estimatedCruiseSpeed: number;
+}
+
 export interface ATCStatus {
     callsign: string;
 

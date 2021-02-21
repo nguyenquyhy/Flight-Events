@@ -12,10 +12,18 @@ using System.Threading.Tasks;
 
 namespace FlightEvents.Web.Hubs
 {
+    public class ClientInfo
+    {
+        public string ClientType { get; set; }
+        public string ClientId { get; set; }
+        public string ClientVersion { get; set; }
+    }
+
     public class FlightEventHub : Hub<IFlightEventHub>
     {
         public static ConcurrentDictionary<string, string> ConnectionIdToClientIds => connectionIdToClientIds;
         public static ConcurrentDictionary<string, AircraftStatus> ConnectionIdToAircraftStatuses => connectionIdToAircraftStatuses;
+        public static ConcurrentDictionary<string, ClientInfo> ConnetionIdToClientInfos => connetionIdToClientInfos;
 
         private static readonly ConcurrentDictionary<string, string> connectionIdToClientIds = new ConcurrentDictionary<string, string>();
         private static readonly ConcurrentDictionary<string, string> clientIdToConnectionIds = new ConcurrentDictionary<string, string>();
@@ -28,6 +36,8 @@ namespace FlightEvents.Web.Hubs
 
         private static readonly ConcurrentDictionary<string, (string, AircraftPosition)> connectionIdToTeleportRequest = new ConcurrentDictionary<string, (string, AircraftPosition)>();
         private static readonly ConcurrentDictionary<string, string> teleportTokenToConnectionId = new ConcurrentDictionary<string, string>();
+
+        private static readonly ConcurrentDictionary<string, ClientInfo> connetionIdToClientInfos = new ConcurrentDictionary<string, ClientInfo>();
 
         private readonly ILogger<FlightEventHub> logger;
         private readonly IOptionsMonitor<FeaturesOptions> featuresOptionsAccessor;
@@ -75,6 +85,15 @@ namespace FlightEvents.Web.Hubs
                 default:
                     break;
             }
+
+            connetionIdToClientInfos.TryAdd(Context.ConnectionId, new ClientInfo
+            {
+                ClientType = clientType,
+                ClientId = clientId,
+                ClientVersion = clientVersion
+            });
+            await Clients.Group("Admin").UpdateClientList(connetionIdToClientInfos.Values.ToList());
+
             await base.OnConnectedAsync();
         }
 
@@ -86,7 +105,18 @@ namespace FlightEvents.Web.Hubs
                 await Clients.Groups("Map", "ATC").UpdateATC(clientId, null, null);
             }
             RemoveCacheOnConnectionId(Context.ConnectionId);
+
+            connetionIdToClientInfos.TryRemove(Context.ConnectionId, out _);
+            await Clients.Group("Admin").UpdateClientList(connetionIdToClientInfos.Values.ToList());
+
             await base.OnDisconnectedAsync(exception);
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task LoginAdmin()
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, "Admin");
+            await Clients.Caller.UpdateClientList(connetionIdToClientInfos.Values.ToList());
         }
 
         public void LoginATC(ATCInfo atc)
@@ -146,6 +176,8 @@ namespace FlightEvents.Web.Hubs
                     }
                 }
                 await Clients.Groups("ATC").UpdateAircraft(clientId, status);
+
+                // NOTE: status broadcast is done by StatusBroadcastService to control throttling
             }
         }
 
@@ -162,6 +194,19 @@ namespace FlightEvents.Web.Hubs
                 }
             }
             await Clients.Caller.UpdateAircraftToDiscord(discordUserId, clientIds.FirstOrDefault(), null);
+        }
+
+        public async Task RequestAircraftInfo(string clientId)
+        {
+            if (clientIdToConnectionIds.TryGetValue(clientId, out var connectionId))
+            {
+                await Clients.Client(connectionId).RequestAircraftInfo(Context.ConnectionId);
+            }
+        }
+
+        public Task ReturnAircraftInfo(string requesterConnectionId, AircraftData info)
+        {
+            return Clients.Client(requesterConnectionId).ReturnAircraftInfo(connectionIdToClientIds[Context.ConnectionId], info);
         }
 
         public async Task AddFlightPlan(string clientId, string callsign, string source, FlightPlanCompact flightPlan)
@@ -259,36 +304,39 @@ namespace FlightEvents.Web.Hubs
 
         public async Task Join(string group)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, group);
-
-            if (group.StartsWith("Stopwatch:"))
+            if (IsPublicGroup(group))
             {
-                if (Guid.TryParse(group.Split(":")[1], out var eventId))
+                await Groups.AddToGroupAsync(Context.ConnectionId, group);
+
+                if (group.StartsWith("Stopwatch:"))
                 {
-                    var evt = await flightEventStorage.GetAsync(eventId);
-
-                    var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
-                    foreach (var stopwatch in eventStopwatches.Values)
+                    if (Guid.TryParse(group.Split(":")[1], out var eventId))
                     {
-                        await Clients.Caller.UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
-                    }
+                        var evt = await flightEventStorage.GetAsync(eventId);
 
-                    var records = await leaderboardStorage.LoadAsync(evt.Id);
-                    await Clients.Caller.UpdateLeaderboard(records);
-                }
-            }
+                        var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());
+                        foreach (var stopwatch in eventStopwatches.Values)
+                        {
+                            await Clients.Caller.UpdateStopwatch(stopwatch, DateTimeOffset.UtcNow);
+                        }
 
-            if (group.StartsWith("Leaderboard:"))
-            {
-                var eventIdString = group.Split(":")[1];
-                if (Guid.TryParse(eventIdString, out var eventId))
-                {
-                    var evt = await flightEventStorage.GetAsync(eventId);
-
-                    if (evt != null)
-                    {
                         var records = await leaderboardStorage.LoadAsync(evt.Id);
                         await Clients.Caller.UpdateLeaderboard(records);
+                    }
+                }
+
+                if (group.StartsWith("Leaderboard:"))
+                {
+                    var eventIdString = group.Split(":")[1];
+                    if (Guid.TryParse(eventIdString, out var eventId))
+                    {
+                        var evt = await flightEventStorage.GetAsync(eventId);
+
+                        if (evt != null)
+                        {
+                            var records = await leaderboardStorage.LoadAsync(evt.Id);
+                            await Clients.Caller.UpdateLeaderboard(records);
+                        }
                     }
                 }
             }
@@ -581,6 +629,9 @@ namespace FlightEvents.Web.Hubs
 
         private static int GetActiveFrequency(AircraftStatus status)
             => status.TransmitCom3 ? status.FrequencyCom3 : (status.TransmitCom2 ? status.FrequencyCom2 : status.FrequencyCom1);
+
+        private static bool IsPublicGroup(string groupName)
+            => groupName == "ATC" || groupName == "ClientMap" || groupName.StartsWith("Leaderboard:") || groupName.StartsWith("Stopwatch:");
     }
 
     public class EventStopwatch

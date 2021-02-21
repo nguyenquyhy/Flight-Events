@@ -23,12 +23,18 @@ namespace FlightEvents.Web.Hubs
         Task UpdateAircraftToDiscord(ulong discordUserId, string clientId, AircraftStatus status);
 
         /// <summary>
+        /// Request aircraft data of a particular client
+        /// </summary>
+        Task RequestAircraftInfo(string requesterConnectionId);
+
+        /// <summary>
+        /// Return the aircraft data to requester
+        /// </summary>
+        Task ReturnAircraftInfo(string clientId, AircraftData aircraftData);
+
+        /// <summary>
         /// Add flight plan to the storage for requesting later
         /// </summary>
-        /// <param name="clientId"></param>
-        /// <param name="callsign"></param>
-        /// <param name="flightPlan"></param>
-        /// <returns></returns>
         Task AddFlightPlan(string clientId, string callsign, string source, FlightPlanCompact flightPlan);
 
         /// <summary>
@@ -45,14 +51,11 @@ namespace FlightEvents.Web.Hubs
         /// <summary>
         /// Ask client to send back full flight plan info
         /// </summary>
-        /// <param name="connectionId"></param>
         Task RequestFlightPlanDetails(string connectionId);
 
         /// <summary>
         /// Return the full flight plan info to the map
         /// </summary>
-        /// <param name="connectionId"></param>
-        /// <param name="flightPlan"></param>
         Task ReturnFlightPlanDetails(string connectionId, FlightPlanData flightPlan);
 
         Task RequestFlightRoute(string webConnectionId);
@@ -62,17 +65,11 @@ namespace FlightEvents.Web.Hubs
         /// <summary>
         /// Send a message to client
         /// </summary>
-        /// <param name="fromCallsign"></param>
-        /// <param name="toCallsign"></param>
-        /// <param name="message"></param>
         Task SendMessage(string fromCallsign, string toCallsign, string message);
 
         /// <summary>
         /// Signal Bot of a frequency change
         /// </summary>
-        /// <param name="clientId"></param>
-        /// <param name="fromFrequency"></param>
-        /// <param name="toFrequency"></param>
         Task ChangeFrequency(string clientId, int? fromFrequency, int? toFrequency);
 
         Task SendATC(string to, string message);
@@ -85,11 +82,12 @@ namespace FlightEvents.Web.Hubs
         /// Instruct client to teleport the aircraft to a certain position
         /// </summary>
         /// <param name="connectionId">Connection ID of the requesting map</param>
-        /// <param name="position"></param>
         Task Teleport(string connectionId, AircraftPosition position);
 
         Task UpdateStopwatch(EventStopwatch stopwatch, DateTimeOffset serverTime);
         Task RemoveStopwatch(EventStopwatch stopwatch);
         Task UpdateLeaderboard(List<LeaderboardRecord> leaderboardRecords);
+
+        Task UpdateClientList(List<ClientInfo> clients);
     }
 }

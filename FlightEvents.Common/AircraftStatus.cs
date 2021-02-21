@@ -23,6 +23,64 @@
 
     public class AircraftStatus
     {
+        public AircraftStatus()
+        {
+
+        }
+
+        public AircraftStatus(AircraftStatus data)
+        {
+            ClientVersion = data.ClientVersion;
+
+            Callsign = data.Callsign;
+            SimRate = data.SimRate;
+            LocalTime = data.LocalTime;
+            ZuluTime = data.ZuluTime;
+            AbsoluteTime = data.AbsoluteTime;
+
+            Latitude = data.Latitude;
+            Longitude = data.Longitude;
+            Altitude = data.Altitude;
+            AltitudeAboveGround = data.AltitudeAboveGround;
+
+            Pitch = data.Pitch;
+            Bank = data.Bank;
+            Heading = data.Heading;
+            TrueHeading = data.TrueHeading;
+
+            GroundSpeed = data.GroundSpeed;
+            IndicatedAirSpeed = data.IndicatedAirSpeed;
+            TrueAirSpeed = data.TrueAirSpeed;
+            VerticalSpeed = data.VerticalSpeed;
+            TouchdownNormalVelocity = data.TouchdownNormalVelocity;
+            GForce = data.GForce;
+
+            FuelTotalQuantity = data.FuelTotalQuantity;
+            FuelTotalQuantityWeight = data.FuelTotalQuantityWeight;
+            IsUnlimitedFuel = data.IsUnlimitedFuel;
+
+            BarometerPressure = data.BarometerPressure;
+            TotalAirTemperature = data.TotalAirTemperature;
+            WindVelocity = data.WindVelocity;
+            WindDirection = data.WindDirection;
+
+            IsOnGround = data.IsOnGround;
+            StallWarning = data.StallWarning;
+            OverspeedWarning = data.OverspeedWarning;
+
+            IsAutopilotOn = data.IsAutopilotOn;
+            Transponder = data.Transponder;
+            TransponderState = data.TransponderState;
+            ReceiveAllCom = data.ReceiveAllCom;
+            TransmitCom1 = data.TransmitCom1;
+            TransmitCom2 = data.TransmitCom2;
+            TransmitCom3 = data.TransmitCom3;
+            FrequencyCom1 = data.FrequencyCom1;
+            FrequencyCom2 = data.FrequencyCom2;
+            FrequencyCom3 = data.FrequencyCom3;
+        }
+
+        public string ClientVersion { get; set; }
         public string Callsign { get; set; }
 
         //public double SimTime { get; set; }

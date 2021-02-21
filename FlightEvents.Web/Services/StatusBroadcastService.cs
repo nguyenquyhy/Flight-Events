@@ -37,6 +37,11 @@ namespace FlightEvents.Web
                     if (FlightEventHub.ConnectionIdToClientIds.TryGetValue(pair.Key, out var clientId))
                     {
                         await hubContext.Clients.Groups("Map", "ClientMap").UpdateAircraft(clientId, pair.Value);
+
+                        await hubContext.Clients.Groups("Admin").UpdateAircraft(clientId, new AircraftStatus(pair.Value)
+                        {
+                            ClientVersion = FlightEventHub.ConnetionIdToClientInfos.ContainsKey(pair.Key) ? FlightEventHub.ConnetionIdToClientInfos[pair.Key].ClientVersion : "?"
+                        });
                     }
                     else
                     {
