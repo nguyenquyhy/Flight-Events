@@ -7,6 +7,7 @@ import StopwatchPage from './components/Pages/StopwatchPage';
 import LeaderboardPage from './components/Pages/LeaderboardPage';
 import OverlayTime from './components/Pages/OverlayTime';
 import OverlayLiveLeaderboard from './components/Pages/OverlayLiveLeaderboard';
+import OverlayData from './components/Pages/OverlayData';
 import FlightPlanCreatePage from './components/Pages/FlightPlanCreatePage';
 import FlightPlanListPage from './components/Pages/FlightPlanListPage';
 import ClientsPage from './components/Pages/ClientsPage';
@@ -29,6 +30,8 @@ export default class App extends Component {
                 <Route exact path='/Events/:id/Overlay/LiveLeaderboard' component={OverlayLiveLeaderboard} />
                 <Route exact path='/FlightPlans/Create' component={FlightPlanCreatePage} />
                 <Route exact path='/FlightPlans' component={FlightPlanListPage} />
+
+                <Route exact path='/Overlay/Data' component={OverlayData} />
 
                 <Route exact path='/Admin/Clients' component={ClientsPage} />
                 <Route exact path='/Admin/Data' component={DataPage} />
