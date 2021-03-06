@@ -14,13 +14,13 @@ namespace FlightEvents.DiscordBot
 {
     public class MovingWorker : BackgroundService
     {
+        private readonly DiscordSocketClient botClient = new DiscordSocketClient();
         private readonly ILogger<MovingWorker> logger;
         private readonly AppOptions appOptions;
         private readonly DiscordOptions discordOptions;
         private readonly IDiscordConnectionStorage discordConnectionStorage;
         private readonly HubConnection hub;
         private readonly ChannelMaker channelMaker;
-        private DiscordSocketClient botClient;
 
         public MovingWorker(ILogger<MovingWorker> logger,
             IOptionsMonitor<AppOptions> appOptionsAccessor,
@@ -55,36 +55,59 @@ namespace FlightEvents.DiscordBot
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            try
+            await ConnectToSignalR();
+            await ConnectToDiscord();
+
+            while (!stoppingToken.IsCancellationRequested)
             {
-                logger.LogInformation("Bot running at: {time}", DateTimeOffset.Now);
+                await Task.Delay(1000, stoppingToken);
+            }
 
-                logger.LogInformation("Connecting to server URL {serverUrl}", appOptions.WebServerUrl);
-                await hub.StartAsync();
-                logger.LogInformation("Connected to SignalR server");
+            await hub.StopAsync();
+            logger.LogInformation("{worker} disconnected from SignalR server", nameof(MovingWorker));
 
+            await botClient.LogoutAsync();
+            await botClient.StopAsync();
+            logger.LogInformation("{worker} disconnected from Discord", nameof(MovingWorker));
+        }
+
+        private async Task ConnectToSignalR()
+        {
+            while (true)
+            {
                 try
                 {
-                    botClient = new DiscordSocketClient();
-                    botClient.GuildAvailable += BotClient_GuildAvailable;
-                    await botClient.LoginAsync(TokenType.Bot, discordOptions.BotToken);
-                    await botClient.StartAsync();
-                    logger.LogInformation("Connected to Discord");
+                    await hub.StartAsync();
+                    logger.LogInformation("{worker} connected to SignalR server", nameof(MovingWorker));
+                    break;
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Cannot connect to Discord");
-                    throw;
+                    logger.LogError(ex, "{worker} cannot connect to SignalR. Reconnect in 30s...", nameof(MovingWorker));
                 }
 
-                while (!stoppingToken.IsCancellationRequested)
-                {
-                    await Task.Delay(1000, stoppingToken);
-                }
+                await Task.Delay(30000);
             }
-            catch (Exception ex)
+        }
+
+        private async Task ConnectToDiscord()
+        {
+            botClient.GuildAvailable += BotClient_GuildAvailable;
+            while (true)
             {
-                logger.LogError(ex, "Cannot initialize bot");
+                try
+                {
+                    await botClient.LoginAsync(TokenType.Bot, discordOptions.BotToken);
+                    await botClient.StartAsync();
+                    logger.LogInformation("{worker} connected to Discord", nameof(MovingWorker));
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "{worker} cannot connect to Discord. Reconnect in 30s...", nameof(MovingWorker));
+                }
+
+                await Task.Delay(30000);
             }
         }
 

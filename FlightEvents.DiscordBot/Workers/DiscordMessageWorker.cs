@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using FlightEvents.Data;
 using FlightEvents.DiscordBot.MessageHandlers;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Hosting;
@@ -16,7 +15,7 @@ namespace FlightEvents.DiscordBot
 {
     public class DiscordMessageWorker : BackgroundService
     {
-        private readonly DiscordSocketClient botClient;
+        private readonly DiscordSocketClient botClient = new DiscordSocketClient();
         private readonly ILogger<DiscordMessageWorker> logger;
         private readonly DiscordOptions discordOptions;
 
@@ -31,8 +30,6 @@ namespace FlightEvents.DiscordBot
             this.logger = logger;
             this.discordOptions = discordOptionsAccessor.CurrentValue;
 
-            botClient = new DiscordSocketClient();
-
             messageHandlers = new List<IMessageHandler>
             {
                 new RateChangeMessageHandler(hub),
@@ -42,18 +39,37 @@ namespace FlightEvents.DiscordBot
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            try
+            await ConnectToDiscord();
+
+            while (!stoppingToken.IsCancellationRequested)
             {
-                botClient.MessageReceived += BotClient_MessageReceived;
-                botClient.GuildAvailable += BotClient_GuildAvailable;
-                await botClient.LoginAsync(TokenType.Bot, discordOptions.BotToken);
-                await botClient.StartAsync();
-                logger.LogInformation("Connected to Discord");
+                await Task.Delay(1000, stoppingToken);
             }
-            catch (Exception ex)
+
+            await botClient.LogoutAsync();
+            await botClient.StopAsync();
+            logger.LogInformation("{worker} disconnected from Discord", nameof(DiscordMessageWorker));
+        }
+
+        private async Task ConnectToDiscord()
+        {
+            botClient.MessageReceived += BotClient_MessageReceived;
+            botClient.GuildAvailable += BotClient_GuildAvailable;
+            while (true)
             {
-                logger.LogError(ex, "Cannot connect to Discord");
-                throw;
+                try
+                {
+                    await botClient.LoginAsync(TokenType.Bot, discordOptions.BotToken);
+                    await botClient.StartAsync();
+                    logger.LogInformation("{worker} connected to Discord", nameof(DiscordMessageWorker));
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "{worker} cannot connect to Discord. Reconnect in 60s...", nameof(DiscordMessageWorker));
+                }
+
+                await Task.Delay(60000);
             }
         }
 

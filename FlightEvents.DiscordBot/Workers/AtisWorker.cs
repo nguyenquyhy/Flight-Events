@@ -21,6 +21,7 @@ namespace FlightEvents.DiscordBot
         private readonly Regex regexStart = new Regex("^!atis ([0-9.]+)(.*)$", RegexOptions.IgnoreCase);
         private readonly Regex regexStop = new Regex("!atis stop ([0-9.]+)", RegexOptions.IgnoreCase);
 
+        private readonly DiscordSocketClient botClient = new DiscordSocketClient();
         private readonly ILogger<AtisWorker> logger;
         private readonly ChannelMaker channelMaker;
         private readonly RegexMatcher regexMatcher;
@@ -48,19 +49,37 @@ namespace FlightEvents.DiscordBot
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            try
+            await ConnectToDiscord();
+
+            while (!stoppingToken.IsCancellationRequested)
             {
-                var botClient = new DiscordSocketClient();
-                botClient.GuildAvailable += BotClient_GuildAvailable;
-                botClient.MessageReceived += BotClient_MessageReceived;
-                await botClient.LoginAsync(TokenType.Bot, discordOptions.BotToken);
-                await botClient.StartAsync();
-                logger.LogInformation("Connected to Discord");
+                await Task.Delay(1000, stoppingToken);
             }
-            catch (Exception ex)
+
+            await botClient.LogoutAsync();
+            await botClient.StopAsync();
+            logger.LogInformation("{worker} disconnected from Discord", nameof(AtisWorker));
+        }
+
+        private async Task ConnectToDiscord()
+        {
+            botClient.GuildAvailable += BotClient_GuildAvailable;
+            botClient.MessageReceived += BotClient_MessageReceived;
+            while (true)
             {
-                logger.LogError(ex, "Cannot connect to Discord");
-                throw;
+                try
+                {
+                    await botClient.LoginAsync(TokenType.Bot, discordOptions.BotToken);
+                    await botClient.StartAsync();
+                    logger.LogInformation("{worker} connected to Discord", nameof(AtisWorker));
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "{worker} cannot connect to Discord. Reconnect in 60s...", nameof(AtisWorker));
+                }
+
+                await Task.Delay(60000);
             }
         }
 
