@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using FlightEvents.Data;
 using FlightEvents.DiscordBot.MessageHandlers;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Hosting;
@@ -16,29 +17,38 @@ namespace FlightEvents.DiscordBot
     public class DiscordMessageWorker : BackgroundService
     {
         private readonly DiscordSocketClient botClient = new DiscordSocketClient();
+        private readonly ILoggerFactory loggerFactory;
         private readonly ILogger<DiscordMessageWorker> logger;
+        private readonly IDiscordServerStorage discordServerStorage;
+        private readonly HubConnection hub;
         private readonly DiscordOptions discordOptions;
 
-        private readonly List<IMessageHandler> messageHandlers;
+        private List<IMessageHandler> messageHandlers;
 
         public DiscordMessageWorker(
             ILoggerFactory loggerFactory,
             ILogger<DiscordMessageWorker> logger,
             IOptionsMonitor<DiscordOptions> discordOptionsAccessor,
+            IDiscordServerStorage discordServerStorage,
             HubConnection hub)
         {
+            this.loggerFactory = loggerFactory;
             this.logger = logger;
             this.discordOptions = discordOptionsAccessor.CurrentValue;
-
-            messageHandlers = new List<IMessageHandler>
-            {
-                new RateChangeMessageHandler(hub),
-                new FlightInfoMessageHandler(loggerFactory.CreateLogger<FlightInfoMessageHandler>(), discordOptionsAccessor,  hub)
-            };
+            this.discordServerStorage = discordServerStorage;
+            this.hub = hub;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            var servers = await discordServerStorage.GetDiscordServersAsync();
+
+            messageHandlers = new List<IMessageHandler>
+            {
+                new RateChangeMessageHandler(hub),
+                new FlightInfoMessageHandler(loggerFactory.CreateLogger<FlightInfoMessageHandler>(), hub, servers)
+            };
+
             await ConnectToDiscord();
 
             while (!stoppingToken.IsCancellationRequested)

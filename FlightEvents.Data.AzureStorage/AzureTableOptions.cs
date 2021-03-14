@@ -12,6 +12,8 @@ namespace FlightEvents.Data
     {
         [Required]
         public string DiscordConnectionTable { get; set; }
+        [Required]
+        public string DiscordServerTable { get; set; }
     }
 
     public class AzureTableLeaderboardOptions : AzureTableBaseOptions

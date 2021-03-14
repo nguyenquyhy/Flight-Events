@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,20 +17,25 @@ namespace FlightEvents.DiscordBot
     {
         private readonly DiscordSocketClient botClient = new DiscordSocketClient();
         private readonly ILogger<MovingWorker> logger;
+        private readonly IDiscordServerStorage discordServerStorage;
         private readonly AppOptions appOptions;
         private readonly DiscordOptions discordOptions;
         private readonly IDiscordConnectionStorage discordConnectionStorage;
         private readonly HubConnection hub;
         private readonly ChannelMaker channelMaker;
 
+        private List<DiscordServer> servers;
+
         public MovingWorker(ILogger<MovingWorker> logger,
             IOptionsMonitor<AppOptions> appOptionsAccessor,
             IOptionsMonitor<DiscordOptions> discordOptionsAccessor,
+            IDiscordServerStorage discordServerStorage,
             IDiscordConnectionStorage discordConnectionStorage,
             HubConnection hub,
             ChannelMaker channelMaker)
         {
             this.logger = logger;
+            this.discordServerStorage = discordServerStorage;
             this.appOptions = appOptionsAccessor.CurrentValue;
             this.discordOptions = discordOptionsAccessor.CurrentValue;
             this.discordConnectionStorage = discordConnectionStorage;
@@ -55,6 +61,8 @@ namespace FlightEvents.DiscordBot
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            servers = await discordServerStorage.GetDiscordServersAsync();
+
             await ConnectToSignalR();
             await ConnectToDiscord();
 
@@ -135,7 +143,7 @@ namespace FlightEvents.DiscordBot
             {
                 logger.LogInformation("{guildName} is available.", guild.Name);
 
-                var serverOptions = discordOptions.Servers.SingleOrDefault(o => o.ServerId == guild.Id);
+                var serverOptions = servers.SingleOrDefault(o => o.ServerId == guild.Id);
 
                 if (serverOptions != null)
                 {
@@ -171,8 +179,8 @@ namespace FlightEvents.DiscordBot
             }
 
             SocketGuildUser guildUser = null;
-            DiscordServerOptions serverOptions = null;
-            foreach (var options in discordOptions.Servers)
+            DiscordServer serverOptions = null;
+            foreach (var options in servers)
             {
                 guildUser = botClient.Guilds.SingleOrDefault(o => o.Id == options.ServerId)?.GetUser(connection.UserId);
                 serverOptions = options;

@@ -76,6 +76,7 @@ namespace FlightEvents.DiscordBot
                     services.AddSingleton(hub);
 
                     services.AddTransient<IDiscordConnectionStorage, AzureTableDiscordConnectionStorage>();
+                    services.AddTransient<IDiscordServerStorage, AzureTableDiscordServerStorage>();
                     services.AddTransient<ChannelMaker>();
                     services.AddTransient<RegexMatcher>();
 

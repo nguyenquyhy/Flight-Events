@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using FlightEvents.Data;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace FlightEvents.DiscordBot
             this.logger = logger;
         }
 
-        public async Task<IGuildChannel> GetOrCreateVoiceChannelAsync(DiscordServerOptions serverOptions, SocketGuild guild, int? frequency)
+        public async Task<IGuildChannel> GetOrCreateVoiceChannelAsync(DiscordServer serverOptions, SocketGuild guild, int? frequency)
         {
             var channelName = frequency.HasValue ?
                 CreateChannelNameFromFrequency(serverOptions, frequency) :
@@ -52,7 +53,7 @@ namespace FlightEvents.DiscordBot
             }
         }
 
-        public string CreateChannelNameFromFrequency(DiscordServerOptions serverOptions, int? toFrequency)
+        public string CreateChannelNameFromFrequency(DiscordServer serverOptions, int? toFrequency)
             => (toFrequency.Value / 1000d).ToString("N3") + (serverOptions.ChannelNameSuffix ?? "");
     }
 }

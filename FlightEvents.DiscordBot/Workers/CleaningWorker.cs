@@ -1,10 +1,12 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using FlightEvents.Data;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -16,19 +18,26 @@ namespace FlightEvents.DiscordBot
     {
         private readonly DiscordSocketClient botClient = new DiscordSocketClient();
         private readonly ILogger<CleaningWorker> logger;
+        private readonly IDiscordServerStorage discordServerStorage;
         private readonly DiscordOptions discordOptions;
 
         private readonly ConcurrentDictionary<ulong, Stopwatch> channelStopwatches = new ConcurrentDictionary<ulong, Stopwatch>();
 
+        private List<DiscordServer> servers;
+
         public CleaningWorker(ILogger<CleaningWorker> logger,
-            IOptionsMonitor<DiscordOptions> discordOptionsAccessor)
+            IOptionsMonitor<DiscordOptions> discordOptionsAccessor,
+            IDiscordServerStorage discordServerStorage)
         {
             this.logger = logger;
+            this.discordServerStorage = discordServerStorage;
             this.discordOptions = discordOptionsAccessor.CurrentValue;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            servers = await discordServerStorage.GetDiscordServersAsync();
+
             await ConnectToDiscord();
 
             while (!stoppingToken.IsCancellationRequested)
@@ -69,7 +78,7 @@ namespace FlightEvents.DiscordBot
             {
                 logger.LogInformation("{guildName} is available.", guild.Name);
 
-                var serverOptions = discordOptions.Servers.SingleOrDefault(o => o.ServerId == guild.Id);
+                var serverOptions = servers.SingleOrDefault(o => o.ServerId == guild.Id);
 
                 if (serverOptions != null)
                 {
@@ -151,15 +160,15 @@ namespace FlightEvents.DiscordBot
 
         private void TouchVoiceChannel(SocketVoiceChannel voiceChannel)
         {
-            var serverOptions = discordOptions.Servers.SingleOrDefault(o => o.ServerId == voiceChannel.Guild.Id);
-            if (IsExtraChannel(voiceChannel, serverOptions))
+            var serverOptions = servers.SingleOrDefault(o => o.ServerId == voiceChannel.Guild.Id);
+            if (serverOptions != null && IsExtraChannel(voiceChannel, serverOptions))
             {
                 var stopwatch = AddOrGetStopwatch(voiceChannel);
                 stopwatch.Restart();
             }
         }
 
-        private bool IsExtraChannel(SocketVoiceChannel channel, DiscordServerOptions serverOptions)
+        private bool IsExtraChannel(SocketVoiceChannel channel, DiscordServer serverOptions)
             => channel.CategoryId == serverOptions.ChannelCategoryId &&
                                                     (string.IsNullOrWhiteSpace(serverOptions.LoungeChannelName) || channel.Name != serverOptions.LoungeChannelName) &&
                                                     (serverOptions.LoungeChannelId == null || channel.Id != serverOptions.LoungeChannelId.Value) &&

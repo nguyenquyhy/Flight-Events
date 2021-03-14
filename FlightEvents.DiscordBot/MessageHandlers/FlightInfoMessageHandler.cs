@@ -1,11 +1,12 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using FlightEvents.Data;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -17,19 +18,20 @@ namespace FlightEvents.DiscordBot.MessageHandlers
     {
         private readonly Regex command = new Regex("!finfo (.*)", RegexOptions.IgnoreCase);
 
-        private readonly DiscordOptions discordOptions;
         private readonly ILogger<FlightInfoMessageHandler> logger;
+        private readonly IDiscordServerStorage discordServerStorage;
         private readonly HubConnection hub;
+        private readonly List<DiscordServer> servers = null;
         private readonly HttpClient httpClient;
 
         public FlightInfoMessageHandler(
             ILogger<FlightInfoMessageHandler> logger,
-            IOptionsMonitor<DiscordOptions> discordOptionsAccessor,
-            HubConnection hub)
+            HubConnection hub,
+            List<DiscordServer> servers)
         {
-            this.discordOptions = discordOptionsAccessor.CurrentValue;
             this.logger = logger;
             this.hub = hub;
+            this.servers = servers;
             this.httpClient = new HttpClient();
 
             hub.On<ulong, string, AircraftStatus>("UpdateAircraftToDiscord", (discordClientId, clientId, status) =>
@@ -46,7 +48,7 @@ namespace FlightEvents.DiscordBot.MessageHandlers
             if (message.Channel is SocketTextChannel channel)
             {
                 var guild = channel.Guild;
-                var options = discordOptions.Servers.FirstOrDefault(o => o.ServerId == guild.Id);
+                var options = servers.FirstOrDefault(o => o.ServerId == guild.Id);
                 if (options != null)
                 {
                     var match = command.Match(message.Content);

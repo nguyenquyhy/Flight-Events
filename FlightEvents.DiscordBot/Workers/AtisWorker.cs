@@ -26,9 +26,12 @@ namespace FlightEvents.DiscordBot
         private readonly ChannelMaker channelMaker;
         private readonly RegexMatcher regexMatcher;
         private readonly AtisProcessManager atisProcessManager;
+        private readonly IDiscordServerStorage discordServerStorage;
         private readonly IAtisChannelStorage atisChannelStorage;
         private readonly AtisOptions atisOptions;
         private readonly DiscordOptions discordOptions;
+
+        private List<DiscordServer> servers;
 
         public AtisWorker(ILogger<AtisWorker> logger,
             IOptionsMonitor<AtisOptions> atisOptions,
@@ -36,12 +39,14 @@ namespace FlightEvents.DiscordBot
             ChannelMaker channelMaker,
             RegexMatcher regexMatcher,
             AtisProcessManager atisProcessManager,
+            IDiscordServerStorage discordServerStorage,
             IAtisChannelStorage atisChannelStorage)
         {
             this.logger = logger;
             this.channelMaker = channelMaker;
             this.regexMatcher = regexMatcher;
             this.atisProcessManager = atisProcessManager;
+            this.discordServerStorage = discordServerStorage;
             this.atisChannelStorage = atisChannelStorage;
             this.atisOptions = atisOptions.CurrentValue;
             this.discordOptions = discordOptions.CurrentValue;
@@ -49,6 +54,8 @@ namespace FlightEvents.DiscordBot
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            servers = await discordServerStorage.GetDiscordServersAsync();
+
             await ConnectToDiscord();
 
             while (!stoppingToken.IsCancellationRequested)
@@ -89,7 +96,7 @@ namespace FlightEvents.DiscordBot
             {
                 if (message.Channel is SocketTextChannel channel)
                 {
-                    var serverOptions = discordOptions.Servers.FirstOrDefault(guild => guild.ServerId == channel.Guild.Id);
+                    var serverOptions = servers.FirstOrDefault(guild => guild.ServerId == channel.Guild.Id);
 
                     if (serverOptions?.CommandChannelId == channel.Id)
                     {
@@ -120,7 +127,7 @@ namespace FlightEvents.DiscordBot
             }
         }
 
-        private async Task HandleStartCommandAsync(Match match, SocketMessage message, SocketTextChannel channel, DiscordServerOptions serverOptions)
+        private async Task HandleStartCommandAsync(Match match, SocketMessage message, SocketTextChannel channel, DiscordServer serverOptions)
         {
             logger.LogInformation("Process ATIS bot start command");
 
@@ -144,7 +151,7 @@ namespace FlightEvents.DiscordBot
             }
         }
 
-        private async Task HandleStopCommandAsync(Match match, SocketMessage message, SocketGuild guild, DiscordServerOptions serverOptions)
+        private async Task HandleStopCommandAsync(Match match, SocketMessage message, SocketGuild guild, DiscordServer serverOptions)
         {
             logger.LogInformation("Process ATIS bot stop command");
 
@@ -167,7 +174,7 @@ namespace FlightEvents.DiscordBot
             }
         }
 
-        private async Task ProcessBotRequestAsync(SocketMessage message, SocketTextChannel channel, DiscordServerOptions serverOptions, double frequency, string nickname)
+        private async Task ProcessBotRequestAsync(SocketMessage message, SocketTextChannel channel, DiscordServer serverOptions, double frequency, string nickname)
         {
             try
             {
@@ -191,7 +198,7 @@ namespace FlightEvents.DiscordBot
             }
         }
 
-        private async Task CreateVoiceChannelAndStartBotAsync(SocketGuild guild, DiscordServerOptions serverOptions, double frequency, string nickname,
+        private async Task CreateVoiceChannelAndStartBotAsync(SocketGuild guild, DiscordServer serverOptions, double frequency, string nickname,
             string filePath, RestUserMessage response = null, ulong? previousChannelId = null, string previousFilePath = null)
         {
             var voiceChannel = await channelMaker.GetOrCreateVoiceChannelAsync(serverOptions, guild, (int)(frequency * 1000));
@@ -256,7 +263,7 @@ namespace FlightEvents.DiscordBot
         /// </summary>
         private async Task BotClient_GuildAvailable(SocketGuild guild)
         {
-            var serverOptions = discordOptions.Servers.FirstOrDefault(option => option.ServerId == guild.Id);
+            var serverOptions = servers.FirstOrDefault(option => option.ServerId == guild.Id);
 
             if (serverOptions?.CommandChannelId != null)
             {
