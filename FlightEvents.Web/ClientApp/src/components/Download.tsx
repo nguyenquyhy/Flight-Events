@@ -99,7 +99,7 @@ const Download = () => {
                     <TabPane tabId="Discord">
                         <Wrapper>
                             <p>Discord-related functions of Flight Events, including frequency channel switching and ATIS bots, can be added to any server.</p>
-                            <p>You can follow our <a href="https://github.com/nguyenquyhy/Flight-Events/blob/master/SERVER.md" target="_blank" rel="noopener noreferrer">Server Guide</a> for setting up instructions.</p>
+                            <p>You can follow our <a href="https://github.com/nguyenquyhy/Flight-Events/blob/main/SERVER.md" target="_blank" rel="noopener noreferrer">Server Guide</a> for setting up instructions.</p>
                         </Wrapper>
                     </TabPane>
                     <TabPane tabId="Feedback">
