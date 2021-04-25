@@ -139,7 +139,7 @@ namespace FlightEvents.Web.Hubs
                 }
                 if (fromFrequency != status?.FrequencyCom)
                 {
-                    await Clients.Groups("Bot").ChangeFrequency(clientId, fromFrequency, status?.FrequencyCom);
+                    await Clients.Groups("Bot").ChangeFrequency(clientId, fromFrequency, FixEuroscopeFrequency(status?.FrequencyCom));
                 }
 
                 await Clients.Groups("Map").UpdateATC(clientId, status, atc);
@@ -632,6 +632,20 @@ namespace FlightEvents.Web.Hubs
 
         private static bool IsPublicGroup(string groupName)
             => groupName == "ATC" || groupName == "ClientMap" || groupName.StartsWith("Leaderboard:") || groupName.StartsWith("Stopwatch:");
+
+        private static int? FixEuroscopeFrequency(int? frequency)
+        {
+            if (frequency.HasValue)
+            {
+                var twoDigits = frequency.Value % 100;
+                if (twoDigits == 20 || twoDigits == 40 || twoDigits == 70)
+                {
+                    return frequency.Value + 5;
+                }
+            }
+
+            return frequency;
+        }
     }
 
     public class EventStopwatch
