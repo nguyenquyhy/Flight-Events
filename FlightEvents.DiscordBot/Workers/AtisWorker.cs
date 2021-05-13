@@ -157,7 +157,7 @@ namespace FlightEvents.DiscordBot
 
             if (double.TryParse(match.Groups[1].Value, out var frequency))
             {
-                var channelName = channelMaker.CreateChannelNameFromFrequency(serverOptions, (int)(frequency * 1000));
+                var channelName = channelMaker.CreateChannelNameFromFrequency(serverOptions, (int)Math.Round(frequency * 1000));
 
                 if (await atisProcessManager.StopAtisAsync(guild.Id, channelName))
                 {
@@ -201,7 +201,7 @@ namespace FlightEvents.DiscordBot
         private async Task CreateVoiceChannelAndStartBotAsync(SocketGuild guild, DiscordServer serverOptions, double frequency, string nickname,
             string filePath, RestUserMessage response = null, ulong? previousChannelId = null, string previousFilePath = null)
         {
-            var voiceChannel = await channelMaker.GetOrCreateVoiceChannelAsync(serverOptions, guild, (int)(frequency * 1000));
+            var voiceChannel = await channelMaker.GetOrCreateVoiceChannelAsync(serverOptions, guild, (int)Math.Round(frequency * 1000));
 
             if (response != null)
             {
