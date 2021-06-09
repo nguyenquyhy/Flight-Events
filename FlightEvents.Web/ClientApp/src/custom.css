@@ -51,3 +51,15 @@ code {
 .nav-tabs .nav-link {
     cursor: pointer;
 }
+
+.measurement-label {
+    background-color: rgba(255, 255, 255, 0.8);
+    font-weight: bold;
+    padding: 5px;
+    width: auto !important;
+    height: auto !important;
+}
+
+.crosshair {
+    cursor: crosshair;
+}

@@ -28,6 +28,8 @@ export interface IMap {
     clearTrack(id: string);
 
     changeMode(dark: boolean);
+
+    startDrawing();
 }
 
 export type OnViewChangedFn = (view: View) => void;

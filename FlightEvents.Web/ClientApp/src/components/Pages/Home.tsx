@@ -12,6 +12,7 @@ import AircraftList, { AircraftStatusInList } from '../AircraftList';
 import ControllerList from '../ControllerList';
 import EventList from '../EventList';
 import Display from '../Display';
+import Ruler from '../Ruler';
 import Hud from '../Hud';
 import { IMap, MapTileType, View, MapPosition } from '../../maps/IMap';
 import LeafletMap from '../../maps/LeaftletMap';
@@ -521,6 +522,8 @@ export class Home extends React.Component<Props, State> {
                     isDark={this.state.isDark} onIsDarkChanged={this.handleIsDarkChanged}
                     dimension={this.state.map3D ? "3D" : "2D"} onDimensionChanged={this.handleMapDimensionChanged}
                     tileType={this.state.mapTileType} onTileTypeChanged={this.handleTileTypeChanged} />
+
+                <Ruler map={this.map} />
 
                 <Hud
                     mode={this.mode}

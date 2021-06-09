@@ -1,5 +1,6 @@
 ﻿import { IMap, MapTileType, OnViewChangedFn, View, OnAircraftMovedFn, OnSetClientIdFn, OnSetOptionalClientIdFn } from './IMap';
 import * as L from 'leaflet';
+import LG from 'leaflet-geometryutil'
 import 'leaflet-rotatedmarker';
 import 'overpass-layer/dist/overpass-layer';
 import 'leaflet-contextmenu';
@@ -64,6 +65,9 @@ export default class LeafletMap implements IMap {
     initialView?: View;
 
     isDark: boolean = false;
+    isDrawing = false;
+
+    measurement: L.Polyline | null = null;
 
     public initialize(divId: string, view: View | undefined, mode: string | null) {
         const map = this.mymap =
@@ -90,6 +94,22 @@ export default class LeafletMap implements IMap {
             if (this.onViewChangedHandler) {
                 this.onViewChangedHandler({ latitude: center.lat, longitude: center.lng, zoom: zoom });
             }
+        });
+
+        this.mymap.on('mousedown', (e: L.LeafletMouseEvent) => {
+            if (this.mymap && this.isDrawing) {
+                this.measurement = L.polyline([e.latlng, e.latlng]).addTo(this.mymap);
+            }
+        });
+        this.mymap.on('mousemove', (e: L.LeafletMouseEvent) => {
+            if (this.isDrawing && this.measurement) {
+                let latlng = this.measurement.getLatLngs() as L.LatLng[];
+                latlng[1] = e.latlng;
+                this.measurement.setLatLngs(latlng);
+            }
+        });
+        this.mymap.on('mouseup', (e: L.LeafletMouseEvent) => {
+            this.stopDrawing();
         });
 
         this.baseLayerGroup.addTo(this.mymap);
@@ -134,6 +154,33 @@ export default class LeafletMap implements IMap {
     public deinitialize() {
         this.onViewChangedHandler = null;
         this.mymap?.remove();
+    }
+
+    public startDrawing() {
+        const map = this.mymap;
+        if (map) {
+            map.dragging.disable();
+            map.getContainer().classList.add("crosshair");
+            this.measurement = null;
+            this.isDrawing = true;
+        }
+    }
+
+    public stopDrawing() {
+        const map = this.mymap;
+        if (map && this.isDrawing && this.measurement) {
+            map.getContainer().classList.remove("crosshair");
+            map.dragging.enable();
+            this.isDrawing = false;
+
+            const latlng = this.measurement.getLatLngs() as L.LatLng[];
+            const nm = map.distance(latlng[0], latlng[1]) / 1852;
+            const bearing = LG.bearing(latlng[0], latlng[1]);
+
+            L.marker([(latlng[0].lat + latlng[1].lat) / 2, (latlng[0].lng + latlng[1].lng) / 2], {
+                icon: L.divIcon({ html: `${nm.toFixed(1)}nm<br />${((bearing + 360) % 360).toFixed(0)}°`, className: 'measurement-label' })
+            }).addTo(map);
+        }
     }
 
     public changeMode(dark: boolean) {
