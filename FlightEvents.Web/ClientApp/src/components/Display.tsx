@@ -83,7 +83,7 @@ const ExpandedDiv = styled.div`
 position: absolute;
 top: 80px;
 left: 10px;
-z-index: 1000;
+z-index: 10000;
 box-shadow: 0 1px 5px rgba(0,0,0,0.65);
 border-radius: 4px;
 background-color: rgba(255,255,255,0.6);
