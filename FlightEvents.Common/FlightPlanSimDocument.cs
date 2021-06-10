@@ -46,8 +46,14 @@ namespace FlightEvents
                 },
                 Waypoints = ATCWaypoint?.Select(o => o.ToData())
             };
-            (data.Departure.Latitude, data.Departure.Longitude, data.Departure.Altitude) = GpsHelper.ConvertString(DepartureLLA);
-            (data.Destination.Latitude, data.Destination.Longitude, data.Destination.Altitude) = GpsHelper.ConvertString(DestinationLLA);
+            if (!string.IsNullOrWhiteSpace(DepartureLLA))
+            {
+                (data.Departure.Latitude, data.Departure.Longitude, data.Departure.Altitude) = GpsHelper.ConvertString(DepartureLLA);
+            }
+            if (!string.IsNullOrWhiteSpace(DestinationLLA))
+            {
+                (data.Destination.Latitude, data.Destination.Longitude, data.Destination.Altitude) = GpsHelper.ConvertString(DestinationLLA);
+            }
             return data;
         }
 
