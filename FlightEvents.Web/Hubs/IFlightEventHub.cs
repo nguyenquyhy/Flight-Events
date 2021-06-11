@@ -84,6 +84,7 @@ namespace FlightEvents.Web.Hubs
         /// <param name="connectionId">Connection ID of the requesting map</param>
         Task Teleport(string connectionId, AircraftPosition position);
 
+        Task ReturnStopwatches(List<EventStopwatch> stopwatches);
         Task UpdateStopwatch(EventStopwatch stopwatch, DateTimeOffset serverTime);
         Task RemoveStopwatch(EventStopwatch stopwatch);
         Task UpdateLeaderboard(List<LeaderboardRecord> leaderboardRecords);

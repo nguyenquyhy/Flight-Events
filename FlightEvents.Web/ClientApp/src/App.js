@@ -12,6 +12,7 @@ import FlightPlanCreatePage from './components/Pages/FlightPlanCreatePage';
 import FlightPlanListPage from './components/Pages/FlightPlanListPage';
 import ClientsPage from './components/Pages/ClientsPage';
 import DataPage from './components/Pages/DataPage';
+import AdminStopwatchesPage from './components/Pages/AdminStopwatchesPage';
 
 import './custom.css'
 
@@ -35,6 +36,7 @@ export default class App extends Component {
 
                 <Route exact path='/Admin/Clients' component={ClientsPage} />
                 <Route exact path='/Admin/Data' component={DataPage} />
+                <Route exact path='/Admin/Stopwatches' component={AdminStopwatchesPage} />
             </>
         );
     }

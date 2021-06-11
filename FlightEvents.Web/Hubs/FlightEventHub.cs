@@ -424,6 +424,26 @@ namespace FlightEvents.Web.Hubs
         private static ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, EventStopwatch>> stopwatches = new ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, EventStopwatch>>();
 
         [Authorize(Policy = "StopwatchManager")]
+        public async Task GetStopwatches()
+        {
+            await Clients.Caller.ReturnStopwatches(stopwatches.Values.SelectMany(o => o.Values).ToList());
+        }
+
+        [Authorize(Policy = "StopwatchManager")]
+        public async Task AddStopwatches(List<EventStopwatch> inputStopwatches)
+        {
+            foreach (var input in inputStopwatches)
+            {
+                var eventStopwatches = stopwatches.GetOrAdd(input.EventId, new ConcurrentDictionary<Guid, EventStopwatch>());
+                eventStopwatches.TryRemove(input.Id, out _);
+                if (eventStopwatches.TryAdd(input.Id, input))
+                {
+                    await Clients.Group("Stopwatch:" + input.EventId).UpdateStopwatch(input, DateTimeOffset.UtcNow);
+                }
+            }
+        }
+
+        [Authorize(Policy = "StopwatchManager")]
         public async Task AddStopwatch(EventStopwatch input)
         {
             var stopwatch = new EventStopwatch
