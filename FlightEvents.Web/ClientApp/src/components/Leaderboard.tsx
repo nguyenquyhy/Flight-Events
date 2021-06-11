@@ -38,7 +38,7 @@ const Leaderboard = (props: LeaderboardProps) => {
         <table className="table table-bordered">
             <thead>
                 <tr>
-                    <th rowSpan={2}></th>
+                    {milestones.length > 1 && <th rowSpan={2}></th>}
                     {!!props.event.leaderboards && props.event.leaderboards.map(leaderboardName => <th key={leaderboardName} colSpan={3}>{leaderboardName}</th>)}
                 </tr>
                 <tr>
@@ -47,7 +47,7 @@ const Leaderboard = (props: LeaderboardProps) => {
             </thead>
             <tbody>
                 {milestones.map((milestoneName, subIndex) => <tr key={subIndex}>
-                    <td>{milestoneName}</td>
+                    {milestones.length > 1 && <td>{milestoneName}</td>}
                     {!!props.event.leaderboards && props.event.leaderboards.map(leaderboardName => {
                         let leaderboard = props.leaderboards[leaderboardName];
                         if (!leaderboard) return <React.Fragment key={leaderboardName}><td></td><td></td><td></td></React.Fragment>;
