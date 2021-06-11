@@ -43,6 +43,7 @@ export default class EventItem extends React.Component<Props, State> {
                 endDateTime={this.props.flightEvent.endDateTime ? parseJSON(this.props.flightEvent.endDateTime) : addHours(parseJSON(this.props.flightEvent.startDateTime), 4)}
                 onClick={this.handleToggle}>
                 <EventTitle>{this.props.flightEvent.name}</EventTitle>
+                <EventType className="badge rounded-pill bg-secondary">{this.props.flightEvent.type}</EventType>
                 <EventSubtitle>
                     ({formatRelative(parseJSON(this.props.flightEvent.startDateTime), new Date())})
                 </EventSubtitle>
@@ -61,6 +62,14 @@ const EventTitle = styled.h3`
 font-size: 1.1em;
 font-weight: semi-bold;
 margin-bottom: 0;
+min-width: 240px;
+`
+
+const EventType = styled.div`
+float: left;
+color: white;
+margin-top: 4px;
+margin-bottom: -1px;
 `
 
 const EventSubtitle = styled.div`
