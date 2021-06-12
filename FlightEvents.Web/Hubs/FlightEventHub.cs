@@ -528,7 +528,7 @@ namespace FlightEvents.Web.Hubs
                 stopwatch.LapsDateTime.Add(dateTime);
 
                 var evt = await flightEventStorage.GetAsync(eventId);
-                if (stopwatch.LapsDateTime.Count == evt.Checkpoints.Count - 1)
+                if (IsRaceCompleted(stopwatch, evt))
                 {
                     stopwatch.StoppedDateTime = dateTime;
                 }
@@ -568,48 +568,44 @@ namespace FlightEvents.Web.Hubs
 
                 var evt = await flightEventStorage.GetAsync(eventId);
                 // Create leaderboard for each lap and full race
-                if (stopwatch.LapsDateTime.Count == evt.Checkpoints.Count - 1)
+                if (IsRaceCompleted(stopwatch, evt))
                 {
-                    var lapTime = stopwatch.LapsDateTime[^1] - stopwatch.StartedDateTime.Value;
-
-                    var leaderboardRecord = new LeaderboardRecord
-                    {
-                        EventId = evt.Id,
-                        LeaderboardName = stopwatch.LeaderboardName,
-                        SubIndex = 0,
-                        PlayerName = stopwatch.Name,
-                        Score = -(long)lapTime.TotalMilliseconds,
-                        ScoreDisplay = $"{lapTime.Hours:00}:{lapTime.Minutes:00}:{lapTime.Seconds:00}.{lapTime.Milliseconds:000}",
-                        TimeSinceStart = (long)lapTime.TotalMilliseconds
-                    };
-
-                    await leaderboardStorage.SaveAsync(leaderboardRecord);
+                    // If there is no checkpoint or racers complete all checkpoint, create full race lap
+                    await CreateFullRaceLeaderboardRecord(stopwatch);
                 }
 
-                for (var i = 0; i < stopwatch.LapsDateTime.Count; i++)
+                if (evt.Checkpoints != null)
                 {
-                    var startTime = i == 0 ? stopwatch.StartedDateTime.Value : stopwatch.LapsDateTime[i - 1];
-                    var lapTime = stopwatch.LapsDateTime[i] - startTime;
-
-                    var leaderboardRecord = new LeaderboardRecord
+                    for (var i = 0; i < stopwatch.LapsDateTime.Count; i++)
                     {
-                        EventId = evt.Id,
-                        LeaderboardName = stopwatch.LeaderboardName,
-                        SubIndex = i + 1,
-                        PlayerName = stopwatch.Name,
-                        Score = -(long)lapTime.TotalMilliseconds,
-                        ScoreDisplay = $"{lapTime.Hours:00}:{lapTime.Minutes:00}:{lapTime.Seconds:00}.{lapTime.Milliseconds:000}",
-                        TimeSinceStart = (long)(stopwatch.LapsDateTime[i] - stopwatch.StartedDateTime.Value).TotalMilliseconds,
-                        TimeSinceLast = (long)lapTime.TotalMilliseconds
-                    };
-
-                    await leaderboardStorage.SaveAsync(leaderboardRecord);
+                        // If there is no checkpoint or racers complete all checkpoint, create record for each lap
+                        await CreateLapLeaderboardRecord(stopwatch, i);
+                    }
                 }
 
                 var records = await leaderboardStorage.LoadAsync(evt.Id);
                 await Clients.Group("Stopwatch:" + eventId).UpdateLeaderboard(records);
                 await Clients.Group("Leaderboard:" + evt.Id).UpdateLeaderboard(records);
             }
+        }
+
+        private async Task CreateFullRaceLeaderboardRecord(EventStopwatch stopwatch)
+        {
+            var lapTime = stopwatch.LapsDateTime[^1] - stopwatch.StartedDateTime.Value;
+
+            var leaderboardRecord = new LeaderboardRecord(stopwatch, 0, lapTime, lapTime);
+
+            await leaderboardStorage.SaveAsync(leaderboardRecord);
+        }
+
+        private async Task CreateLapLeaderboardRecord(EventStopwatch stopwatch, int i)
+        {
+            var lastTime = i == 0 ? stopwatch.StartedDateTime.Value : stopwatch.LapsDateTime[i - 1];
+            var timeSinceLast = stopwatch.LapsDateTime[i] - lastTime;
+
+            var leaderboardRecord = new LeaderboardRecord(stopwatch, i + 1, timeSinceLast, stopwatch.LapsDateTime[i] - stopwatch.StartedDateTime.Value);
+
+            await leaderboardStorage.SaveAsync(leaderboardRecord);
         }
 
         [Authorize(Policy = "StopwatchManager")]
@@ -666,17 +662,11 @@ namespace FlightEvents.Web.Hubs
 
             return frequency;
         }
-    }
 
-    public class EventStopwatch
-    {
-        public Guid Id { get; set; }
-        public Guid EventId { get; set; }
-        public string LeaderboardName { get; set; }
-        public string Name { get; set; }
-        public DateTimeOffset AddedDateTime { get; set; }
-        public DateTimeOffset? StartedDateTime { get; set; }
-        public List<DateTimeOffset> LapsDateTime { get; set; } = new List<DateTimeOffset>();
-        public DateTimeOffset? StoppedDateTime { get; set; }
+        private static bool IsRaceCompleted(EventStopwatch stopwatch, Data.FlightEvent evt)
+        {
+            return (evt.Checkpoints == null && stopwatch.LapsDateTime.Count > 0)
+                || (evt.Checkpoints != null && stopwatch.LapsDateTime.Count == evt.Checkpoints.Count - 1);
+        }
     }
 }

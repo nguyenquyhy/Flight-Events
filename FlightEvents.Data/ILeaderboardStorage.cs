@@ -6,6 +6,23 @@ namespace FlightEvents.Data
 {
     public class LeaderboardRecord
     {
+        public LeaderboardRecord()
+        {
+
+        }
+
+        public LeaderboardRecord(EventStopwatch stopwatch, int leaderboardSubIndex, TimeSpan timeSinceLast, TimeSpan timeSinceStart)
+        {
+            EventId = stopwatch.EventId;
+            LeaderboardName = stopwatch.LeaderboardName;
+            SubIndex = leaderboardSubIndex;
+            PlayerName = stopwatch.Name;
+            Score = -(long)timeSinceLast.TotalMilliseconds;
+            ScoreDisplay = $"{timeSinceLast.Hours:00}:{timeSinceLast.Minutes:00}:{timeSinceLast.Seconds:00}.{timeSinceLast.Milliseconds:000}";
+            TimeSinceStart = (long)timeSinceStart.TotalMilliseconds;
+            TimeSinceLast = (long)timeSinceLast.TotalMilliseconds;
+        }
+
         public Guid EventId { get; set; }
         public string PlayerName { get; set; }
         public string LeaderboardName { get; set; }
