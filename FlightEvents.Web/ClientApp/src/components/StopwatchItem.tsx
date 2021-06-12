@@ -6,6 +6,8 @@ import { Stopwatch } from '../Models';
 
 interface ItemProps {
     hub: HubConnection;
+    connected: boolean;
+
     eventId: string;
     removed: boolean;
 
@@ -84,11 +86,11 @@ const StopwatchItem = (props: ItemProps & Stopwatch) => {
 
     return <ListGroupItem>
         <div style={{ float: 'left', marginRight: 5 }}>{props.name} ({props.leaderboardName})</div>
-        {editingRemarks !== null ?
+        {!props.removed && editingRemarks !== null ?
             <RemarkEditWrapper size="sm">
                 <Input value={editingRemarks} onChange={handleChangeRemarks} />
                 <InputGroupAddon addonType="append">
-                    <Button color="primary" onClick={handleSaveRemarks}>Save</Button>
+                    <Button color="primary" onClick={handleSaveRemarks} disabled={!props.connected}>Save</Button>
                     <Button onClick={handleCancelRemark}>Cancel</Button>
                 </InputGroupAddon>
             </RemarkEditWrapper> :
@@ -99,15 +101,15 @@ const StopwatchItem = (props: ItemProps & Stopwatch) => {
         </div>
         <div>
             <ButtonGroup>
-                {!props.startedDateTime ? <Button color="primary" onClick={handleStart} disabled={props.removed}>Start</Button> : null}
-                {props.startedDateTime && !props.stoppedDateTime ? <Button onClick={handleLap} disabled={props.removed}>Lap</Button> : null}
-                {props.startedDateTime && !props.stoppedDateTime ? <Button color="warning" onClick={handleStop} disabled={props.removed}>Stop</Button> : null}
-                {props.stoppedDateTime ? <Button color="info" onClick={handleSave} disabled={props.removed}>Save</Button> : null}
+                {!props.startedDateTime ? <Button color="primary" onClick={handleStart} disabled={!props.connected || props.removed}>Start</Button> : null}
+                {props.startedDateTime && !props.stoppedDateTime ? <Button onClick={handleLap} disabled={!props.connected || props.removed}>Lap</Button> : null}
+                {props.startedDateTime && !props.stoppedDateTime ? <Button color="warning" onClick={handleStop} disabled={!props.connected || props.removed}>Stop</Button> : null}
+                {props.stoppedDateTime ? <Button color="info" onClick={handleSave} disabled={!props.connected || props.removed}>Save</Button> : null}
             </ButtonGroup>
             <ButtonGroup style={{ float: 'right' }}>
-                {props.stoppedDateTime ? <Button onClick={handleRestart} disabled={props.removed}>Restart</Button> : null}
-                {props.stoppedDateTime ? <Button onClick={handleReset} disabled={props.removed}>Reset</Button> : null}
-                {!props.startedDateTime || props.stoppedDateTime ? <Button color="danger" onClick={handleRemove} disabled={props.removed}>Remove</Button> : null}
+                {props.stoppedDateTime ? <Button onClick={handleRestart} disabled={!props.connected || props.removed}>Restart</Button> : null}
+                {props.stoppedDateTime ? <Button onClick={handleReset} disabled={!props.connected || props.removed}>Reset</Button> : null}
+                {!props.startedDateTime || props.stoppedDateTime ? <Button color="danger" onClick={handleRemove} disabled={!props.connected || props.removed}>Remove</Button> : null}
             </ButtonGroup>
         </div>
 

@@ -48,6 +48,7 @@ const hub = new HubConnectionBuilder()
 window["shift"] = 0;
 
 export default (props: RouteComponentProps<RouteProps>) => {
+    const [connected, setConnected] = React.useState(false);
     const [state, setState] = React.useState<State>({ stopwatches: {}, removedStopwatches: {}, name: '', leaderboardName: '', leaderboards: {} });
 
     return <Query query={QUERY} variables={{ id: props.match.params.id }}>{({ loading, error, data }: ApolloQueryResult<{ flightEvent: FlightEvent }>) => {
@@ -55,6 +56,19 @@ export default (props: RouteComponentProps<RouteProps>) => {
         if (error) return <>Cannot load event!</>
 
         const event = data.flightEvent;
+
+        const handleConnected = () => {
+            setState(state => ({
+                ...state,
+                stopwatches: {},
+                removedStopwatches: {}
+            }));
+            setConnected(true);
+        }
+
+        const handleDisconnected = () => {
+            setConnected(false);
+        }
 
         const handleLeaderboardNameChanged = (e) => {
             setState({ ...state, leaderboardName: e.target.value });
@@ -124,6 +138,8 @@ export default (props: RouteComponentProps<RouteProps>) => {
             <StopwatchHub
                 eventId={event.id}
                 hub={hub}
+                onConnected={handleConnected}
+                onDisconnected={handleDisconnected}
                 onUpdateStopwatch={handleUpdateStopwatch}
                 onRemoveStopwatch={handleRemoveStopwatch}
                 onUpdateLeaderboard={handleUpdateLeaderboard}
@@ -149,17 +165,17 @@ export default (props: RouteComponentProps<RouteProps>) => {
                                 </select>
                             </InputGroupAddon>
                             <Input value={state.name} onChange={handleNameChanged} placeholder="Name" />
-                            <InputGroupAddon addonType="append"><Button type="submit">Add</Button></InputGroupAddon>
+                            <InputGroupAddon addonType="append"><Button type="submit" disabled={!connected}>{connected ? "Add" : "Disconnected"}</Button></InputGroupAddon>
                         </InputGroup>
                     </Form>
                     <hr />
                     <ButtonGroup>
-                        {Object.keys(state.stopwatches).length > 0 && <Button color="primary" onClick={handleStartAll}>Start All</Button>}
-                        <Button color="info" onClick={handleReloadLeaderboard}>Reload Leaderboard</Button>
+                        {Object.keys(state.stopwatches).length > 0 && <Button color="primary" onClick={handleStartAll} disabled={!connected}>Start All</Button>}
+                        <Button color="info" onClick={handleReloadLeaderboard} disabled={!connected}>Reload Leaderboard</Button>
                     </ButtonGroup>
                     <br />
                     <ListGroup>
-                        {Object.keys(state.stopwatches).map(id => <StopwatchItem key={id} eventId={event.id} hub={hub} {...state.stopwatches[id]} removed={!!state.removedStopwatches[id]} onRemarksChanged={(remarks) => handleRemarksChanged(id, remarks)} />)}
+                        {Object.keys(state.stopwatches).map(id => <StopwatchItem key={id} eventId={event.id} hub={hub} connected={connected} {...state.stopwatches[id]} removed={!!state.removedStopwatches[id]} onRemarksChanged={(remarks) => handleRemarksChanged(id, remarks)} />)}
                     </ListGroup>
                     <br />
                 </Col>
