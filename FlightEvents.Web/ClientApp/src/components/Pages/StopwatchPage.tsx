@@ -94,15 +94,30 @@ export default (props: RouteComponentProps<RouteProps>) => {
                 removedStopwatches: {
                     ...state.removedStopwatches,
                     [stopwatch.id]: true
-                } 
+                }
             }))
         }
 
-        const onUpdateLeaderboard = (records: LeaderboardRecord[]) => {
+        const handleUpdateLeaderboard = (records: LeaderboardRecord[]) => {
             setState(state => ({
                 ...state,
                 leaderboards: recordsToLeaderboards(records)
             }))
+        }
+
+        const handleRemarksChanged = async (id: string, remarks: string) => {
+            const updatedStopwatch = {
+                ...state.stopwatches[id],
+                remarks: remarks
+            };
+            setState(state => ({
+                ...state,
+                stopwatches: {
+                    ...state.stopwatches,
+                    [id]: updatedStopwatch
+                }
+            }))
+            await hub.send("UpdateStopwatch", updatedStopwatch);
         }
 
         return <Container>
@@ -111,7 +126,7 @@ export default (props: RouteComponentProps<RouteProps>) => {
                 hub={hub}
                 onUpdateStopwatch={handleUpdateStopwatch}
                 onRemoveStopwatch={handleRemoveStopwatch}
-                onUpdateLeaderboard={onUpdateLeaderboard}
+                onUpdateLeaderboard={handleUpdateLeaderboard}
             />
             <Row>
                 <Col>
@@ -144,7 +159,7 @@ export default (props: RouteComponentProps<RouteProps>) => {
                     </ButtonGroup>
                     <br />
                     <ListGroup>
-                        {Object.keys(state.stopwatches).map(id => <StopwatchItem key={id} eventId={event.id} hub={hub} {...state.stopwatches[id]} removed={!!state.removedStopwatches[id]} />)}
+                        {Object.keys(state.stopwatches).map(id => <StopwatchItem key={id} eventId={event.id} hub={hub} {...state.stopwatches[id]} removed={!!state.removedStopwatches[id]} onRemarksChanged={(remarks) => handleRemarksChanged(id, remarks)} />)}
                     </ListGroup>
                     <br />
                 </Col>

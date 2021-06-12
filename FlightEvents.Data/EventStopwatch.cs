@@ -9,6 +9,7 @@ namespace FlightEvents.Data
         public Guid EventId { get; set; }
         public string LeaderboardName { get; set; }
         public string Name { get; set; }
+        public string Remarks { get; set; }
         public DateTimeOffset AddedDateTime { get; set; }
         public DateTimeOffset? StartedDateTime { get; set; }
         public List<DateTimeOffset> LapsDateTime { get; set; } = new List<DateTimeOffset>();

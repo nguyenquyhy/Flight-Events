@@ -17,6 +17,7 @@ namespace FlightEvents.Data
             LeaderboardName = stopwatch.LeaderboardName;
             SubIndex = leaderboardSubIndex;
             PlayerName = stopwatch.Name;
+            Remarks = stopwatch.Remarks;
             Score = -(long)timeSinceLast.TotalMilliseconds;
             ScoreDisplay = $"{timeSinceLast.Hours:00}:{timeSinceLast.Minutes:00}:{timeSinceLast.Seconds:00}.{timeSinceLast.Milliseconds:000}";
             TimeSinceStart = (long)timeSinceStart.TotalMilliseconds;
@@ -25,6 +26,7 @@ namespace FlightEvents.Data
 
         public Guid EventId { get; set; }
         public string PlayerName { get; set; }
+        public string Remarks { get; set; }
         public string LeaderboardName { get; set; }
         public int SubIndex { get; set; }
         public long Score { get; set; }

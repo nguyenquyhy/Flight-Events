@@ -462,6 +462,17 @@ namespace FlightEvents.Web.Hubs
         }
 
         [Authorize(Policy = "StopwatchManager")]
+        public async Task UpdateStopwatch(EventStopwatch input)
+        {
+            var eventStopwatches = stopwatches.GetOrAdd(input.EventId, new ConcurrentDictionary<Guid, EventStopwatch>());
+            eventStopwatches.TryRemove(input.Id, out _);
+            if (eventStopwatches.TryAdd(input.Id, input))
+            {
+                await Clients.Group("Stopwatch:" + input.EventId).UpdateStopwatch(input, DateTimeOffset.UtcNow);
+            }
+        }
+
+        [Authorize(Policy = "StopwatchManager")]
         public async Task StartAllStopwatches(Guid eventId)
         {
             var eventStopwatches = stopwatches.GetOrAdd(eventId, new ConcurrentDictionary<Guid, EventStopwatch>());

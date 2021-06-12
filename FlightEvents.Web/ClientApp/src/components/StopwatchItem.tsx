@@ -1,13 +1,15 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
 import { HubConnection } from '@microsoft/signalr';
-import { Button, ButtonGroup, ListGroupItem } from 'reactstrap';
+import { Button, ButtonGroup, Input, InputGroup, InputGroupAddon, ListGroupItem } from 'reactstrap';
 import { Stopwatch } from '../Models';
 
 interface ItemProps {
     hub: HubConnection;
     eventId: string;
     removed: boolean;
+
+    onRemarksChanged: (string) => void;
 }
 
 function formatTime(elapsed: number) {
@@ -16,6 +18,7 @@ function formatTime(elapsed: number) {
 
 const StopwatchItem = (props: ItemProps & Stopwatch) => {
     const [elapsed, setElapsed] = React.useState<number>(0);
+    const [editingRemarks, setEditingRemarks] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         if (!props.stoppedDateTime && props.startedDateTime) {
@@ -62,8 +65,35 @@ const StopwatchItem = (props: ItemProps & Stopwatch) => {
 
     const startedDateTime = props.startedDateTime ? new Date(props.startedDateTime).getTime() : null;
 
+    const handleClickRemark = e => {
+        setEditingRemarks(props.remarks || "");
+    }
+
+    const handleChangeRemarks = e => {
+        setEditingRemarks(e.target.value);
+    }
+
+    const handleSaveRemarks = e => {
+        props.onRemarksChanged(editingRemarks);
+        setEditingRemarks(null);
+    }
+
+    const handleCancelRemark = e => {
+        setEditingRemarks(null);
+    }
+
     return <ListGroupItem>
-        <div>{props.name} ({props.leaderboardName})</div>
+        <div style={{ float: 'left', marginRight: 5 }}>{props.name} ({props.leaderboardName})</div>
+        {editingRemarks !== null ?
+            <RemarkEditWrapper size="sm">
+                <Input value={editingRemarks} onChange={handleChangeRemarks} />
+                <InputGroupAddon addonType="append">
+                    <Button color="primary" onClick={handleSaveRemarks}>Save</Button>
+                    <Button onClick={handleCancelRemark}>Cancel</Button>
+                </InputGroupAddon>
+            </RemarkEditWrapper> :
+            <RemarkText onClick={handleClickRemark}>{props.remarks || "No remarks"}</RemarkText>}
+        <div style={{ clear: 'both' }}></div>
         <div>
             <StyledTime>{props.removed ? "Removed" : formatTime(elapsed)}</StyledTime>
         </div>
@@ -86,6 +116,17 @@ const StopwatchItem = (props: ItemProps & Stopwatch) => {
         </StyledLaps>
     </ListGroupItem>;
 }
+
+const RemarkEditWrapper = styled(InputGroup)`
+margin-top: -3px;
+margin-bottom: -4px;
+float: left;
+width: 400px;
+`
+
+const RemarkText = styled.em`
+float: left;
+`
 
 const StyledTime = styled.span`
 font-size: 2em;

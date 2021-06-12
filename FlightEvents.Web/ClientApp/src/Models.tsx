@@ -146,4 +146,5 @@ export interface Stopwatch {
     stoppedDateTime?: string;
     lapsDateTime: string[];
     leaderboardName: string;
+    remarks: string;
 }
