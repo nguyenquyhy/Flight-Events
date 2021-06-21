@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace FlightEvents.Client
+namespace FlightEvents.Client.ViewModels
 {
     public class ChecklistViewModel : BaseViewModel
     {

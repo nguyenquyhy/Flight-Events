@@ -4,14 +4,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace FlightEvents.Client
+namespace FlightEvents.Client.ViewModels
 {
     public enum ConnectionState
     {
@@ -19,22 +17,6 @@ namespace FlightEvents.Client
         Connecting,
         Connected,
         Failed
-    }
-
-    public class BaseViewModel : INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
-        {
-            if ((storage == null && value != null) || (storage != null && !storage.Equals(value)))
-            {
-                storage = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                return true;
-            }
-            return false;
-        }
     }
 
     public class MainViewModel : BaseViewModel
@@ -55,7 +37,7 @@ namespace FlightEvents.Client
             try
             {
                 var allEvents = await graphQLClient.GetFlightEventsAsync();
-                Events = new ObservableCollection<FlightEvent>(allEvents);
+                Events = new ObservableCollection<FlightEventViewModel>(allEvents.Select(o => new FlightEventViewModel(o)));
             }
             catch (Exception ex)
             {
@@ -80,8 +62,8 @@ namespace FlightEvents.Client
             }
         }
 
-        private ObservableCollection<FlightEvent> events = new ObservableCollection<FlightEvent>();
-        public ObservableCollection<FlightEvent> Events { get => events; set => SetProperty(ref events, value); }
+        private ObservableCollection<FlightEventViewModel> events = new ObservableCollection<FlightEventViewModel>();
+        public ObservableCollection<FlightEventViewModel> Events { get => events; set => SetProperty(ref events, value); }
 
         private ConnectionState simConnectionState = ConnectionState.Idle;
         public ConnectionState SimConnectionState { get => simConnectionState; set => SetProperty(ref simConnectionState, value); }

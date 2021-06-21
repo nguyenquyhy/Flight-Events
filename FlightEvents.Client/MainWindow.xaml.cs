@@ -1,6 +1,7 @@
 ﻿using FlightEvents.Client.ATC;
 using FlightEvents.Client.Dialogs;
 using FlightEvents.Client.Logics;
+using FlightEvents.Client.ViewModels;
 using FlightEvents.Data;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;

@@ -25,6 +25,7 @@
         <converters:ViewModelToWindowWidthConverter x:Key="ViewModelToWindowWidthConverter" />
         <converters:ValueToBooleanConverter x:Key="ValueToTrueConverter" />
         <converters:ValueToBooleanConverter x:Key="ValueToFalseConverter" Reversed="True" />
+        <converters:ColorToBrushConverter x:Key="ColorToBrushConverter" />
 
         <Style TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -297,17 +298,17 @@
                 <ItemsControl ItemsSource="{Binding Events}" BorderBrush="Transparent" HorizontalContentAlignment="Stretch" >
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Grid HorizontalAlignment="Stretch" Background="{Binding Converter={StaticResource FlightEventToBackgroundBrushConverter}}">
+                            <Grid HorizontalAlignment="Stretch" Background="{Binding BackgroundColor, Converter={StaticResource ColorToBrushConverter}}">
                                 <StackPanel HorizontalAlignment="Stretch" Margin="5">
-                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding Model.Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                     <Grid>
-                                        <TextBlock HorizontalAlignment="Left" Text="{Binding StartDateTime, Converter={StaticResource DateTimeOffsetToFriendlyDisplayConverter}}" />
-                                        <TextBlock HorizontalAlignment="Right" Text="{Binding StartDateTime, Converter={StaticResource DateTimeOffsetToLocalTimeConverter}}" />
+                                        <TextBlock HorizontalAlignment="Left" Text="{Binding FriendlyDateTime}" />
+                                        <TextBlock HorizontalAlignment="Right" Text="{Binding Model.StartDateTime, Converter={StaticResource DateTimeOffsetToLocalTimeConverter}}" />
                                     </Grid>
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                                         <Button Content="Read More" Click="ButtonReadMore_Click" />
                                         <Button Content="Checklist" Margin="4,0,0,0" Click="ButtonChecklist_Click"
-                                                Visibility="{Binding ChecklistItems, Converter={StaticResource EmptyToCollapsed}}"/>
+                                                Visibility="{Binding Model.ChecklistItems, Converter={StaticResource EmptyToCollapsed}}"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Grid>

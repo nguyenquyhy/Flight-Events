@@ -2,6 +2,7 @@
 using FlightEvents.Client.ATC;
 using FlightEvents.Client.Logics;
 using FlightEvents.Client.SimConnectFSX;
+using FlightEvents.Client.ViewModels;
 using Microsoft.AppCenter;
 using Microsoft.AppCenter.Analytics;
 using Microsoft.AppCenter.Crashes;

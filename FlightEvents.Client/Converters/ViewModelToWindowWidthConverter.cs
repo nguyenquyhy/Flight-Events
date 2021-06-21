@@ -1,6 +1,6 @@
-﻿using FlightEvents.Data;
+﻿using FlightEvents.Client.ViewModels;
 using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Globalization;
 using System.Windows.Data;
 
@@ -14,7 +14,7 @@ namespace FlightEvents.Client.Converters
             {
                 return 950d;
             }
-            else if (values[0] is IList<FlightEvent> events && events != null && events.Count > 0)
+            else if (values[0] is IList events && events != null && events.Count > 0)
             {
                 return 640d;
             }
