@@ -1,6 +1,10 @@
 ﻿{
   "versions": [
     {
+      "id": "2.6.0",
+      "changes": "Auto refresh event list"
+    },
+    {
       "id": "2.5.0",
       "changes": "Transmit more data for ATC and racing events"
     },
