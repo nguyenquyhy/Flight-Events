@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace FlightEvents
 {
@@ -16,6 +17,9 @@ namespace FlightEvents
 
     public class ClientFeatures
     {
+        public bool UseMessagePack { get; set; } = true;
+
+        [Obsolete("This is a wrong name. This should have been UseMessagePack.")]
         public bool UseWebpack { get; set; } = true;
     }
 }

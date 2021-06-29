@@ -172,7 +172,7 @@ namespace FlightEvents.Client
                 MessageBox.Show(announcement, "Flight Events", MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
-            await InitializeHubAsync(currentVersion, pref.ClientId, versionData?.Features?.UseWebpack == true);
+            await InitializeHubAsync(currentVersion, pref.ClientId, versionData?.Features?.UseMessagePack == true);
 
             if (viewModel.BroadcastUDP)
             {
@@ -284,12 +284,12 @@ namespace FlightEvents.Client
 
         #region SignalR
 
-        private async Task InitializeHubAsync(Version currentVersion, string clientId, bool useWebpack)
+        private async Task InitializeHubAsync(Version currentVersion, string clientId, bool useMessagePack)
         {
             var builder = new HubConnectionBuilder()
                 .WithUrl($"{this.appSettings.WebServerUrl}/FlightEventHub?clientType=Client&clientVersion={currentVersion}&clientId={clientId}")
                 .WithAutomaticReconnect();
-            if (useWebpack)
+            if (useMessagePack)
             {
                 builder.AddMessagePackProtocol();
             }

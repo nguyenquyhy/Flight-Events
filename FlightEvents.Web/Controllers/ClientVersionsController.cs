@@ -12,6 +12,30 @@ namespace FlightEvents.Web.Controllers
         {
             return version switch
             {
+                "2.6.0.0" => new ClientVersion
+                {
+                    Version = version,
+                    Features = new ClientFeatures
+                    {
+                        UseMessagePack = true
+                    }
+                },
+                "2.5.2.0" => new ClientVersion
+                {
+                    Version = version,
+                    Features = new ClientFeatures
+                    {
+                        UseWebpack = true
+                    }
+                },
+                "2.5.1.0" => new ClientVersion
+                {
+                    Version = version,
+                    Features = new ClientFeatures
+                    {
+                        UseWebpack = true
+                    }
+                },
                 "2.5.0.0" => new ClientVersion
                 {
                     Version = version,
