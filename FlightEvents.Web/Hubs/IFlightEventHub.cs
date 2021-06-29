@@ -90,5 +90,10 @@ namespace FlightEvents.Web.Hubs
         Task UpdateLeaderboard(List<LeaderboardRecord> leaderboardRecords);
 
         Task UpdateClientList(List<ClientInfo> clients);
+
+        /// <summary>
+        /// Signal the client to update event list
+        /// </summary>
+        Task NotifyEventsUpdated();
     }
 }

@@ -308,6 +308,7 @@ namespace FlightEvents.Client
             hub.On<string, int>("ChangeUpdateRateByCallsign", Hub_OnChangeUpdateRateByCallsign);
             hub.On<string, AircraftStatus>("UpdateAircraft", Hub_OnAircraftUpdated);
             hub.On<string, AircraftPosition>("Teleport", Hub_OnTeleport);
+            hub.On("NotifyEventsUpdated", Hub_OnNotifyEventsUpdated);
 
             while (true)
             {
@@ -337,6 +338,8 @@ namespace FlightEvents.Client
             {
                 await hub.SendAsync("Join", "ATC");
             }
+
+            await viewModel.ReconnectedAsync();
         }
 
         private Task Hub_Reconnecting(Exception arg)
@@ -490,9 +493,15 @@ namespace FlightEvents.Client
                 }
             }
         }
+
         private void Hub_OnTeleport(string connectionId, AircraftPosition position)
         {
             flightConnector.Teleport(position.Latitude, position.Longitude, position.Altitude);
+        }
+
+        private async void Hub_OnNotifyEventsUpdated()
+        {
+            await viewModel.RefreshEventsAsync();
         }
 
         #endregion

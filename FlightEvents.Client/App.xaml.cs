@@ -115,6 +115,7 @@ namespace FlightEvents.Client
             });
 
             services.AddSingleton<IEventGraphQLClient, EventGraphQLClient>();
+            services.AddSingleton<IEventFetcher, EventFetcher>();
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<IFlightConnector, SimConnectFlightConnector>();
             services.AddSingleton<UdpBroadcastLogic>();

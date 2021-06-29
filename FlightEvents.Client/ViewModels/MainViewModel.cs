@@ -22,27 +22,20 @@ namespace FlightEvents.Client.ViewModels
     public class MainViewModel : BaseViewModel
     {
         private readonly ILogger<MainViewModel> logger;
-        private readonly IEventGraphQLClient graphQLClient;
+        private readonly IEventFetcher eventFetcher;
         private readonly object webServerUrl;
 
-        public MainViewModel(ILogger<MainViewModel> logger, IEventGraphQLClient graphQLClient, IOptionsMonitor<AppSettings> appSettings)
+        public MainViewModel(IOptionsMonitor<AppSettings> appSettings,
+            ILogger<MainViewModel> logger, IEventFetcher eventFetcher)
         {
             this.logger = logger;
-            this.graphQLClient = graphQLClient;
+            this.eventFetcher = eventFetcher;
             this.webServerUrl = appSettings.CurrentValue.WebServerUrl;
         }
 
         public async Task InitializeAsync(string clientId)
         {
-            try
-            {
-                var allEvents = await graphQLClient.GetFlightEventsAsync();
-                Events = new ObservableCollection<FlightEventViewModel>(allEvents.Select(o => new FlightEventViewModel(o)));
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Cannot get events!");
-            }
+            await RefreshEventsAsync();
 
             try
             {
@@ -59,6 +52,24 @@ namespace FlightEvents.Client.ViewModels
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "Cannot get Discord connection!");
+            }
+        }
+
+        public async Task ReconnectedAsync()
+        {
+            await RefreshEventsAsync();
+        }
+
+        public async Task RefreshEventsAsync()
+        {
+            try
+            {
+                var allEvents = await eventFetcher.GetAsync();
+                Events = new ObservableCollection<FlightEventViewModel>(allEvents.Select(o => new FlightEventViewModel(o)));
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Cannot get events!");
             }
         }
 
