@@ -2,6 +2,7 @@ using FlightEvents.Web.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,8 @@ namespace FlightEvents.Web
 
     public class StatusBroadcastService : BackgroundService
     {
+        private static readonly TimeSpan timeout = TimeSpan.FromSeconds(10);
+
         private readonly IHubContext<FlightEventHub, IFlightEventHub> hubContext;
         private readonly IOptionsMonitor<BroadcastOptions> optionsAccessor;
 
@@ -34,11 +37,12 @@ namespace FlightEvents.Web
                 var statuses = FlightEventHub.ConnectionIdToAircraftStatuses.ToList();
                 foreach (var pair in statuses)
                 {
-                    if (FlightEventHub.ConnectionIdToClientIds.TryGetValue(pair.Key, out var clientId))
+                    if (DateTimeOffset.Now - pair.Value.updateTime < timeout
+                        && FlightEventHub.ConnectionIdToClientIds.TryGetValue(pair.Key, out var clientId))
                     {
-                        await hubContext.Clients.Groups("Map", "ClientMap").UpdateAircraft(clientId, pair.Value);
+                        await hubContext.Clients.Groups("Map", "ClientMap").UpdateAircraft(clientId, pair.Value.status);
 
-                        await hubContext.Clients.Groups("Admin").UpdateAircraft(clientId, new AircraftStatus(pair.Value)
+                        await hubContext.Clients.Groups("Admin").UpdateAircraft(clientId, new AircraftStatus(pair.Value.status)
                         {
                             ClientVersion = FlightEventHub.ConnetionIdToClientInfos.ContainsKey(pair.Key) ? FlightEventHub.ConnetionIdToClientInfos[pair.Key].ClientVersion : "?"
                         });

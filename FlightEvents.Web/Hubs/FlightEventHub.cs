@@ -22,13 +22,13 @@ namespace FlightEvents.Web.Hubs
     public class FlightEventHub : Hub<IFlightEventHub>
     {
         public static ConcurrentDictionary<string, string> ConnectionIdToClientIds => connectionIdToClientIds;
-        public static ConcurrentDictionary<string, AircraftStatus> ConnectionIdToAircraftStatuses => connectionIdToAircraftStatuses;
+        public static ConcurrentDictionary<string, (DateTimeOffset updateTime, AircraftStatus status)> ConnectionIdToAircraftStatuses => connectionIdToAircraftStatuses;
         public static ConcurrentDictionary<string, ClientInfo> ConnetionIdToClientInfos => connetionIdToClientInfos;
 
         private static readonly ConcurrentDictionary<string, string> connectionIdToClientIds = new ConcurrentDictionary<string, string>();
         private static readonly ConcurrentDictionary<string, string> clientIdToConnectionIds = new ConcurrentDictionary<string, string>();
 
-        private static readonly ConcurrentDictionary<string, AircraftStatus> connectionIdToAircraftStatuses = new ConcurrentDictionary<string, AircraftStatus>();
+        private static readonly ConcurrentDictionary<string, (DateTimeOffset updateTime, AircraftStatus status)> connectionIdToAircraftStatuses = new ConcurrentDictionary<string, (DateTimeOffset updateTime, AircraftStatus status)>();
         private static readonly ConcurrentDictionary<string, ATCInfo> connectionIdToToAtcInfos = new ConcurrentDictionary<string, ATCInfo>();
         private static readonly ConcurrentDictionary<string, ATCStatus> connectionIdToAtcStatuses = new ConcurrentDictionary<string, ATCStatus>();
 
@@ -159,11 +159,11 @@ namespace FlightEvents.Web.Hubs
 
                 // Cache latest status
                 int fromFrequency = 0;
-                if (connectionIdToAircraftStatuses.TryGetValue(Context.ConnectionId, out var lastStatus))
+                if (connectionIdToAircraftStatuses.TryGetValue(Context.ConnectionId, out var lastData))
                 {
-                    fromFrequency = GetActiveFrequency(lastStatus);
+                    fromFrequency = GetActiveFrequency(lastData.status);
                 }
-                connectionIdToAircraftStatuses[Context.ConnectionId] = status;
+                connectionIdToAircraftStatuses[Context.ConnectionId] = (DateTimeOffset.Now, status);
 
                 if (!connectionIdToAtcStatuses.TryGetValue(Context.ConnectionId, out _))
                 {
@@ -189,7 +189,7 @@ namespace FlightEvents.Web.Hubs
                 if (clientIdToConnectionIds.TryGetValue(clientId, out var connectionId) &&
                     connectionIdToAircraftStatuses.TryGetValue(connectionId, out var status))
                 {
-                    await Clients.Caller.UpdateAircraftToDiscord(discordUserId, clientId, status);
+                    await Clients.Caller.UpdateAircraftToDiscord(discordUserId, clientId, status.status);
                     return;
                 }
             }
