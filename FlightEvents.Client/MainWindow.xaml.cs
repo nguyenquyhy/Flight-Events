@@ -1118,12 +1118,12 @@ namespace FlightEvents.Client
         {
             try
             {
-                var vm = (sender as FrameworkElement).DataContext as FlightEvent;
-                if (!string.IsNullOrEmpty(vm?.Url))
+                var vm = (sender as FrameworkElement).DataContext as FlightEventViewModel;
+                if (!string.IsNullOrEmpty(vm?.Model.Url))
                 {
                     Process.Start(new ProcessStartInfo
                     {
-                        FileName = vm.Url,
+                        FileName = vm.Model.Url,
                         UseShellExecute = true
                     });
                 }
@@ -1138,8 +1138,8 @@ namespace FlightEvents.Client
         {
             try
             {
-                var vm = (sender as FrameworkElement).DataContext as FlightEvent;
-                viewModel.ChecklistEvent = new ChecklistViewModel(vm, viewModel.DiscordConnection != null);
+                var vm = (sender as FrameworkElement).DataContext as FlightEventViewModel;
+                viewModel.ChecklistEvent = new ChecklistViewModel(vm.Model, viewModel.DiscordConnection != null);
             }
             catch (Exception ex)
             {
