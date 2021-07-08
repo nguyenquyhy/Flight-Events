@@ -71,7 +71,7 @@ There are also some additional settings that your might be interested in:
 *For Flight Events bot:*
 - View channel: you should set this to Allow. Sometimes due to server setup to hide channels until clicking some emote, the bot cannot see any channels in the server without this permission.
 - Manage channel: Allow so that the bot can automatically create/delete voice channels
-- Connect: Allow because the bot can only move people to channel it can connect to.
+- Connect: Allow because the bot can only move people to channel it can connect to. This is also needed to allow the bot to clean up empty frequency channels.
 - Move Members: Allow
 
 *For ATIS bots:*
