@@ -188,6 +188,8 @@ export default class MaptalksMap implements IMap {
 
         this.aircraftLayer = aircraftLayer;
         this.map = map;
+
+        this.drawOshkoshCircles();
     }
 
     deinitialize() {
@@ -713,5 +715,25 @@ export default class MaptalksMap implements IMap {
             this.onAircraftMovedHandler({ latitude: e.coordinate.y, longitude: e.coordinate.x });
         }
         return true;
+    }
+
+    private drawOshkoshCircles() {
+        if (this.map) {
+            const commonStyle = { lineColor: '#34495e', lineWidth: 2, polygonOpacity: 0.4 };
+            new maptalks.VectorLayer('vector', { enableAltitude: true })
+                .addGeometry([
+                    new maptalks.Circle([-88.55649845579117, 43.98127188305071], 12, { symbol: { ...commonStyle, polygonFill: 'blue' }, properties: { altitude: 246.3 } }),
+                    new maptalks.Circle([-88.55654726863388, 43.97694160803118], 12, { symbol: { ...commonStyle, polygonFill: "red" }, properties: { altitude: 246.3 } }),
+                    new maptalks.Circle([-88.55660272193413, 43.972867792605214], 12, { symbol: { ...commonStyle, polygonFill: "yellow" }, properties: { altitude: 246.3 } }),
+                    new maptalks.Circle([-88.5566557100092, 43.968619800959615], 12, { symbol: { ...commonStyle, polygonFill: "purple" }, properties: { altitude: 246.3 } }),
+
+                    new maptalks.Circle([-88.5545677074355, 43.991529704426085], 12, { symbol: { ...commonStyle, polygonFill: "orange" }, properties: { altitude: 236.5248 } }),
+                    new maptalks.Circle([-88.56045717742607, 43.991566231901906], 12, { symbol: { ...commonStyle, polygonFill: "cyan" }, properties: { altitude: 236.5248 } }),
+                    new maptalks.Circle([-88.56532600272514, 43.99160231883673], 12, { symbol: { ...commonStyle, polygonFill: "white" }, properties: { altitude: 236.5248 } }),
+
+                    new maptalks.Rectangle(new maptalks.Coordinate(-88.55455903934717, 43.96952516618286), 10, 10, { symbol: { ...commonStyle, polygonFill: "cyan" }, properties: { altitude: 246.3 } }),
+                    new maptalks.Rectangle(new maptalks.Coordinate(-88.55450902110248, 43.97348742641145), 10, 10, { symbol: { ...commonStyle, polygonFill: "red" }, properties: { altitude: 246.3 } })
+                ]).addTo(this.map);
+        }
     }
 }

@@ -128,7 +128,8 @@ export default class LeafletMap implements IMap {
                     return o.tags.ref ? `<strong height="20" anchorY="10" style="font-size: 1.3em;background-color: rgba(255, 255, 255, 0.7);padding: 3px;border-radius: 3px">${o.tags.ref}</strong>` : null;
                 },
                 style: {
-                    stroke: true
+                    stroke: true,
+                    width: 1
                 }
             }
         }).addTo(this.mymap);
@@ -149,6 +150,8 @@ export default class LeafletMap implements IMap {
 
         this.airportLayerGroup.addTo(this.mymap);
         this.flightPlanLayerGroup.addTo(this.mymap);
+
+        this.drawOshkoshCircles();
     }
 
     public deinitialize() {
@@ -609,5 +612,24 @@ export default class LeafletMap implements IMap {
         if (isToggled) button.setAttribute('aria-pressed', 'true');
         container.appendChild(button);
         return button;
+    }
+
+    private drawOshkoshCircles() {
+        if (this.mymap) {
+            const commonStyle = { fill: true, fillOpacity: 1, radius: 12, stroke: false };
+            L.circle([43.98127188305071, -88.55649845579117], { ...commonStyle, fillColor: "blue" }).addTo(this.mymap);
+            L.circle([43.97694160803118, -88.55654726863388], { ...commonStyle, fillColor: "red" }).addTo(this.mymap);
+            L.circle([43.972867792605214, -88.55660272193413], { ...commonStyle, fillColor: "yellow" }).addTo(this.mymap);
+            L.circle([43.968619800959615, -88.5566557100092], { ...commonStyle, fillColor: "purple" }).addTo(this.mymap);
+
+            L.circle([43.991529704426085, -88.5545677074355], { ...commonStyle, fillColor: "orange" }).addTo(this.mymap);
+            L.circle([43.991566231901906, -88.56045717742607], { ...commonStyle, fillColor: "cyan" }).addTo(this.mymap);
+            L.circle([43.99160231883673, -88.56532600272514], { ...commonStyle, fillColor: "white" }).addTo(this.mymap);
+
+            const latDiff = 0.00006;
+            const lngDiff = 0.00008;
+            L.rectangle([[43.96952516618286 - latDiff, -88.55455903934717 - lngDiff], [43.96952516618286 + latDiff, -88.55455903934717 + lngDiff]], { ...commonStyle, fillColor: "cyan" }).addTo(this.mymap);
+            L.rectangle([[43.97348742641145 - latDiff, -88.55450902110248 - lngDiff], [43.97348742641145 + latDiff, -88.55450902110248 + lngDiff]], { ...commonStyle, fillColor: "red" }).addTo(this.mymap);
+        }
     }
 }
