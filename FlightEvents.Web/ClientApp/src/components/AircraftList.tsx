@@ -17,8 +17,8 @@ interface Props {
     aircrafts: { [clientId: string]: AircraftStatusInList };
     onAircraftClick: (clientId: string) => void;
 
-    showPathClientIds: string[];
-    onShowPathChanged: (clientId: string) => void;
+    showRouteClientIds: string[];
+    onShowRouteChanged: (clientId: string) => void;
 
     moreInfoClientIds: string[];
     onMoreInfoChanged: (clientId: string) => void;
@@ -77,8 +77,8 @@ export default class AircraftList extends React.Component<Props, State> {
                     isFollowing={this.props.followingClientId === clientId}
                     isFlightPlan={this.props.flightPlanClientId === clientId}
 
-                    isShowPath={this.props.showPathClientIds.includes(clientId)}
-                    onShowPathChanged={this.props.onShowPathChanged}
+                    isShowPath={this.props.showRouteClientIds.includes(clientId)}
+                    onShowPathChanged={this.props.onShowRouteChanged}
                     isMoreInfo={this.props.moreInfoClientIds.includes(clientId)}
                     onMoreInfoChanged={this.props.onMoreInfoChanged}
                 />));

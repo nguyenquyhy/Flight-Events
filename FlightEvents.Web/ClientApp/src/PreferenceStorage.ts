@@ -2,7 +2,7 @@
 
 const PREF_KEY = "preferences.map";
 
-export default class Storage {
+export default class PreferenceStorage {
     savePreferences(pref: Preferences) {
         return localStorage.setItem(PREF_KEY, JSON.stringify(pref));
     }

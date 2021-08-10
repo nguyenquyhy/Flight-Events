@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Route } from 'react-router';
-import { Home } from './components/Pages/Home';
+import Home from './components/Pages/Home';
 import EventListPage from './components/Pages/EventListPage';
 import EventDetailsPage from './components/Pages/EventDetailsPage';
 import StopwatchPage from './components/Pages/StopwatchPage';

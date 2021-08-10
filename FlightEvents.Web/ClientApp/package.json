@@ -15,7 +15,7 @@
     "leaflet-geometryutil": "^0.10.0",
     "leaflet-overpass-layer": "^2.8.3",
     "leaflet-rotatedmarker": "^0.2.0",
-    "maptalks": "^0.49.4",
+    "maptalks": "^0.49.5",
     "msgpack5": "^4.5.1",
     "oidc-client": "^1.11.5",
     "overpass-layer": "^3.0.1",
@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@craco/craco": "^5.9.0",
-    "@types/leaflet": "^1.7.1",
+    "@types/leaflet": "^1.7.4",
     "@types/leaflet-rotatedmarker": "^0.2.1",
     "@types/lodash": "^4.14.170",
     "@types/react": "^17.0.11",

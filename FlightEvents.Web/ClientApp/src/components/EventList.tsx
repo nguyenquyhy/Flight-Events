@@ -19,29 +19,14 @@ interface Props {
     onFlightPlansLoaded: (flightPlans: FlightPlan[]) => void;
 }
 
-interface State {
-    collapsed: boolean;
-}
+const EventList = (props: Props) => {
+    const [collapsed, setCollapsed] = React.useState(false);
 
-export default class EventList extends React.PureComponent<Props, State> {
-    constructor(props: Props) {
-        super(props);
-
-        this.state = {
-            collapsed: false
-        }
-
-        this.handleToggle = this.handleToggle.bind(this);
+    const handleToggle = () => {
+        setCollapsed(!collapsed)
     }
 
-    handleToggle() {
-        this.setState({
-            collapsed: !this.state.collapsed
-        })
-    }
-
-    public render() {
-        return <Query query={gql`{
+    return <Query query={gql`{
     flightEvents {
         id
         type
@@ -49,27 +34,26 @@ export default class EventList extends React.PureComponent<Props, State> {
         startDateTime
     }
 }`}>{({ loading, error, data }: ApolloQueryResult<{ flightEvents: FlightEvent[] }>) => {
-                if (loading) return <Wrapper collapsed={this.state.collapsed}>Loading...</Wrapper>;
-                if (error) return <Wrapper collapsed={this.state.collapsed}>Error</Wrapper>;
+            if (loading) return <Wrapper collapsed={collapsed}>Loading...</Wrapper>;
+            if (error) return <Wrapper collapsed={collapsed}>Error</Wrapper>;
 
-                const upcoming = data.flightEvents
-                    .filter(ev => isBefore(new Date(), addHours(parseJSON(ev.startDateTime), ev.type === 'RACE' ? 24 : 4)))
-                    .sort((a, b) => compareDesc(parseJSON(b.startDateTime), parseJSON(a.startDateTime)));
+            const upcoming = data.flightEvents
+                .filter(ev => isBefore(new Date(), addHours(parseJSON(ev.startDateTime), ev.type === 'RACE' ? 24 : 4)))
+                .sort((a, b) => compareDesc(parseJSON(b.startDateTime), parseJSON(a.startDateTime)));
 
-                const list = data.flightEvents.length === 0 ?
-                    <NoneText>None</NoneText> :
-                    upcoming.map(flightEvent => <EventItem key={flightEvent.id} hub={this.props.hub} flightEvent={flightEvent}
-                        onAirportsLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />)
+            const list = data.flightEvents.length === 0 ?
+                <NoneText>None</NoneText> :
+                upcoming.map(flightEvent => <EventItem key={flightEvent.id} hub={props.hub} flightEvent={flightEvent}
+                    onAirportsLoaded={props.onAirportsLoaded} onFlightPlansLoaded={props.onFlightPlansLoaded} />)
 
-                return <Wrapper collapsed={this.state.collapsed}>
-                    <Button className="btn" onClick={this.handleToggle}><i className={"fas " + (this.state.collapsed ? "fa-chevron-up" : "fa-chevron-down")}></i></Button>
-                    <Title collapsed={this.state.collapsed}>{upcoming.length === 0 ? "No upcoming events" : `Upcoming Events (${upcoming.length})`}</Title>
-                    <List>{list}</List>
-                    <PastEvents hub={this.props.hub} onAirportsLoaded={this.props.onAirportsLoaded} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />
-                </Wrapper>
-            }}
-        </Query>
-    }
+            return <Wrapper collapsed={collapsed}>
+                <Button className="btn" onClick={handleToggle}><i className={"fas " + (collapsed ? "fa-chevron-up" : "fa-chevron-down")}></i></Button>
+                <Title collapsed={collapsed}>{upcoming.length === 0 ? "No upcoming events" : `Upcoming Events (${upcoming.length})`}</Title>
+                <List>{list}</List>
+                <PastEvents hub={props.hub} onAirportsLoaded={props.onAirportsLoaded} onFlightPlansLoaded={props.onFlightPlansLoaded} />
+            </Wrapper>
+        }}
+    </Query>
 }
 
 const Wrapper = styled<any>(Panel)`
@@ -114,3 +98,5 @@ top: 0;
 width: 100%;
 height: 12px;
 `
+
+export default React.memo(EventList);

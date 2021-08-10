@@ -1,4 +1,4 @@
-﻿import { IMap, MapTileType, OnViewChangedFn, View, OnAircraftMovedFn, OnSetClientIdFn, OnSetOptionalClientIdFn } from './IMap';
+﻿import { IMap, MapTileType, OnViewChangedFn, View, OnTeleportPositionSelectedFn, OnSetClientIdFn, OnSetOptionalClientIdFn } from './IMap';
 import * as L from 'leaflet';
 import LG from 'leaflet-geometryutil'
 import 'leaflet-rotatedmarker';
@@ -55,7 +55,7 @@ export default class LeafletMap implements IMap {
     circleMarker?: L.Circle;
 
     onViewChangedHandler: (OnViewChangedFn | null) = null;
-    onAircraftMovedHandler: (OnAircraftMovedFn | null) = null;
+    onTeleportPositionSelectedHandler: (OnTeleportPositionSelectedFn | null) = null;
     onSetMeHandler: (OnSetOptionalClientIdFn | null) = null;
     onSetFollowHandler: (OnSetOptionalClientIdFn | null) = null;
     onSetShowPlanHandler: (OnSetOptionalClientIdFn | null) = null;
@@ -63,6 +63,7 @@ export default class LeafletMap implements IMap {
     onSetShowRouteHandler: (OnSetClientIdFn | null) = null;
 
     initialView?: View;
+    lastView?: View;
 
     isDark: boolean = false;
     isDrawing = false;
@@ -80,8 +81,8 @@ export default class LeafletMap implements IMap {
                     callback: this.moveAircraft.bind(this)
                 }]
             })
-            .setView([view?.latitude || 51.505, view?.longitude || -0.09], view?.zoom || 13);
-        this.initialView = view;
+                .setView([view?.latitude || 51.505, view?.longitude || -0.09], view?.zoom || 13);
+        this.initialView = this.lastView = view;
 
         L.control.attribution({
             position: 'bottomleft'
@@ -91,8 +92,13 @@ export default class LeafletMap implements IMap {
         this.mymap.on('moveend', (e) => {
             const zoom = map.getZoom();
             const center = map.getCenter();
+
+            // HACK: due to this issue https://github.com/Leaflet/Leaflet/issues/3796, getCenter does not always work
+            // We cache the last view for now
+            this.lastView = { latitude: center.lat, longitude: center.lng, zoom: zoom };
+
             if (this.onViewChangedHandler) {
-                this.onViewChangedHandler({ latitude: center.lat, longitude: center.lng, zoom: zoom });
+                this.onViewChangedHandler(this.lastView);
             }
         });
 
@@ -530,12 +536,17 @@ export default class LeafletMap implements IMap {
         }
     }
 
+    public getCurrentView(): View {
+        // HACK: due to https://github.com/Leaflet/Leaflet/issues/3796, getCenter() doesn't work here
+        return this.lastView || { longitude: null, latitude: null, zoom: null };
+    }
+
     public onViewChanged(handler: OnViewChangedFn) {
         this.onViewChangedHandler = handler;
     }
 
-    public onAircraftMoved(handler: OnAircraftMovedFn) {
-        this.onAircraftMovedHandler = handler;
+    public onTeleportPositionSelected(handler: OnTeleportPositionSelectedFn) {
+        this.onTeleportPositionSelectedHandler = handler;
     }
 
     public onSetMe(handler: OnSetOptionalClientIdFn) {
@@ -600,8 +611,8 @@ export default class LeafletMap implements IMap {
     }
 
     private moveAircraft(e: L.ContextMenuEventArgs) {
-        if (this.onAircraftMovedHandler) {
-            this.onAircraftMovedHandler({ latitude: e.latlng.lat, longitude: e.latlng.lng });
+        if (this.onTeleportPositionSelectedHandler) {
+            this.onTeleportPositionSelectedHandler({ latitude: e.latlng.lat, longitude: e.latlng.lng });
         }
     }
 

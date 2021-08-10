@@ -7,7 +7,7 @@ const Header = styled.h5`
 margin-top: 12px;
 `;
 
-export default (props: {
+const FlightPlanComponent = (props: {
     id: string,
     onFlightPlansLoaded: (flightPlans: FlightPlan[]) => void;
     hideList?: boolean;
@@ -53,12 +53,17 @@ export default (props: {
     }
 }`, { variables: { id: props.id } });
 
+    const onFlightPlansLoaded = props.onFlightPlansLoaded;
+    React.useEffect(() => {
+        if (!loading && !error && data) {
+            onFlightPlansLoaded(data.flightEvent.flightPlans);
+        }
+    }, [loading, error, data, onFlightPlansLoaded]);
+
     if (loading) return <div>Checking flight plan...</div>;
     if (error || !data) return <div>Cannot load flight plan!</div>;
 
     const flightPlans = data.flightEvent.flightPlans;
-
-    props.onFlightPlansLoaded(flightPlans);
 
     if (props.hideList) {
         return null;
@@ -76,3 +81,5 @@ export default (props: {
         }
     </>;
 }
+
+export default FlightPlanComponent;

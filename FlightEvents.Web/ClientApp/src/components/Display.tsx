@@ -1,7 +1,7 @@
 ﻿import * as React from 'react';
 import styled from 'styled-components';
 import { ButtonGroup, Button, FormGroup, Input, Label } from 'reactstrap';
-import { MapTileType } from '../maps/IMap';
+import { MapDimension, MapTileType } from '../maps/IMap';
 
 interface Props {
     mode: string | null;
@@ -9,22 +9,22 @@ interface Props {
     isDark: boolean;
     onIsDarkChanged: (isDark: boolean) => void;
 
-    dimension: "2D" | "3D";
-    onDimensionChanged: (dimension: "2D" | "3D") => void;
+    dimension: MapDimension;
+    onDimensionChanged: (dimension: MapDimension) => void;
 
     tileType: MapTileType;
     onTileTypeChanged: (tileType: MapTileType) => void;
 }
 
-export default (props: Props) => {
+const Display = (props: Props) => {
     const [expand, setExpand] = React.useState<boolean>(false);
 
     const handleIsDark = () => {
         props.onIsDarkChanged(!props.isDark);
     }
 
-    const handleMap2D = () => props.onDimensionChanged("2D");
-    const handleMap3D = () => props.onDimensionChanged("3D");
+    const handleMap2D = () => props.onDimensionChanged(MapDimension._2D);
+    const handleMap3D = () => props.onDimensionChanged(MapDimension._3D);
     const handleOpenStreetMap = () => props.onTileTypeChanged(MapTileType.OpenStreetMap);
     const handleOpenTopoMap = () => props.onTileTypeChanged(MapTileType.OpenTopoMap);
     const handleEsriWorldImagery = () => props.onTileTypeChanged(MapTileType.EsriWorldImagery);
@@ -132,3 +132,5 @@ button {
     display: block;
 }
 `;
+
+export default Display;

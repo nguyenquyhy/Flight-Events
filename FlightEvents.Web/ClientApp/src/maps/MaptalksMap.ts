@@ -1,4 +1,4 @@
-﻿import { IMap, MapTileType, OnViewChangedFn, View, OnAircraftMovedFn, OnSetClientIdFn, OnSetOptionalClientIdFn } from './IMap';
+﻿import { IMap, MapTileType, OnViewChangedFn, View, OnTeleportPositionSelectedFn, OnSetClientIdFn, OnSetOptionalClientIdFn } from './IMap';
 import * as maptalks from 'maptalks';
 import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
 
@@ -108,7 +108,7 @@ export default class MaptalksMap implements IMap {
     atcMarkers: { [connectionId: string]: Marker } = {};
 
     onViewChangedHandler: OnViewChangedFn | null = null;
-    onAircraftMovedHandler: (OnAircraftMovedFn | null) = null;
+    onTeleportPositionSelectedHandler: (OnTeleportPositionSelectedFn | null) = null;
     onSetMeHandler: (OnSetOptionalClientIdFn | null) = null;
     onSetFollowHandler: (OnSetOptionalClientIdFn | null) = null;
     onSetShowPlanHandler: (OnSetOptionalClientIdFn | null) = null;
@@ -594,12 +594,20 @@ export default class MaptalksMap implements IMap {
         this.visibleCircle.hide();
     }
 
+    getCurrentView(): View {
+        if (this.map) {
+            const center = this.map.getCenter();
+            return { longitude: center.x, latitude: center.y, zoom: this.map.getZoom() }
+        }
+        return { longitude: null, latitude: null, zoom: null }
+    }
+
     public onViewChanged(handler: OnViewChangedFn) {
         this.onViewChangedHandler = handler;
     }
 
-    public onAircraftMoved(handler: OnAircraftMovedFn) {
-        this.onAircraftMovedHandler = handler;
+    public onTeleportPositionSelected(handler: OnTeleportPositionSelectedFn) {
+        this.onTeleportPositionSelectedHandler = handler;
     }
 
     public onSetMe(handler: OnSetOptionalClientIdFn) {
@@ -711,8 +719,8 @@ export default class MaptalksMap implements IMap {
     }
 
     private moveAircraft(e: { coordinate: Coordinate }) {
-        if (this.onAircraftMovedHandler) {
-            this.onAircraftMovedHandler({ latitude: e.coordinate.y, longitude: e.coordinate.x });
+        if (this.onTeleportPositionSelectedHandler) {
+            this.onTeleportPositionSelectedHandler({ latitude: e.coordinate.y, longitude: e.coordinate.x });
         }
         return true;
     }

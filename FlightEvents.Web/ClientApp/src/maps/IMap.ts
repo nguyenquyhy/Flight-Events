@@ -14,9 +14,10 @@ export interface IMap {
     addRangeCircle()
     removeRangeCircle()
     setTileLayer(type: MapTileType)
+    getCurrentView(): View
 
     onViewChanged(handler: OnViewChangedFn);
-    onAircraftMoved(handler: OnAircraftMovedFn);
+    onTeleportPositionSelected(handler: OnTeleportPositionSelectedFn);
     onSetMe(handler: OnSetOptionalClientIdFn);
     onSetFollow(handler: OnSetOptionalClientIdFn);
     onSetShowPlan(handler: OnSetOptionalClientIdFn);
@@ -37,10 +38,10 @@ export type OnViewChangedFn = (view: View) => void;
 export interface View {
     latitude: number | null
     longitude: number | null
-    zoom: number | null
+    zoom?: number | null
 }
 
-export type OnAircraftMovedFn = (position: MapPosition) => void;
+export type OnTeleportPositionSelectedFn = (position: MapPosition) => void;
 
 export interface MapPosition {
     latitude: number, longitude: number
@@ -56,4 +57,14 @@ export enum MapTileType {
     EsriTopo,
     Carto,
     UsVfrSectional,
+}
+
+export enum MapDimension {
+    _2D = "2D",
+    _3D = "3D"
+}
+
+export enum MapMode {
+    MSFS = "MSFS",
+    none = "none",
 }

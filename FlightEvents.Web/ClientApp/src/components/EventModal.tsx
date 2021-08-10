@@ -99,7 +99,9 @@ export default class EventModal extends React.Component<Props, State> {
         latitude
     }
 }`} variables={{ idents: event.waypoints.split(' ') }}>{({ loading, error, data }: ApolloQueryResult<{ airports: Airport[] }>) => {
-                                    if (!loading && !error && data) this.props.onAirportLoaded(data.airports);
+                                    React.useEffect(() => {
+                                        if (!loading && !error && data) this.props.onAirportLoaded(data.airports);
+                                    }, [loading, error, data]);
                                     return null;
                                 }}</Query>}
 
