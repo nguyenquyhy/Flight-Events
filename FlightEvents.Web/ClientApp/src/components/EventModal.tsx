@@ -106,7 +106,7 @@ export default class EventModal extends React.Component<Props, State> {
                                 }}</Query>}
 
                             <div>{renderTime(event)}</div>
-                            <div><ReactMarkdown>{event.description}</ReactMarkdown></div>
+                            <div><StyledReactMarkdown>{event.description}</StyledReactMarkdown></div>
                             {!!event.url && <><h6>Read more at:</h6><a href={event.url} target="_blank" rel="noopener noreferrer">{event.url}</a></>}
 
                             <FlightPlanComponent id={event.id} onFlightPlansLoaded={this.props.onFlightPlansLoaded} />
@@ -126,4 +126,10 @@ export default class EventModal extends React.Component<Props, State> {
 const StyledTime = styled.span`
 border-bottom: 1px dashed #909090;
 margin-bottom: 10px;
+`
+
+const StyledReactMarkdown = styled(ReactMarkdown)`
+img {
+    max-width: 100%;
+}
 `
