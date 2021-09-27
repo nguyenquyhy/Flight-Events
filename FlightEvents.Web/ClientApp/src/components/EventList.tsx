@@ -32,13 +32,14 @@ const EventList = (props: Props) => {
         type
         name
         startDateTime
+        endDateTime
     }
 }`}>{({ loading, error, data }: ApolloQueryResult<{ flightEvents: FlightEvent[] }>) => {
             if (loading) return <Wrapper collapsed={collapsed}>Loading...</Wrapper>;
             if (error) return <Wrapper collapsed={collapsed}>Error</Wrapper>;
 
             const upcoming = data.flightEvents
-                .filter(ev => isBefore(new Date(), addHours(parseJSON(ev.startDateTime), ev.type === 'RACE' ? 24 : 4)))
+                .filter(ev => isBefore(new Date(), ev.endDateTime ? parseJSON(ev.endDateTime) : addHours(parseJSON(ev.startDateTime), ev.type === 'RACE' ? 24 : 4)))
                 .sort((a, b) => compareDesc(parseJSON(b.startDateTime), parseJSON(a.startDateTime)));
 
             const list = data.flightEvents.length === 0 ?
