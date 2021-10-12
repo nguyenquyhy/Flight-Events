@@ -26,6 +26,9 @@ namespace FlightEvents.Client
     /// </summary>
     public partial class App : Application
     {
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetProcessDPIAware();
+
         private const string DefaultWebServerUrl = "https://events.flighttracker.tech";
 
         #region Single Instance Enforcer
@@ -61,6 +64,9 @@ namespace FlightEvents.Client
                 }
                 catch { }
             }
+
+            // HACK: workaround for issue in WPF https://github.com/dotnet/wpf/issues/5375
+            SetProcessDPIAware();
 
 #if !DEBUG
             AppCenter.Start("6a75536f-3bd1-446c-b707-c31aabe3fb6f", typeof(Analytics), typeof(Crashes));
