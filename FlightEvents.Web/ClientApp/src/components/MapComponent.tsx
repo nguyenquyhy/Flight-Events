@@ -18,6 +18,8 @@ interface Props {
 
     allClientIds: string[];
 
+    group: string | null;
+
     myClientId: string | null;
     onMeChanged: OnSetOptionalClientIdFn;
 
@@ -134,6 +136,10 @@ const MapComponent = (props: Props) => {
                 return
             }
 
+            if (props.group && props.group !== aircraftStatus.group) {
+                return;
+            }
+
             try {
                 const isReady = !(Math.abs(aircraftStatus.latitude) < 0.02 && Math.abs(aircraftStatus.longitude) < 0.02);
 
@@ -177,7 +183,7 @@ const MapComponent = (props: Props) => {
         return () => {
             props.hub.off("UpdateAircraft", updateHandler);
         }
-    }, [props.hub, props.myClientId, props.followingClientId, props.flightPlanClientId, props.showInfoClientIds, props.showRouteClientIds, props.callsignFilter, hasInitialView]);
+    }, [props.hub, props.group, props.myClientId, props.followingClientId, props.flightPlanClientId, props.showInfoClientIds, props.showRouteClientIds, props.callsignFilter, hasInitialView]);
 
     React.useEffect(() => {
         const toRemove = _.difference(previousAircraftClientIds.current, props.allClientIds);

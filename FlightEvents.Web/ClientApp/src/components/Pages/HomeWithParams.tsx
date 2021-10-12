@@ -34,6 +34,7 @@ interface HomeWithParamsProps {
     mapDimension: MapDimension;
     mapTileType: MapTileType;
 
+    group: string | null;
     myClientId: string | null;
     followingClientId: string | null;
     showPlanClientId: string | null;
@@ -217,14 +218,18 @@ const HomeWithParams = (props: HomeWithParamsProps) => {
                 const isReady = !(Math.abs(aircraftStatus.latitude) < 0.02 && Math.abs(aircraftStatus.longitude) < 0.02);
 
                 setAircrafts(aircrafts => {
-                    if (aircrafts[clientId] && aircrafts[clientId].isReady === isReady && aircrafts[clientId].callsign === aircraftStatus.callsign) {
+                    if (aircrafts[clientId] &&
+                        aircrafts[clientId].isReady === isReady &&
+                        aircrafts[clientId].callsign === aircraftStatus.callsign &&
+                        aircrafts[clientId].group === aircraftStatus.group) {
                         return aircrafts;
                     }
                     return {
                         ...aircrafts,
                         [clientId]: {
                             isReady: isReady,
-                            callsign: aircraftStatus.callsign
+                            callsign: aircraftStatus.callsign,
+                            group: aircraftStatus.group
                         }
                     }
                 });
@@ -330,6 +335,7 @@ const HomeWithParams = (props: HomeWithParamsProps) => {
             mode={props.mode} initialView={props.initialView}
             isDark={isDark} dimension={mapDimension} tileType={mapTileType}
 
+            group={props.group}
             allClientIds={Object.keys(aircrafts)}
             myClientId={myClientId} onMeChanged={handleMeChanged}
             followingClientId={followingClientId} onFollowingChanged={handleFollowingChanged}
@@ -380,6 +386,7 @@ const HomeWithParams = (props: HomeWithParamsProps) => {
 
             <AircraftList
                 aircrafts={aircrafts} onAircraftClick={handleAircraftClick}
+                group={props.group}
                 myClientId={myClientId}
                 followingClientId={followingClientId}
                 flightPlanClientId={flightPlanClientId}

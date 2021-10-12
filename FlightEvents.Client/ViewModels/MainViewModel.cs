@@ -88,6 +88,9 @@ namespace FlightEvents.Client.ViewModels
         private string callsign = null;
         public string Callsign { get => callsign; set => SetProperty(ref callsign, value?.Replace("<", "").Replace(">", "")); }
 
+        private string group;
+        public string Group { get => group; set => SetProperty(ref group, value); }
+
         private AircraftStatus aircraftStatus = null;
         public AircraftStatus AircraftStatus { get => aircraftStatus; set => SetProperty(ref aircraftStatus, value); }
 

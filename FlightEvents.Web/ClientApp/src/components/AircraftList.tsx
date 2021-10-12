@@ -6,10 +6,12 @@ import AircraftListItem from './AircraftListItem';
 
 export interface AircraftStatusInList {
     callsign: string;
+    group: string | null;
     isReady: boolean;
 }
 
 interface Props {
+    group: string | null;
     myClientId: string | null;
     followingClientId: string | null;
     flightPlanClientId: string | null;
@@ -51,18 +53,13 @@ export default class AircraftList extends React.Component<Props, State> {
         })
     }
 
-    public render() {
-        let clientIds = Object
-            .entries(this.props.aircrafts)
-            .sort((a, b) => (a[1].callsign || a[0].substring(5)).localeCompare((b[1].callsign || b[0].substring(5))))
-            .map(o => o[0]);
-
+    renderAircrafList(clientIds: string[]) {
         if (this.props.myClientId && clientIds.includes(this.props.myClientId)) {
             // Move own aircraft to the top
             clientIds = clientIds.filter(o => o !== this.props.myClientId);
             clientIds = [this.props.myClientId].concat(clientIds);
         }
-        const list = clientIds.length === 0 ?
+        return clientIds.length === 0 ?
             <tr><td colSpan={4}><NoneText>None</NoneText></td></tr> :
             clientIds.map(clientId => (
                 <AircraftListItem key={clientId}
@@ -82,14 +79,58 @@ export default class AircraftList extends React.Component<Props, State> {
                     isMoreInfo={this.props.moreInfoClientIds.includes(clientId)}
                     onMoreInfoChanged={this.props.onMoreInfoChanged}
                 />));
+    }
+
+    public render() {
+        let groupClientIds = this.props.group ? Object
+            .entries(this.props.aircrafts)
+            .filter(o => o[1].group === this.props.group)
+            .sort((a, b) => (a[1].callsign || a[0].substring(5)).localeCompare((b[1].callsign || b[0].substring(5))))
+            .map(o => o[0]) : [];
+
+        let clientIds = Object
+            .entries(this.props.aircrafts)
+            .filter(o => !this.props.group || o[1].group !== this.props.group)
+            .sort((a, b) => (a[1].callsign || a[0].substring(5)).localeCompare((b[1].callsign || b[0].substring(5))))
+            .map(o => o[0]);
+
+        const aircraftCount = this.props.group ? groupClientIds.length : clientIds.length;
+        const buttonTitle = `Aircraft${(this.props.group ? '*' : '')} ${(aircraftCount ? `(${aircraftCount})` : '')}`;
 
         return <>
-            <StyledButton color="secondary" onClick={this.handleToggle}>Aircraft {(clientIds.length === 0 ? "" : `(${clientIds.length})`)}</StyledButton>
+            <StyledButton color="secondary" onClick={this.handleToggle}>{buttonTitle}</StyledButton>
             <Modal isOpen={this.state.collapsed} toggle={this.handleToggle}>
                 <ModalHeader>
                     Aircraft List {(clientIds.length === 0 ? "" : `(${clientIds.length})`)}
                 </ModalHeader>
                 <ModalBody>
+                    {!!this.props.group && (
+                        <>
+                            <h6>Selected Group: <strong>{this.props.group}</strong></h6>
+
+                            <List>
+                                <thead>
+                                    <tr>
+                                        <th><Title>Callsign</Title></th>
+                                        <th>
+                                            <div id="txtMore">Show Info</div>
+                                            <UncontrolledTooltip placement="right" target="txtMore">Show more info</UncontrolledTooltip>
+                                        </th>
+                                        <th>
+                                            <div id="txtMore">Show Route</div>
+                                            <UncontrolledTooltip placement="right" target="txtMore">Show flight route</UncontrolledTooltip>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {this.renderAircrafList(groupClientIds)}
+                                </tbody>
+                            </List>
+
+                            <hr />
+                            <h6>Other aircraft</h6>
+                        </>
+                    )}
                     <List>
                         <thead>
                             <tr>
@@ -105,7 +146,7 @@ export default class AircraftList extends React.Component<Props, State> {
                             </tr>
                         </thead>
                         <tbody>
-                            {list}
+                            {this.renderAircrafList(clientIds)}
                         </tbody>
                     </List>
                 </ModalBody>

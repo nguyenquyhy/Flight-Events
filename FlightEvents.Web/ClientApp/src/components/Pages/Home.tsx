@@ -19,6 +19,7 @@ const Home = (props: Props) => {
     const mode = searchParams.get('mode');
     const theme = searchParams.get('theme');
 
+    const group = searchParams.get('group');
     const myCallsign = searchParams.get('myCallsign');
     const followCallsign = searchParams.get('followCallsign');
     const showPlanCallsign = searchParams.get('showPlanCallsign');
@@ -95,6 +96,7 @@ const Home = (props: Props) => {
         isDark={theme === 'dark' ? true : (pref ? pref.isDark : false)}
         mapDimension={pref && pref.map3D ? MapDimension._3D : MapDimension._2D}
         mapTileType={pref ? pref.mapTileType : MapTileType.OpenStreetMap}
+        group={group}
         myClientId={myClientId}
         followingClientId={followingClientId}
         showPlanClientId={showPlanClientId}

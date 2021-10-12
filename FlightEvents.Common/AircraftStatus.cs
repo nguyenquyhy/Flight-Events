@@ -82,6 +82,7 @@
 
         public string ClientVersion { get; set; }
         public string Callsign { get; set; }
+        public string Group { get; set; }
 
         //public double SimTime { get; set; }
         public int SimRate { get; set; }

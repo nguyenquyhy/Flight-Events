@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:FlightEvents.Client"
         xmlns:converters="clr-namespace:FlightEvents.Client.Converters"
         mc:Ignorable="d" Loaded="Window_Loaded" StateChanged="Window_StateChanged"
-        Title="Flight Events" Height="308" ResizeMode="CanMinimize">
+        Title="Flight Events" Height="322" ResizeMode="CanMinimize">
 
     <Window.Resources>
         <converters:BoolReversedConverter x:Key="BoolReversedConverter" />
@@ -145,14 +145,19 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
-                    <TextBlock Text="SimConnect" Grid.Row="1" Grid.Column="0" />
-                    <TextBlock Text="{Binding SimConnectionState}" Grid.Row="1" Grid.Column="1" Foreground="{Binding SimConnectionState, Converter={StaticResource ConnectionStateToBrushConverter}}" />
-                    <TextBlock Text="{Binding NearestAirport.Ident}" ToolTip="Nearest Airport" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" />
+                        <TextBlock Text="SimConnect" Grid.Row="0" Grid.Column="0" />
+                        <TextBlock Text="{Binding SimConnectionState}" Grid.Row="0" Grid.Column="1" Foreground="{Binding SimConnectionState, Converter={StaticResource ConnectionStateToBrushConverter}}" />
+                        <TextBlock Text="{Binding NearestAirport.Ident}" ToolTip="Nearest Airport" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" />
 
-                        <TextBlock Text="Callsign" Grid.Row="2" Grid.Column="0" />
+                        <TextBlock Text="Callsign" Grid.Row="1" Grid.Column="0" />
                         <TextBox Text="{Binding Callsign, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}"
-                            Grid.Row="2" Grid.Column="1" MaxLength="12" />
+                            Grid.Row="1" Grid.Column="1" MaxLength="12" />
+
+                        <TextBlock Text="Group" Grid.Row="2" Grid.Column="0" />
+                        <TextBox Text="{Binding Group, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}"
+                            Grid.Row="2" Grid.Column="1" MaxLength="30" />
 
                         <TextBlock Text="Ident" Grid.Row="3" Grid.Column="0" />
                         <CheckBox IsChecked="{Binding TransponderIdent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="3" Grid.Column="1" />

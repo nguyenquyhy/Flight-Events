@@ -34,6 +34,7 @@ export interface AircraftStatusBrief {
 
 export interface AircraftStatus {
     callsign: string;
+    group: string;
 
     longitude: number;
     latitude: number;

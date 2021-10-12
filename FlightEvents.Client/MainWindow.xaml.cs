@@ -272,8 +272,23 @@ namespace FlightEvents.Client
             try
             {
                 var url = TextURL.Text;
-                if (!string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(viewModel.Callsign) && viewModel.IsTracking)
-                    url += "?myCallsign=" + Uri.EscapeDataString(viewModel.Callsign);
+                if (!string.IsNullOrEmpty(url) && viewModel.IsTracking)
+                {
+                    var queries = new List<string>();
+                    if (!string.IsNullOrEmpty(viewModel.Callsign))
+                    {
+                        queries.Add("myCallsign=" + Uri.EscapeDataString(viewModel.Callsign));
+                    }
+                    if (!string.IsNullOrEmpty(viewModel.Group))
+                    {
+                        queries.Add("group=" + Uri.EscapeDataString(viewModel.Group));
+                    }
+                    if (queries.Count > 0)
+                    {
+                        url += "?" + string.Join('&', queries);
+                    }
+                }
+
 
                 Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
             }
@@ -535,6 +550,7 @@ namespace FlightEvents.Client
                 }
 
                 e.AircraftStatus.Callsign = viewModel.Callsign;
+                e.AircraftStatus.Group = viewModel.Group;
                 e.AircraftStatus.TransponderMode = viewModel.TransponderIdent ? TransponderMode.Ident : TransponderMode.ModeC;
 
                 if (DateTime.Now - lastStatusSent > TimeSpan.FromMilliseconds(MinimumUpdatePeriod))
