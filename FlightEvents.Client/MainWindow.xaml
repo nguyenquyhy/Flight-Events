@@ -129,50 +129,52 @@
                             </Ellipse>
                         </StackPanel>
                     </TabItem.Header>
-                    <Grid Margin="5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                        <Grid Margin="5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
 
-                        <TextBlock Text="SimConnect" Grid.Row="0" Grid.Column="0" />
-                        <TextBlock Text="{Binding SimConnectionState}" Grid.Row="0" Grid.Column="1" Foreground="{Binding SimConnectionState, Converter={StaticResource ConnectionStateToBrushConverter}}" />
-                        <TextBlock Text="{Binding NearestAirport.Ident}" ToolTip="Nearest Airport" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" />
+                            <TextBlock Text="SimConnect" Grid.Row="0" Grid.Column="0" />
+                            <TextBlock Text="{Binding SimConnectionState}" Grid.Row="0" Grid.Column="1" Foreground="{Binding SimConnectionState, Converter={StaticResource ConnectionStateToBrushConverter}}" />
+                            <TextBlock Text="{Binding NearestAirport.Ident}" ToolTip="Nearest Airport" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" />
 
-                        <TextBlock Text="Callsign" Grid.Row="1" Grid.Column="0" />
-                        <TextBox Text="{Binding Callsign, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}"
-                            Grid.Row="1" Grid.Column="1" MaxLength="12" />
+                            <TextBlock Text="Callsign" Grid.Row="1" Grid.Column="0" />
+                            <TextBox Text="{Binding Callsign, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}"
+                                Grid.Row="1" Grid.Column="1" MaxLength="12" />
 
-                        <TextBlock Text="Group" Grid.Row="2" Grid.Column="0" />
-                        <TextBox Text="{Binding Group, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}"
-                            Grid.Row="2" Grid.Column="1" MaxLength="30" />
+                            <TextBlock Text="Group" Grid.Row="2" Grid.Column="0" />
+                            <TextBox Text="{Binding Group, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}"
+                                Grid.Row="2" Grid.Column="1" MaxLength="30" />
 
-                        <TextBlock Text="Ident" Grid.Row="3" Grid.Column="0" />
-                        <CheckBox IsChecked="{Binding TransponderIdent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="3" Grid.Column="1" />
+                            <TextBlock Text="Ident" Grid.Row="3" Grid.Column="0" />
+                            <CheckBox IsChecked="{Binding TransponderIdent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="3" Grid.Column="1" />
 
-                        <TextBlock Text="ATC Remarks" Grid.Row="4"  />
-                        <TextBox Text="{Binding Remarks, Mode=TwoWay}" Grid.Row="4" Grid.Column="1"
-                            IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}" />
+                            <TextBlock Text="ATC Remarks" Grid.Row="4"  />
+                            <TextBox Text="{Binding Remarks, Mode=TwoWay}" Grid.Row="4" Grid.Column="1"
+                                IsEnabled="{Binding IsTracking, Converter={StaticResource BoolReversedConverter}}" />
 
-                        <Button x:Name="ButtonStartTrack" Content="Start Flight Tracking" Margin="0,4,0,0" Grid.Row="5" Grid.Column="1" Click="ButtonStartTrack_Click" />
-                        <Button x:Name="ButtonStopTrack" Content="Stop Flight Tracking" Margin="0,4,0,0" Grid.Row="5" Grid.Column="1" Click="ButtonStopTrack_Click" Visibility="Collapsed" />
+                            <Button x:Name="ButtonStartTrack" Content="Start Flight Tracking" Margin="0,4,0,0" Grid.Row="5" Grid.Column="1" Click="ButtonStartTrack_Click" />
+                            <Button x:Name="ButtonStopTrack" Content="Stop Flight Tracking" Margin="0,4,0,0" Grid.Row="5" Grid.Column="1" Click="ButtonStopTrack_Click" Visibility="Collapsed" />
 
-                        <Button x:Name="ButtonTeleport" Content="Teleport Aircraft" Margin="0,5,0,0" Grid.Row="6" Grid.Column="1"
-                                IsEnabled="{Binding HubConnectionState, Converter={StaticResource ValueToTrueConverter}, ConverterParameter=Connected}" Click="ButtonTeleport_Click" />
+                            <Button x:Name="ButtonTeleport" Content="Teleport Aircraft" Margin="0,5,0,0" Grid.Row="6" Grid.Column="1"
+                                    IsEnabled="{Binding HubConnectionState, Converter={StaticResource ValueToTrueConverter}, ConverterParameter=Connected}" Click="ButtonTeleport_Click" />
 
-                    </Grid>
+                        </Grid>
+                    </ScrollViewer>
                 </TabItem>
 
                 <TabItem>
@@ -182,58 +184,61 @@
                             <Ellipse Fill="{Binding DiscordConnection, Converter={StaticResource NullToBrushConverter}}" Width="10" Height="10" Margin="4,0,0,0" />
                         </StackPanel>
                     </TabItem.Header>
-                    <Grid>
-                        <Grid Margin="5" Visibility="{Binding DiscordConnection, Converter={StaticResource NullToVisibleConverter}}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
 
-                            <StackPanel Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Margin="0,0,0,5">
-                                <StackPanel.Resources>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Margin" Value="0" />
-                                    </Style>
-                                </StackPanel.Resources>
-                                <TextBlock Text="To use Discord channel switching, you need to link this client to your Discord account:" TextWrapping="Wrap" />
-                                <TextBlock Text="1. Click Connect button" TextWrapping="Wrap" />
-                                <TextBlock Text="2. Authorize Flight Events bot to access your info" TextWrapping="Wrap" />
-                                <TextBlock Text="3. Copy the code displayed to you &amp; paste below" TextWrapping="Wrap" />
-                                <TextBlock Text="4. Click confirm" TextWrapping="Wrap" />
-                            </StackPanel>
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                        <Grid>
+                            <Grid Margin="5" Visibility="{Binding DiscordConnection, Converter={StaticResource NullToVisibleConverter}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
 
-                            <Button x:Name="ButtonDiscord" Grid.Row="1" Content="Connect" Click="ButtonDiscord_Click"
-                                Grid.ColumnSpan="2" />
+                                <StackPanel Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Margin="0,0,0,5">
+                                    <StackPanel.Resources>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Margin" Value="0" />
+                                        </Style>
+                                    </StackPanel.Resources>
+                                    <TextBlock Text="To use Discord channel switching, you need to link this client to your Discord account:" TextWrapping="Wrap" />
+                                    <TextBlock Text="1. Click Connect button" TextWrapping="Wrap" />
+                                    <TextBlock Text="2. Authorize Flight Events bot to access your info" TextWrapping="Wrap" />
+                                    <TextBlock Text="3. Copy the code displayed to you &amp; paste below" TextWrapping="Wrap" />
+                                    <TextBlock Text="4. Click confirm" TextWrapping="Wrap" />
+                                </StackPanel>
 
-                            <TextBlock Text="Confirm Code:" Grid.Row="2" />
-                            <TextBox x:Name="TextDiscordConfirm" Grid.Row="2" Grid.Column="1" />
-                            <Button x:Name="ButtonDiscordConfirm" Content="Confirm" Grid.Row="3" Grid.Column="1" Click="ButtonDiscordConfirm_Click" />
+                                <Button x:Name="ButtonDiscord" Grid.Row="1" Content="Connect" Click="ButtonDiscord_Click"
+                                    Grid.ColumnSpan="2" />
+
+                                <TextBlock Text="Confirm Code:" Grid.Row="2" />
+                                <TextBox x:Name="TextDiscordConfirm" Grid.Row="2" Grid.Column="1" />
+                                <Button x:Name="ButtonDiscordConfirm" Content="Confirm" Grid.Row="3" Grid.Column="1" Click="ButtonDiscordConfirm_Click" />
+                            </Grid>
+
+                            <Grid Margin="5" Visibility="{Binding DiscordConnection, Converter={StaticResource NullToCollapsedConverter}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="Connected as:" />
+                                <TextBlock Text="{Binding DiscordConnection.DisplayName}" Grid.Row="0" Grid.Column="1" />
+
+                                <Button x:Name="ButtonDiscordDisconnect" Content="Disconnect" Click="ButtonDiscordDisconnect_Click" Grid.Row="2" Grid.ColumnSpan="2" />
+                            </Grid>
                         </Grid>
-
-                        <Grid Margin="5" Visibility="{Binding DiscordConnection, Converter={StaticResource NullToCollapsedConverter}}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Text="Connected as:" />
-                            <TextBlock Text="{Binding DiscordConnection.DisplayName}" Grid.Row="0" Grid.Column="1" />
-
-                            <Button x:Name="ButtonDiscordDisconnect" Content="Disconnect" Click="ButtonDiscordDisconnect_Click" Grid.Row="2" Grid.ColumnSpan="2" />
-                        </Grid>
-                    </Grid>
+                    </ScrollViewer>
                 </TabItem>
 
                 <TabItem>
@@ -243,27 +248,30 @@
                             <Ellipse Fill="{Binding AtcConnectionState, Converter={StaticResource ConnectionStateToBrushConverter}}" Width="10" Height="10" Margin="4,0,0,0" />
                         </StackPanel>
                     </TabItem.Header>
-                    <GroupBox Header="For controllers">
-                        <StackPanel Margin="5">
-                            <CheckBox IsChecked="{Binding VatsimMode, Mode=TwoWay}" Content="VATSIM Mode" />
 
-                            <Button x:Name="ButtonStartATC" Content="Start ATC Server" Click="ButtonStartATC_Click" IsEnabled="False" />
-                            <Button x:Name="ButtonStopATC" Content="Stop ATC Server" Click="ButtonStopATC_Click" Visibility="Collapsed" />
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                        <GroupBox Header="For controllers">
+                            <StackPanel Margin="5">
+                                <CheckBox IsChecked="{Binding VatsimMode, Mode=TwoWay}" Content="VATSIM Mode" />
 
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
+                                <Button x:Name="ButtonStartATC" Content="Start ATC Server" Click="ButtonStartATC_Click" IsEnabled="False" />
+                                <Button x:Name="ButtonStopATC" Content="Stop ATC Server" Click="ButtonStopATC_Click" Visibility="Collapsed" />
 
-                                <TextBlock Text="Callsign" Grid.Column="0" />
-                                <TextBlock Text="{Binding AtcCallsign}" Grid.Column="1" />
-                            </Grid>
-                        </StackPanel>
-                    </GroupBox>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="Callsign" Grid.Column="0" />
+                                    <TextBlock Text="{Binding AtcCallsign}" Grid.Column="1" />
+                                </Grid>
+                            </StackPanel>
+                        </GroupBox>
+                    </ScrollViewer>
                 </TabItem>
 
                 <TabItem>
@@ -273,16 +281,18 @@
                         </StackPanel>
                     </TabItem.Header>
 
-                    <StackPanel Margin="5">
-                        <CheckBox x:Name="ShowLandingRate" Content="Show Landing Rate" IsChecked="{Binding ShowLandingInfo, Mode=TwoWay}" Checked="ShowLandingInfo_Checked" Unchecked="ShowLandingInfo_Unchecked" />
-                        <CheckBox x:Name="BroadcastUDP" Content="Broadcast data to local network" IsChecked="{Binding BroadcastUDP, Mode=TwoWay}" Checked="BroadcastUDP_Checked" Unchecked="BroadcastUDP_Unchecked" />
-                        <TextBox Text="{Binding BroadcastIP, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" Width="200" LostFocus="BroadcastIP_LostFocus" HorizontalAlignment="Left" Margin="20,0,0,10"
-                                 Style="{StaticResource PlaceHolder}" Tag="IP Address or empty (for broadcast)"
-                                 IsEnabled="{Binding BroadcastUDP, Converter={StaticResource BoolReversedConverter}}"/>
-                        <CheckBox Content="Disable Discord Rich Present" IsChecked="{Binding DisableDiscordRP, Mode=TwoWay}" Checked="DisableDiscordRP_Checked" Unchecked="DisableDiscordRP_Unchecked" />
-                        <CheckBox Content="Slow Mode (require restart)" IsChecked="{Binding SlowMode, Mode=TwoWay}" Checked="SlowMode_Checked" Unchecked="SlowMode_Unchecked" />
-                        <CheckBox Content="Minimize to Taskbar" IsChecked="{Binding MinimizeToTaskbar, Mode=TwoWay}" Checked="MinimizeToTaskbar_Checked" Unchecked="MinimizeToTaskbar_Unchecked" />
-                    </StackPanel>
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="5">
+                            <CheckBox x:Name="ShowLandingRate" Content="Show Landing Rate" IsChecked="{Binding ShowLandingInfo, Mode=TwoWay}" Checked="ShowLandingInfo_Checked" Unchecked="ShowLandingInfo_Unchecked" />
+                            <CheckBox x:Name="BroadcastUDP" Content="Broadcast data to local network" IsChecked="{Binding BroadcastUDP, Mode=TwoWay}" Checked="BroadcastUDP_Checked" Unchecked="BroadcastUDP_Unchecked" />
+                            <TextBox Text="{Binding BroadcastIP, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" Width="200" LostFocus="BroadcastIP_LostFocus" HorizontalAlignment="Left" Margin="20,0,0,10"
+                                     Style="{StaticResource PlaceHolder}" Tag="IP Address or empty (for broadcast)"
+                                     IsEnabled="{Binding BroadcastUDP, Converter={StaticResource BoolReversedConverter}}"/>
+                            <CheckBox Content="Disable Discord Rich Present" IsChecked="{Binding DisableDiscordRP, Mode=TwoWay}" Checked="DisableDiscordRP_Checked" Unchecked="DisableDiscordRP_Unchecked" />
+                            <CheckBox Content="Slow Mode (require restart)" IsChecked="{Binding SlowMode, Mode=TwoWay}" Checked="SlowMode_Checked" Unchecked="SlowMode_Unchecked" />
+                            <CheckBox Content="Minimize to Taskbar" IsChecked="{Binding MinimizeToTaskbar, Mode=TwoWay}" Checked="MinimizeToTaskbar_Checked" Unchecked="MinimizeToTaskbar_Unchecked" />
+                        </StackPanel>
+                    </ScrollViewer>
                 </TabItem>
             </TabControl>
 
