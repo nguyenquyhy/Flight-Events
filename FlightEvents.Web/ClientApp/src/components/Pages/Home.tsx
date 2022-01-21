@@ -33,6 +33,8 @@ const Home = (props: Props) => {
     const eventId = searchParams.get('eventId');
     const callsignFilter = searchParams.get('callsigns')?.split(',') || null;
 
+    const showEvents = searchParams.get('showEvents');
+
     const panelVersion = searchParams.get('version');
     if (panelVersion) {
         const elem = document.getElementById('divUpdateMsg');
@@ -101,6 +103,7 @@ const Home = (props: Props) => {
         followingClientId={followingClientId}
         showPlanClientId={showPlanClientId}
         showRouteClientIds={showRouteClientIds}
+        isShowingEvents={showEvents !== 'none'}
         onCallsignReceived={handleCallsignReceived}
     />
 }

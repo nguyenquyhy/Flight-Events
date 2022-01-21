@@ -40,6 +40,7 @@ interface HomeWithParamsProps {
     followingClientId: string | null;
     showPlanClientId: string | null;
     showRouteClientIds: string[];
+    isShowingEvents: boolean;
 
     onCallsignReceived: (clientId: string, callsign: string, status: AircraftStatus | null) => void;
 }
@@ -409,7 +410,7 @@ const HomeWithParams = (props: HomeWithParamsProps) => {
                 moreInfoClientIds={showInfoClientIds} onMoreInfoChanged={handleShowInfoChanged}
             />
 
-            <EventList hub={hub} onAirportsLoaded={handleAirportsLoaded} onFlightPlansLoaded={handleFlightPlansLoaded} />
+            {props.isShowingEvents && <EventList hub={hub} onAirportsLoaded={handleAirportsLoaded} onFlightPlansLoaded={handleFlightPlansLoaded} />}
         </>}
 
         {!!props.eventId && <FlightPlanLoader eventId={props.eventId} onFlightPlansLoaded={handleFlightPlansLoaded} onAirportsLoaded={handleAirportsLoaded} />}
