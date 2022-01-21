@@ -67,6 +67,7 @@ export default class LeafletMap implements IMap {
 
     isDark: boolean = false;
     isDrawing = false;
+    isTeleporting = false;
 
     measurement: L.Polyline | null = null;
 
@@ -115,7 +116,12 @@ export default class LeafletMap implements IMap {
             }
         });
         this.mymap.on('mouseup', (e: L.LeafletMouseEvent) => {
-            this.stopDrawing();
+            if (this.isDrawing) {
+                this.stopDrawing();
+            } else if (this.isTeleporting) {
+                this.moveAircraft(e);
+                this.isTeleporting = false;
+            }
         });
 
         this.baseLayerGroup.addTo(this.mymap);
@@ -163,6 +169,15 @@ export default class LeafletMap implements IMap {
     public deinitialize() {
         this.onViewChangedHandler = null;
         this.mymap?.remove();
+    }
+
+    public startTeleporting() {
+        const map = this.mymap;
+        if (map) {
+            map.dragging.disable();
+            map.getContainer().classList.add("crosshair");
+            this.isTeleporting = true;
+        }
     }
 
     public startDrawing() {
@@ -610,7 +625,7 @@ export default class LeafletMap implements IMap {
         delete this.routeLines[id];
     }
 
-    private moveAircraft(e: L.ContextMenuEventArgs) {
+    private moveAircraft(e: { latlng: L.LatLng }) {
         if (this.onTeleportPositionSelectedHandler) {
             this.onTeleportPositionSelectedHandler({ latitude: e.latlng.lat, longitude: e.latlng.lng });
         }

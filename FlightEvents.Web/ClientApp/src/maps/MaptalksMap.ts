@@ -201,6 +201,8 @@ export default class MaptalksMap implements IMap {
 
     startDrawing() { }
 
+    startTeleporting() { }
+
     changeMode(dark: boolean) {
         this.isDark = dark;
         this.setTileLayer(this.type);

@@ -17,6 +17,7 @@ import { AircraftStatus, AircraftStatusBrief, Airport, ATCInfo, ATCStatus, Fligh
 import { convertPropertyNames, pascalCaseToCamelCase } from '../../Converters';
 import PreferenceStorage from '../../PreferenceStorage';
 import { useStateFromProps } from '../../Hooks';
+import TeleportButton from '../TeleportButton';
 
 const CONTROLLER_TIMEOUT_MILLISECONDS = 30000;
 const AIRCRAFT_TIMEOUT_MILLISECONDS = 10000;
@@ -72,6 +73,7 @@ const HomeWithParams = (props: HomeWithParamsProps) => {
 
     const [focusView, setFocusView] = useStateFromProps<View | null>(props.focusView);
     const [isDrawing, setIsDrawing] = React.useState(false);
+    const [isTeleporting, setIsTeleporting] = React.useState(false);
 
     const aircraftStatusCache = React.useRef<{ [key: string]: { lastUpdated: Date, status: AircraftStatus } }>({})
 
@@ -188,6 +190,14 @@ const HomeWithParams = (props: HomeWithParamsProps) => {
 
     const handleDrawingCompleted = () => {
         setIsDrawing(false);
+    }
+
+    const handleStartTeleporting = () => {
+        setIsTeleporting(true);
+    }
+
+    const handleTeleportingCompleted = () => {
+        setIsTeleporting(false);
     }
 
     React.useEffect(() => {
@@ -359,6 +369,9 @@ const HomeWithParams = (props: HomeWithParamsProps) => {
 
             isDrawing={isDrawing}
             onDrawingCompleted={handleDrawingCompleted}
+
+            isTeleporting={isTeleporting}
+            onTeleportingCompleted={handleTeleportingCompleted}
             />
 
         {props.mode !== MapMode.none && <>
@@ -369,6 +382,8 @@ const HomeWithParams = (props: HomeWithParamsProps) => {
                 tileType={mapTileType} onTileTypeChanged={handleTileTypeChanged} />
 
             {props.mapDimension === MapDimension._2D && <Ruler isDrawing={isDrawing} onStartDrawing={handleStartDrawing} />}
+
+            {props.mapDimension === MapDimension._2D && <TeleportButton isTeleporting={isTeleporting} onStartTeleporting={handleStartTeleporting} />}
 
             <Hud
                 mode={props.mode}

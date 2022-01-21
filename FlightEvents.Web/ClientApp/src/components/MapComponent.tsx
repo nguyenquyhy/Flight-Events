@@ -48,6 +48,9 @@ interface Props {
 
     isDrawing: boolean;
     onDrawingCompleted: () => void;
+
+    isTeleporting: boolean;
+    onTeleportingCompleted: () => void;
 }
 
 var map: IMap;
@@ -208,7 +211,7 @@ const MapComponent = (props: Props) => {
         }
     }, [props.controllers]);
 
-    const { showRouteClientIds, onRequestFlightRoute, isDrawing, onDrawingCompleted } = props;
+    const { showRouteClientIds, onRequestFlightRoute, isDrawing, onDrawingCompleted, isTeleporting, onTeleportingCompleted } = props;
 
     React.useEffect(() => {
         for (let clientId of showRouteClientIds) {
@@ -234,6 +237,13 @@ const MapComponent = (props: Props) => {
             onDrawingCompleted();
         }
     }, [isDrawing, onDrawingCompleted]);
+
+    React.useEffect(() => {
+        if (isTeleporting) {
+            map.startTeleporting();
+            onTeleportingCompleted();
+        }
+    }, [isTeleporting, onTeleportingCompleted]);
 
     return <>
         {props.isDark && <style dangerouslySetInnerHTML={{ __html: `.leaflet-container { background-color: black } .leaflet-tile, .icon-aircraft-marker { -webkit-filter: hue-rotate(180deg) invert(100%); }` }} />}

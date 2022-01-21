@@ -31,6 +31,7 @@ export interface IMap {
     changeMode(dark: boolean);
 
     startDrawing();
+    startTeleporting();
 }
 
 export type OnViewChangedFn = (view: View) => void;
