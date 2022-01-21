@@ -89,10 +89,12 @@ const Download = () => {
                                 <li>Send message to other controllers</li>
                                 <li>Get metar from NOAA</li>
                             </ul>
-                            <h5>Partnership with ATConnect</h5>
-                            <p>If you are interested in being a controller for community events and enhancing the realism of simming for other pilots, ATConnect is a great group to join!</p>
-                            <a href="https://www.atconnect.de/" style={{ width: 300, backgroundColor: 'black', padding: 20, display: 'inline-block' }} target="_blank" rel="noopener noreferrer">
-                                <img src="https://irp-cdn.multiscreensite.com/1d49ba89/dms3rep/multi/logo-with-white-text.svg" alt="ATConnect" />
+                            <h5>ATC Communities</h5>
+                            <a href="https://discord.gg/zQcv4bpUBR" style={{ width: 300, padding: 20, display: 'block' }} target="_blank" rel="noopener noreferrer">
+                                <img src="https://events-storage.flighttracker.tech/images/ukatc.png" alt="UK ATC" />
+                            </a>
+                            <a href="https://easternhops.com/" style={{ width: 300, padding: 20, display: 'block' }} target="_blank" rel="noopener noreferrer">
+                                <img src="https://events-storage.flighttracker.tech/images/easternhops.png" alt="Eastern Hops" />
                             </a>
                         </Wrapper>
                     </TabPane>
