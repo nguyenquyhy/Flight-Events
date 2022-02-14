@@ -90,7 +90,7 @@ const Download = () => {
                                 <li>Get metar from NOAA</li>
                             </ul>
                             <h5>ATC Communities</h5>
-                            <a href="https://discord.gg/zQcv4bpUBR" style={{ width: 300, padding: 20, display: 'block' }} target="_blank" rel="noopener noreferrer">
+                            <a href="https://discord.gg/976H8Mwpu6" style={{ width: 300, padding: 20, display: 'block' }} target="_blank" rel="noopener noreferrer">
                                 <img src="https://events-storage.flighttracker.tech/images/ukatc.png" alt="UK ATC" />
                             </a>
                             <a href="https://easternhops.com/" style={{ width: 300, padding: 20, display: 'block' }} target="_blank" rel="noopener noreferrer">
