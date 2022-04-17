@@ -5,8 +5,6 @@ using FlightEvents.Web.Hubs;
 using FlightEvents.Web.Identity;
 using FlightEvents.Web.Logics;
 using HotChocolate;
-using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Voyager;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -63,6 +61,7 @@ namespace FlightEvents.Web
                     .AddQueryType<QueryType>()
                     .AddMutationType<MutationType>()
                     .AddType<FlightEventQueryType>()
+                    .AddType<FlightEventChecklistItemTypeEnumType>()
                     .AddAuthorizeDirectiveType()
                     );
 
@@ -185,13 +184,10 @@ namespace FlightEvents.Web
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app
-                .UseGraphQL("/graphql")
-                .UsePlayground("/graphql")
-                .UseVoyager("/graphql");
-
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapGraphQL();
+                endpoints.MapGraphQLVoyager();
                 endpoints.MapDefaultControllerRoute();
                 endpoints.MapRazorPages();
 

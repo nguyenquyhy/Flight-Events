@@ -5,7 +5,7 @@ namespace FlightEvents.Data
 {
     public enum FlightEventType
     {
-        SightSeeing,
+        Sightseeing,
         ATC,
         Race
     }
