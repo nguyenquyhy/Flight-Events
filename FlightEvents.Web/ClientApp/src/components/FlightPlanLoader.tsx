@@ -13,7 +13,7 @@ interface FlightPlanLoaderProps {
 
 const FlightPlanLoader = (props: FlightPlanLoaderProps) => {
     return <>
-        <Query query={gql`query GetFlightEvent($id: Uuid!) {
+        <Query query={gql`query GetFlightEvent($id: UUID!) {
     flightEvent(id: $id) {
         id
         waypoints

@@ -9,7 +9,7 @@ import { FlightEvent, LeaderboardRecord } from '../../Models';
 import Leaderboard, { Leaderboards, recordsToLeaderboards } from '../Leaderboard';
 import StopwatchHub from '../StopwatchHub';
 
-const QUERY = gql`query getEvent($id: Uuid!) {
+const QUERY = gql`query getEvent($id: UUID!) {
     flightEvent(id: $id) {
         id
         name

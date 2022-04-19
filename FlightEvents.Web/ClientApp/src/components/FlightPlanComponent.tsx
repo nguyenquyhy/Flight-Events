@@ -12,7 +12,7 @@ const FlightPlanComponent = (props: {
     onFlightPlansLoaded: (flightPlans: FlightPlan[]) => void;
     hideList?: boolean;
 }) => {
-    const { loading, error, data } = useQuery<{ flightEvent: { flightPlans: FlightPlan[] } }>(gql`query GetFlightPlans($id: Uuid!) {
+    const { loading, error, data } = useQuery<{ flightEvent: { flightPlans: FlightPlan[] } }>(gql`query GetFlightPlans($id: UUID!) {
     flightEvent(id: $id) {
         id
         flightPlans {

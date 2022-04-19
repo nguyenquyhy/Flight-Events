@@ -8,7 +8,7 @@ import { Container, Row, Col, Button, FormGroup, Label, Input, Breadcrumb, Bread
 import { FlightEvent } from '../../Models';
 
 const GET_QUERY = gql`
-query getEvent($id: Uuid!) {
+query getEvent($id: UUID!) {
     flightEvent(id: $id) {
         id
         type

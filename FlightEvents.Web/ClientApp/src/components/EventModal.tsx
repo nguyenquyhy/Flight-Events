@@ -67,7 +67,7 @@ export default class EventModal extends React.Component<Props, State> {
         return <Modal isOpen={this.props.isOpen} toggle={this.props.toggle} onOpened={this.handleOpen} onClosed={handleClosed} size='xl'>
             <ModalHeader>{this.props.flightEvent.name}</ModalHeader>
             <ModalBody>
-                <Query query={gql`query GetFlightEvent($id: Uuid!) {
+                <Query query={gql`query GetFlightEvent($id: UUID!) {
     flightEvent(id: $id) {
         id
         type

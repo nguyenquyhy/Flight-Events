@@ -8,7 +8,7 @@ import { gql } from '@apollo/client';
 import { FlightEvent, LeaderboardRecord, Stopwatch } from '../../Models';
 import StopwatchHub from '../StopwatchHub';
 
-const QUERY = gql`query getEvent($id: Uuid!) {
+const QUERY = gql`query getEvent($id: UUID!) {
     flightEvent(id: $id) {
         id
     }
