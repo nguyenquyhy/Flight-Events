@@ -1,4 +1,4 @@
-<AssetPackage Name="nguyenquyhy-ingamepanels-flightevents" ReleaseNotes="PackageDefinitions\nguyenquyhy-ingamepanels-flightevents\ReleaseNotes.xml" Version="0.2.0">
+<AssetPackage Name="nguyenquyhy-ingamepanels-flightevents" ReleaseNotes="PackageDefinitions\nguyenquyhy-ingamepanels-flightevents\ReleaseNotes.xml" Version="0.3.0">
 	<ItemSettings>
 		<ContentType>MISC</ContentType>
 		<Title>Flight Events Panel</Title>
