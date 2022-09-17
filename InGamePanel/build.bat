@@ -1,1 +1,1 @@
-"C:\MSFS SDK\Tools\bin\fspackagetool.exe" FlightEvents.xml -nomirroring
+"C:\MSFS SDK\Tools\bin\fspackagetool.exe" FlightEvents.xml
