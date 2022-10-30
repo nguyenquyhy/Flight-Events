@@ -12,9 +12,9 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 6.0.402
       - name: Clean
@@ -27,13 +27,13 @@ jobs:
     name: Create Web package
     needs: [build]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Clean
         run: dotnet clean --configuration Release && dotnet nuget locals all --clear
       - name: Publish with dotnet
         run: dotnet publish --configuration Release --output publish-web FlightEvents.Web
       - name: Collect artifact
-        uses: actions/upload-artifact@1.0.0
+        uses: actions/upload-artifact@v3
         with:
           name: Website package
           path: publish-web
@@ -43,7 +43,7 @@ jobs:
     name: Package Client
     needs: [build]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Clean
         run: dotnet clean --configuration Release && dotnet nuget locals all --clear
       - name: Publish with dotnet
@@ -54,12 +54,12 @@ jobs:
           copy FlightEvents.Client/README.txt publish-client/README.txt
           dir publish-client
       - name: Collect build artifact
-        uses: actions/upload-artifact@1.0.0
+        uses: actions/upload-artifact@v3
         with:
           name: FlightEvents.Client
           path: publish-client
       - name: Collect version artifact
-        uses: actions/upload-artifact@1.0.0
+        uses: actions/upload-artifact@v3
         with:
           name: versions.json
           path: FlightEvents.Client/versions.json
@@ -71,12 +71,12 @@ jobs:
     if: "contains(github.event.head_commit.message, '/publish')"
     steps:
       - name: Download build artifact
-        uses: actions/download-artifact@1.0.0
+        uses: actions/download-artifact@v3
         with:
           name: FlightEvents.Client
           path: publish-client/
       - name: Download version artifact
-        uses: actions/download-artifact@1.0.0
+        uses: actions/download-artifact@v3
         with:
           name: versions.json
           path: .
@@ -91,10 +91,10 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Upload FlightEvents.Client.zip via Azure CLI
-        uses: Azure/cli@v1.0.0
+        uses: Azure/cli@v1
         with:
           inlineScript: az storage blob upload --account-name flightevents --container-name downloads --file FlightEvents.Client.zip --name FlightEvents.Client.zip
       - name: Upload versions.json via Azure CLI
-        uses: Azure/cli@v1.0.0
+        uses: Azure/cli@v1
         with:
           inlineScript: az storage blob upload --account-name flightevents --container-name downloads --file versions.json --name versions.json
