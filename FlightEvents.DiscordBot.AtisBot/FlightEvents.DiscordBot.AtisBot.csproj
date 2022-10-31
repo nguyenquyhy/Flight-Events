@@ -28,6 +28,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FlightEvents.Bots.Logics\FlightEvents.Bots.Logics.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="libsodium.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

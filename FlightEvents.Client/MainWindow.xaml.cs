@@ -446,7 +446,7 @@ namespace FlightEvents.Client
             await hub.SendAsync("StreamFlightRoute", ClientStreamData());
         }
 
-        async IAsyncEnumerable<AircraftStatusBrief> ClientStreamData()
+        IEnumerable<AircraftStatusBrief> ClientStreamData()
         {
             var copy = lineSimplifier.DouglasPeucker(route.ToList(), 0.0001).ToList();
             copy.Reverse();

@@ -30,7 +30,7 @@ namespace FlightEvents.Client.Logics
             this.logger = logger;
         }
 
-        public async Task StartAsync(string ipAddress)
+        public Task StartAsync(string ipAddress)
         {
             try
             {
@@ -53,12 +53,14 @@ namespace FlightEvents.Client.Logics
                 logger.LogWarning(ex, "Cannot establish a UDP connection!");
                 //MessageBox.Show($"Cannot estitablish a UDP connection on port {DefaultUdpPort}!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            return Task.CompletedTask;
         }
 
-        public async Task StopAsync()
+        public Task StopAsync()
         {
             udpClient?.Close();
             udpClient = null;
+            return Task.CompletedTask;
         }
 
         private readonly SemaphoreSlim sm = new SemaphoreSlim(1);

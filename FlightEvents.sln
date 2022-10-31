@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29806.167
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightEvents.Web", "FlightEvents.Web\FlightEvents.Web.csproj", "{E9C068A9-EA10-436C-BBE7-8CA9047B9B70}"
 EndProject
@@ -45,6 +45,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightEvents.Common.Tests", "FlightEvents.Common.Tests\FlightEvents.Common.Tests.csproj", "{373A618D-42DB-421A-94A8-C62A4F0665DE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightEvents.DiscordBot.AtisBot", "FlightEvents.DiscordBot.AtisBot\FlightEvents.DiscordBot.AtisBot.csproj", "{9A1304A3-5567-4B3E-A5C0-D4DA7B60AC64}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightEvents.Bots.Logics", "FlightEvents.Bots.Logics\FlightEvents.Bots.Logics.csproj", "{FCC2AA11-CC0A-4ECE-88C1-D038288C78F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -108,6 +110,10 @@ Global
 		{9A1304A3-5567-4B3E-A5C0-D4DA7B60AC64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A1304A3-5567-4B3E-A5C0-D4DA7B60AC64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A1304A3-5567-4B3E-A5C0-D4DA7B60AC64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCC2AA11-CC0A-4ECE-88C1-D038288C78F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCC2AA11-CC0A-4ECE-88C1-D038288C78F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCC2AA11-CC0A-4ECE-88C1-D038288C78F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCC2AA11-CC0A-4ECE-88C1-D038288C78F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -126,6 +132,7 @@ Global
 		{F9CE08AC-0919-468B-B23A-7882D1AE9A68} = {285ACFD8-0FCA-4917-B73A-06435E65EB1F}
 		{373A618D-42DB-421A-94A8-C62A4F0665DE} = {13516696-B851-4268-A502-0D3C8AD4A118}
 		{9A1304A3-5567-4B3E-A5C0-D4DA7B60AC64} = {285ACFD8-0FCA-4917-B73A-06435E65EB1F}
+		{FCC2AA11-CC0A-4ECE-88C1-D038288C78F6} = {285ACFD8-0FCA-4917-B73A-06435E65EB1F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {370892BA-A315-4F47-8CF4-28361764067C}

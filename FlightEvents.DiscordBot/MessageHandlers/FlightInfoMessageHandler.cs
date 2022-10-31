@@ -19,7 +19,6 @@ namespace FlightEvents.DiscordBot.MessageHandlers
         private readonly Regex command = new Regex("!finfo (.*)", RegexOptions.IgnoreCase);
 
         private readonly ILogger<FlightInfoMessageHandler> logger;
-        private readonly IDiscordServerStorage discordServerStorage;
         private readonly HubConnection hub;
         private readonly List<DiscordServer> servers = null;
         private readonly HttpClient httpClient;

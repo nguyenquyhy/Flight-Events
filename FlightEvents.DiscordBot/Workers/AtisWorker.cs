@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
+using FlightEvents.Bots.Logics;
 using FlightEvents.Data;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -135,10 +136,8 @@ namespace FlightEvents.DiscordBot
             {
                 if (message.Attachments.Count > 0)
                 {
-                    Task.Run(async () =>
-                    {
-                        await ProcessBotRequestAsync(message, channel, serverOptions, frequency, match.Groups.Count > 2 ? match.Groups[2].Value.Trim() : null);
-                    });
+                    ProcessBotRequestAsync(message, channel, serverOptions, frequency, match.Groups.Count > 2 ? match.Groups[2].Value.Trim() : null)
+                        .RunInThreadPool(logger);
                 }
                 else
                 {

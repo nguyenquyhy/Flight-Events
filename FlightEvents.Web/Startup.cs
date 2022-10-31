@@ -56,14 +56,12 @@ namespace FlightEvents.Web
             services.AddSingleton<ILeaderboardStorage, AzureTableLeaderboardStorage>();
             services.AddSingleton<IATCFlightPlanStorage, InMemoryATCFlightPlanStorage>();
 
-            services.AddGraphQL(
-                SchemaBuilder.New()
+            services.AddGraphQL()
                     .AddQueryType<QueryType>()
                     .AddMutationType<MutationType>()
                     .AddType<FlightEventQueryType>()
                     .AddType<FlightEventChecklistItemTypeEnumType>()
-                    .AddAuthorizeDirectiveType()
-                    );
+                    .AddAuthorization();
 
             services.AddControllersWithViews();
             services.AddRazorPages();

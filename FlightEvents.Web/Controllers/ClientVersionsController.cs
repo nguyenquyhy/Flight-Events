@@ -20,11 +20,13 @@ namespace FlightEvents.Web.Controllers
                         UseMessagePack = true
                     }
                 },
+#pragma warning disable CS0618 // Type or member is obsolete
                 "2.5.2.0" => new ClientVersion
                 {
                     Version = version,
                     Features = new ClientFeatures
                     {
+                        UseMessagePack = true,
                         UseWebpack = true
                     }
                 },
@@ -33,6 +35,7 @@ namespace FlightEvents.Web.Controllers
                     Version = version,
                     Features = new ClientFeatures
                     {
+                        UseMessagePack = true,
                         UseWebpack = true
                     }
                 },
@@ -41,6 +44,7 @@ namespace FlightEvents.Web.Controllers
                     Version = version,
                     Features = new ClientFeatures
                     {
+                        UseMessagePack = true,
                         UseWebpack = true
                     }
                 },
@@ -48,6 +52,7 @@ namespace FlightEvents.Web.Controllers
                 {
                     Version = version
                 }
+#pragma warning restore CS0618 // Type or member is obsolete
             };
         }
     }

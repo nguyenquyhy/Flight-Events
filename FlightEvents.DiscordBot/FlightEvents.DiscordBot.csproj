@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FlightEvents.Bots.Logics\FlightEvents.Bots.Logics.csproj" />
     <ProjectReference Include="..\FlightEvents.Client.Logics\FlightEvents.Client.Logics.csproj" />
     <ProjectReference Include="..\FlightEvents.Data.AzureStorage\FlightEvents.Data.AzureStorage.csproj" />
   </ItemGroup>

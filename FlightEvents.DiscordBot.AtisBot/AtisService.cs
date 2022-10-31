@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Audio;
 using Discord.WebSocket;
+using FlightEvents.Bots.Logics;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -94,10 +95,7 @@ namespace FlightEvents.DiscordBot.AtisBot
                     await SetNicknameAsync(guild);
 
                     logger.LogInformation("Start loop on channel {channelId} {channelName} of {guildName}", appOptions.ChannelId, channel.Name, guild.Name);
-                    Task.Run(async () =>
-                    {
-                        await PlayLoopAsync(channel, token);
-                    });
+                    PlayLoopAsync(channel, token).RunInThreadPool(logger);
                 }
                 else
                 {
