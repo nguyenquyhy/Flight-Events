@@ -53,8 +53,8 @@
     "extends": "react-app"
   },
   "scripts": {
-    "start": "rimraf ./build && craco start",
-    "build": "craco build",
+    "start": "rimraf ./build && cross-env NODE_OPTIONS=--openssl-legacy-provider craco start",
+    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider craco build",
     "test": "cross-env CI=true craco test --env=jsdom",
     "eject": "react-scripts eject",
     "lint": "eslint ./src/"
