@@ -601,7 +601,7 @@ export default class MaptalksMap implements IMap {
             const center = this.map.getCenter();
             return { longitude: center.x, latitude: center.y, zoom: this.map.getZoom() }
         }
-        return { longitude: null, latitude: null, zoom: null }
+        return { longitude: null, latitude: null }
     }
 
     public onViewChanged(handler: OnViewChangedFn) {

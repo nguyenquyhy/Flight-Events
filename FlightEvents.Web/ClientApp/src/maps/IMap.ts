@@ -39,7 +39,8 @@ export type OnViewChangedFn = (view: View) => void;
 export interface View {
     latitude: number | null
     longitude: number | null
-    zoom?: number | null
+    zoom?: number
+    scaling?: number
 }
 
 export type OnTeleportPositionSelectedFn = (position: MapPosition) => void;

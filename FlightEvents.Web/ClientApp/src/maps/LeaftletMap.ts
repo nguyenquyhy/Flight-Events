@@ -213,17 +213,24 @@ export default class LeafletMap implements IMap {
 
     public setTileLayer(type: MapTileType) {
         this.baseLayerGroup.clearLayers();
+
+        const tileSize = !!this.initialView?.scaling ? this.initialView.scaling * 256 : undefined;
+        const zoomOffset = !!this.initialView?.scaling ? -(this.initialView.scaling - 1) : undefined;
+        const additionalAttributes = (tileSize && zoomOffset) ? { tileSize, zoomOffset } : {};
+
         switch (type) {
             case MapTileType.OpenStreetMap:
                 this.baseLayerGroup.addLayer(L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    ...additionalAttributes
                 }));
                 break;
             case MapTileType.OpenTopoMap:
                 this.baseLayerGroup.addLayer(L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
                     maxZoom: 17,
-                    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+                    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+                    ...additionalAttributes
                 }));
                 break;
             case MapTileType.EsriWorldImagery:
@@ -233,7 +240,8 @@ export default class LeafletMap implements IMap {
                 break;
             case MapTileType.EsriTopo:
                 this.baseLayerGroup.addLayer(L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-                    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+                    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community',
+                    ...additionalAttributes
                 }));
                 break;
             case MapTileType.UsVfrSectional:
@@ -553,7 +561,7 @@ export default class LeafletMap implements IMap {
 
     public getCurrentView(): View {
         // HACK: due to https://github.com/Leaflet/Leaflet/issues/3796, getCenter() doesn't work here
-        return this.lastView || { longitude: null, latitude: null, zoom: null };
+        return this.lastView || { longitude: null, latitude: null };
     }
 
     public onViewChanged(handler: OnViewChangedFn) {

@@ -29,6 +29,7 @@ const Home = (props: Props) => {
     const latitude = searchParams.get('latitude') ? Number(searchParams.get('latitude')) : null;
     const longitude = searchParams.get('longitude') ? Number(searchParams.get('longitude')) : null;
     const zoom = Number(searchParams.get('zoom'));
+    const scaling = Number(searchParams.get('scaling'));
 
     const eventId = searchParams.get('eventId');
     const callsignFilter = searchParams.get('callsigns')?.split(',') || null;
@@ -45,7 +46,7 @@ const Home = (props: Props) => {
     }
 
     const initialView = React.useRef({
-        latitude: latitude, longitude: longitude, zoom: zoom
+        latitude: latitude, longitude: longitude, zoom: zoom, scaling: scaling
     });
 
     const [focusView, setFocusView] = React.useState<View | null>(null);

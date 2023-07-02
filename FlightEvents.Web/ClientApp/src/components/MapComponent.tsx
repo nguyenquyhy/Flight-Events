@@ -227,7 +227,7 @@ const MapComponent = (props: Props) => {
 
     React.useEffect(() => {
         if (props.focusView && props.focusView.latitude && props.focusView.longitude) {
-            map.focus({ longitude: props.focusView.longitude, latitude: props.focusView.latitude }, props.focusView.zoom || undefined);
+            map.focus({ longitude: props.focusView.longitude, latitude: props.focusView.latitude }, props.focusView.zoom);
         }
     }, [props.focusView]);
 
