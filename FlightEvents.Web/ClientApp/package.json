@@ -9,7 +9,6 @@
     "bootstrap": "^4.6.2",
     "date-fns": "^2.28.0",
     "graphql": "^16.3.0",
-    "jquery": "^3.6.0",
     "leaflet": "^1.9.4",
     "leaflet-contextmenu": "^1.4.0",
     "leaflet-geometryutil": "^0.10.2",
@@ -22,40 +21,37 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-markdown": "^6.0.3",
-    "react-router": "^5.3.4",
     "react-router-bootstrap": "^0.25.0",
     "react-router-dom": "^5.3.4",
-    "react-scripts": "^3.4.4",
+    "react-scripts": "^4.0.3",
     "reactstrap": "^8.10.1",
     "styled-components": "^5.3.11"
   },
   "devDependencies": {
-    "@craco/craco": "^5.9.0",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/leaflet": "^1.9.3",
     "@types/leaflet-rotatedmarker": "^0.2.2",
     "@types/lodash": "^4.14.186",
     "@types/react": "^17.0.62",
     "@types/react-router-dom": "^5.3.3",
-    "ajv": "^8.11.0",
-    "babel-eslint": "^10.1.0",
-    "craco-workbox": "^0.1.0",
     "cross-env": "^7.0.3",
-    "eslint": "^6.8.0",
-    "eslint-config-react-app": "^5.2.1",
-    "eslint-plugin-flowtype": "^6.1.1",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-jsx-a11y": "^6.6.1",
-    "eslint-plugin-react": "^7.31.10",
     "rimraf": "^3.0.2",
     "typescript": "^4.9.5"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ],
+    "rules": {
+      "unicode-bom": "off",
+      "import/no-anonymous-default-export": "off"
+    }
   },
   "scripts": {
-    "start": "rimraf ./build && cross-env NODE_OPTIONS=--openssl-legacy-provider craco start",
-    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider craco build",
-    "test": "cross-env CI=true craco test --env=jsdom",
+    "start": "rimraf ./build && cross-env NODE_OPTIONS=--openssl-legacy-provider react-scripts start",
+    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider react-scripts build",
+    "test": "cross-env CI=true react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "lint": "eslint ./src/"
   },
