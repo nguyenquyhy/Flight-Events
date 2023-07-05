@@ -2,7 +2,7 @@
 import * as L from 'leaflet';
 import LG from 'leaflet-geometryutil'
 import 'leaflet-rotatedmarker';
-import 'overpass-layer/dist/overpass-layer';
+import 'overpass-layer';
 import 'leaflet-contextmenu';
 import 'leaflet-contextmenu/dist/leaflet.contextmenu.css';
 import { AircraftStatus, Airport, FlightPlanData, ATCStatus, ATCInfo, AircraftStatusBrief } from '../Models';
