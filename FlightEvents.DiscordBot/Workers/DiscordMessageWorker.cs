@@ -16,7 +16,10 @@ namespace FlightEvents.DiscordBot
 {
     public class DiscordMessageWorker : BackgroundService
     {
-        private readonly DiscordSocketClient botClient = new DiscordSocketClient();
+        private readonly DiscordSocketClient botClient = new DiscordSocketClient(new DiscordSocketConfig
+        {
+            GatewayIntents = GatewayIntents.All
+        });
         private readonly ILoggerFactory loggerFactory;
         private readonly ILogger<DiscordMessageWorker> logger;
         private readonly IDiscordServerStorage discordServerStorage;

@@ -22,7 +22,10 @@ namespace FlightEvents.DiscordBot
         private readonly Regex regexStart = new Regex("^!atis ([0-9.]+)(.*)$", RegexOptions.IgnoreCase);
         private readonly Regex regexStop = new Regex("!atis stop ([0-9.]+)", RegexOptions.IgnoreCase);
 
-        private readonly DiscordSocketClient botClient = new DiscordSocketClient();
+        private readonly DiscordSocketClient botClient = new DiscordSocketClient(new DiscordSocketConfig
+        {
+            GatewayIntents = GatewayIntents.All
+        });
         private readonly ILogger<AtisWorker> logger;
         private readonly ChannelMaker channelMaker;
         private readonly RegexMatcher regexMatcher;
