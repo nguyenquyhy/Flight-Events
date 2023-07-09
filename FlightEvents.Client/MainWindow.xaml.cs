@@ -348,6 +348,11 @@ namespace FlightEvents.Client
                     logger.LogWarning(ex, "Cannot connect to SignalR server! Retry in 5s...");
                     await Task.Delay(5000);
                 }
+                catch (OperationCanceledException ex)
+                {
+                    logger.LogWarning(ex, "Cannot connect to SignalR server! Retry in 5s...");
+                    await Task.Delay(5000);
+                }
             }
         }
 
