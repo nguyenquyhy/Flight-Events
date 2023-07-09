@@ -5,7 +5,9 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
+    
+permissions: 
+  id-token: write
 jobs:
   build:
 
@@ -87,14 +89,20 @@ jobs:
           path: .
           workingDirectory: publish-client/
       - name: Azure Login
-        uses: Azure/login@v1
+        uses: Azure/login@v1.4.6
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - name: Upload FlightEvents.Client.zip via Azure CLI
         uses: Azure/cli@v1
         with:
-          inlineScript: az storage blob upload --account-name flightevents --container-name downloads --file FlightEvents.Client.zip --name FlightEvents.Client.zip
+          inlineScript: az storage blob upload --account-name flightevents --container-name downloads --file FlightEvents.Client.zip --name FlightEvents.Client.zip --overwrite --auth-mode login
       - name: Upload versions.json via Azure CLI
         uses: Azure/cli@v1
         with:
-          inlineScript: az storage blob upload --account-name flightevents --container-name downloads --file versions.json --name versions.json
+          inlineScript: az storage blob upload --account-name flightevents --container-name downloads --file versions.json --name versions.json --overwrite --auth-mode login
+      - name: Azure logout
+        run: |
+              az logout
+        if: always()
