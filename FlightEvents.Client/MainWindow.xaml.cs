@@ -3,6 +3,7 @@ using FlightEvents.Client.Dialogs;
 using FlightEvents.Client.Logics;
 using FlightEvents.Client.ViewModels;
 using FlightEvents.Data;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -338,6 +339,11 @@ namespace FlightEvents.Client
                     break;
                 }
                 catch (HttpRequestException ex)
+                {
+                    logger.LogWarning(ex, "Cannot connect to SignalR server! Retry in 5s...");
+                    await Task.Delay(5000);
+                }
+                catch (HubException ex)
                 {
                     logger.LogWarning(ex, "Cannot connect to SignalR server! Retry in 5s...");
                     await Task.Delay(5000);
