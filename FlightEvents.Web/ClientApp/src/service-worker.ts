@@ -28,6 +28,15 @@ precacheAndRoute(self.__WB_MANIFEST);
 // are fulfilled with your index.html shell. Learn more at
 // https://developers.google.com/web/fundamentals/architecture/app-shell
 const fileExtensionRegexp = new RegExp('/[^/?]+\\.[^/]+$');
+const blocklistRegexps = [
+  new RegExp('^/GraphQL', 'i'),
+  new RegExp('^/api/', 'i'),
+  new RegExp('^/Error', 'i'),
+  new RegExp('^/Discord', 'i'),
+  new RegExp('^/Login', 'i'),
+  new RegExp('^/Logout', 'i'),
+  new RegExp('^/.well-known', 'i')
+]
 registerRoute(
   // Return false to exempt requests from being fulfilled by index.html.
   ({ request, url }: { request: Request; url: URL }) => {
@@ -45,6 +54,12 @@ registerRoute(
     // a file extension, skip.
     if (url.pathname.match(fileExtensionRegexp)) {
       return false;
+    }
+
+    for (let regexp of blocklistRegexps) {
+      if (url.pathname.match(regexp)) {
+        return false;
+      }
     }
 
     // Return true to signal that we want to use the handler.
