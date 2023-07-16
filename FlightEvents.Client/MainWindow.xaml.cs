@@ -477,16 +477,17 @@ namespace FlightEvents.Client
         /// </summary>
         private async void Hub_OnRequestFlightRoute(string webConnectionId)
         {
+            logger.LogDebug("Send current route to server");
             await hub.SendAsync("StreamFlightRoute", ClientStreamData());
-        }
 
-        IEnumerable<AircraftStatusBrief> ClientStreamData()
-        {
-            var copy = lineSimplifier.DouglasPeucker(route.ToList(), 0.0001).ToList();
-            copy.Reverse();
-            foreach (var status in copy)
+            async IAsyncEnumerable<AircraftStatusBrief> ClientStreamData()
             {
-                yield return status;
+                var copy = lineSimplifier.DouglasPeucker(route.ToList(), 0.0001).ToList();
+                copy.Reverse();
+                foreach (var status in copy)
+                {
+                    yield return status;
+                }
             }
         }
 
