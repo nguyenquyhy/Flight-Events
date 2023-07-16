@@ -96,6 +96,12 @@ namespace FlightEvents.Client
                 ShowSavingPreferenceErrorMessageAndShutDown();
                 return;
             }
+            catch (IOException ex)
+            {
+                logger.LogError(ex, "Cannot save preferences!");
+                ShowSavingPreferenceErrorMessageAndShutDown();
+                return;
+            }
 
             viewModel.DisableDiscordRP = pref.DisableDiscordRP;
             viewModel.BroadcastUDP = pref.BroadcastUDP;
