@@ -12,9 +12,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -349,6 +351,21 @@ namespace FlightEvents.Client
                     await Task.Delay(5000);
                 }
                 catch (OperationCanceledException ex)
+                {
+                    logger.LogWarning(ex, "Cannot connect to SignalR server! Retry in 5s...");
+                    await Task.Delay(5000);
+                }
+                catch (SocketException ex)
+                {
+                    logger.LogWarning(ex, "Cannot connect to SignalR server! Retry in 5s...");
+                    await Task.Delay(5000);
+                }
+                catch (WebSocketException ex)
+                {
+                    logger.LogWarning(ex, "Cannot connect to SignalR server! Retry in 5s...");
+                    await Task.Delay(5000);
+                }
+                catch (IOException ex)
                 {
                     logger.LogWarning(ex, "Cannot connect to SignalR server! Retry in 5s...");
                     await Task.Delay(5000);
