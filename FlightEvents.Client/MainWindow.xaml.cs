@@ -654,13 +654,17 @@ namespace FlightEvents.Client
 
         private void FlightConnector_AirportListReceived(object sender, AirportListReceivedEventArgs e)
         {
-            foreach (var airport in e.Airports)
+            logger.LogDebug("Got Airport list: {count}", e.Airports.Count());
+            Task.Run(() =>
             {
-                if (airports.TryAdd(airport.Ident, airport))
+                foreach (var airport in e.Airports)
                 {
-                    Debug.WriteLine($"{airport.Ident} {airport.Latitude} {airport.Longitude}");
+                    if (airports.TryAdd(airport.Ident, airport))
+                    {
+                        logger.LogTrace("Airport: {ident} {latitude} {longitude}", airport.Ident, airport.Latitude, airport.Longitude);
+                    }
                 }
-            }
+            });
         }
 
         private void FlightConnector_Error(object sender, ConnectorErrorEventArgs e)
