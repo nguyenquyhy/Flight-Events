@@ -594,7 +594,14 @@ namespace FlightEvents.Client
                         route.Add(new AircraftStatusBrief(e.AircraftStatus));
 
                         lastStatusSent = DateTime.Now;
-                        await hub.SendAsync("UpdateAircraft", e.AircraftStatus);
+                        try
+                        {
+                            await hub.SendAsync("UpdateAircraft", e.AircraftStatus);
+                        }
+                        catch (InvalidOperationException ex)
+                        {
+                            logger.LogWarning(ex, "Cannot send message when connection is not active!");
+                        }
                         lastStatusSent = DateTime.Now;
 
                         if (viewModel.TransponderIdent) viewModel.TransponderIdent = false;
