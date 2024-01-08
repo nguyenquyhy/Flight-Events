@@ -52,7 +52,6 @@ jobs:
         run: dotnet publish --configuration Release --output publish-client --runtime win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishReadyToRun=true FlightEvents.Client
       - name: Copy extra content
         run: |
-          copy FlightEvents.Client/appsettings.Release.json publish-client/appsettings.json
           copy FlightEvents.Client/README.txt publish-client/README.txt
           dir publish-client
       - name: Collect build artifact
