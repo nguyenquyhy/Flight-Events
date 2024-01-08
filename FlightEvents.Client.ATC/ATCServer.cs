@@ -93,7 +93,7 @@ namespace FlightEvents.Client.ATC
             if (writer != null)
             {
                 await writer.WriteLineAsync(pos);
-                logger.LogTrace("Sent Position: " + pos);
+                logger.LogTrace("Sent Position: {position}", pos);
             }
         }
 
