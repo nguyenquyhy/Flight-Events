@@ -19,7 +19,6 @@ namespace FlightEvents.Web
             try
             {
                 Log.Information("Starting up");
-                MessagePackSecurity.Active = MessagePackSecurity.UntrustedData;
 
                 CreateHostBuilder(args).Build().Run();
             }
