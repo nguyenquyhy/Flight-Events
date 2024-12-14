@@ -110,7 +110,7 @@ const Mutated = (props: MutatedProps) => {
         {update => (
             <form onSubmit={e => {
                 e.preventDefault();
-                update({ variables: { flightEvent: { id: props.event.id, name: state.name, description: state.description, url: state.url } } })
+                update({ variables: { flightEvent: { id: props.event.id, name: state.name, description: state.description, url: state.url, startDateTime: state.startDateTime } } })
             }}>
                 <h2>Event</h2>
 
