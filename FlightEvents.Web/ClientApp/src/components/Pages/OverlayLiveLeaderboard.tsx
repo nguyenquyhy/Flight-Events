@@ -192,19 +192,19 @@ export default (props: RouteComponentProps<RouteProps>) => {
                 <tbody>
                     {result.map((l, index) => (
                         <tr key={l.playerName}>
-                            <StyledRank highlight={l.isReference}>
+                            <StyledRank highlight={l.isReference || false}>
                                 <div>{l.timeDiff === undefined ? '' : (index + 1)}</div>
                             </StyledRank>
-                            <StyledName highlight={l.isReference}>
+                            <StyledName highlight={l.isReference || false}>
                                 {l.playerName}
                             </StyledName>
-                            <StyledRef highlight={l.isReference}>
+                            <StyledRef highlight={l.isReference || false}>
                                 {l.referencePoint}
                             </StyledRef>
-                            <StyledDiff highlight={l.isReference}>
+                            <StyledDiff highlight={l.isReference || false}>
                                 {l.timeDiff !== undefined && formatTime(l.timeDiff, true)}
                             </StyledDiff>
-                            <StyledTime highlight={l.isReference}>
+                            <StyledTime highlight={l.isReference || false}>
                                 {l.isReference && !l.isStopwatch ? formatTime(l.timeSinceStart, false) : (!!l.isStopwatch && <StopwatchItem {...l} />)}
                             </StyledTime>
                         </tr>

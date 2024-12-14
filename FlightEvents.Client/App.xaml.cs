@@ -3,9 +3,6 @@ using FlightEvents.Client.ATC;
 using FlightEvents.Client.Logics;
 using FlightEvents.Client.SimConnectFSX;
 using FlightEvents.Client.ViewModels;
-using Microsoft.AppCenter;
-using Microsoft.AppCenter.Analytics;
-using Microsoft.AppCenter.Crashes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -68,9 +65,6 @@ namespace FlightEvents.Client
             // HACK: workaround for issue in WPF https://github.com/dotnet/wpf/issues/5375
             SetProcessDPIAware();
 
-#if !DEBUG
-            AppCenter.Start("6a75536f-3bd1-446c-b707-c31aabe3fb6f", typeof(Analytics), typeof(Crashes));
-#endif
             try
             {
                 var builder = new ConfigurationBuilder()
