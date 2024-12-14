@@ -139,14 +139,15 @@ namespace FlightEvents.Client.Logics
                             {
                                 try
                                 {
-                                    var dataString = await httpClient.GetStringAsync($"https://www.airport-data.com/api/ap_info.json?icao={icao}");
+                                    var dataString = await httpClient.GetStringAsync($"https://airport-data.com/api/ap_info.json?icao={icao}");
                                     var result = JsonConvert.DeserializeObject<AirportDataResult>(dataString);
                                     cachedAirports.TryAdd(icao, result);
                                     country = result.country;
                                 }
                                 catch (Exception ex)
                                 {
-                                    logger.LogError(ex, $"Cannot get airport information of {icao}!");
+                                    logger.LogError(ex, "Cannot get airport information of {icao}!", icao);
+                                    // TODO: improve error handling so there is some exponential backoff for this query
                                 }
                             }
                         }
