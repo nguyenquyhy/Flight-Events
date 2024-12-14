@@ -434,61 +434,63 @@ export default class LeafletMap implements IMap {
             for (var flightPlan of flightPlans) {
                 let latlngArray: L.LatLngTuple[] = [];
 
-                for (let i = 0; i < flightPlan.waypoints.length; i++) {
-                    const waypoint = flightPlan.waypoints[i];
-                    const latlng: L.LatLngTuple = [waypoint.latitude, waypoint.longitude];
+                if (flightPlan.waypoints) {
+                    for (let i = 0; i < flightPlan.waypoints.length; i++) {
+                        const waypoint = flightPlan.waypoints[i];
+                        const latlng: L.LatLngTuple = [waypoint.latitude, waypoint.longitude];
 
-                    if (i === 0 || 180 > Math.abs(waypoint.longitude - flightPlan.waypoints[i - 1].longitude)) {
-                        latlngArray.push(latlng);
-                    }
-                    else {
-                        // If the path take more than half the earth, draw the other half
-                        over180Line = true;
+                        if (i === 0 || 180 > Math.abs(waypoint.longitude - flightPlan.waypoints[i - 1].longitude)) {
+                            latlngArray.push(latlng);
+                        }
+                        else {
+                            // If the path take more than half the earth, draw the other half
+                            over180Line = true;
 
-                        const prevWaypoint = flightPlan.waypoints[i - 1];
+                            const prevWaypoint = flightPlan.waypoints[i - 1];
 
-                        let distance180 = 180 - prevWaypoint.longitude;
-                        let differenceLng = (360 - prevWaypoint.longitude) + waypoint.longitude;
-                        let line180 = 180;
-                        if (prevWaypoint.longitude < 0) {
-                            distance180 = -180 - prevWaypoint.longitude;
-                            differenceLng = (-360 - prevWaypoint.longitude) + waypoint.longitude;
-                            line180 = -180;
+                            let distance180 = 180 - prevWaypoint.longitude;
+                            let differenceLng = (360 - prevWaypoint.longitude) + waypoint.longitude;
+                            let line180 = 180;
+                            if (prevWaypoint.longitude < 0) {
+                                distance180 = -180 - prevWaypoint.longitude;
+                                differenceLng = (-360 - prevWaypoint.longitude) + waypoint.longitude;
+                                line180 = -180;
+                            }
+
+                            const differenceLat = ((waypoint.latitude + 90) - (prevWaypoint.latitude + 90)) / differenceLng;
+
+                            latlngArray.push([prevWaypoint.latitude + differenceLat * distance180, line180]);
+
+                            // Break new line
+                            const polyline = L.polyline(latlngArray, { color: colors[(index % colors.length)] });
+                            this.flightPlanLayerGroup.addLayer(polyline);
+
+                            latlngArray = [
+                                [prevWaypoint.latitude + differenceLat * distance180, -line180],
+                                latlng
+                            ];
                         }
 
-                        const differenceLat = ((waypoint.latitude + 90) - (prevWaypoint.latitude + 90)) / differenceLng;
-
-                        latlngArray.push([prevWaypoint.latitude + differenceLat * distance180, line180]);
-
-                        // Break new line
-                        const polyline = L.polyline(latlngArray, { color: colors[(index % colors.length)] });
-                        this.flightPlanLayerGroup.addLayer(polyline);
-
-                        latlngArray = [
-                            [prevWaypoint.latitude + differenceLat * distance180, -line180],
-                            latlng
-                        ];
+                        if (i === flightPlan.waypoints.length - 1) {
+                            // Last item
+                            const polyline = L.polyline(latlngArray, { color: colors[(index % colors.length)] });
+                            this.flightPlanLayerGroup.addLayer(polyline);
+                        }
                     }
+                    index++;
+                    for (let waypoint of flightPlan.waypoints) {
+                        const marker = L.marker([waypoint.latitude, waypoint.longitude], {
+                            title: waypoint.id,
+                            icon: L.divIcon({
+                                className: 'divicon-waypoint',
+                                html: !!waypoint.id ? `<div style="width: 8px; height: 8px; background-color: black; border-radius: 4px"></div><div>${waypoint.id}</div>` : '',
+                                iconSize: [8, 8],
+                                iconAnchor: [4, 4],
+                            })
 
-                    if (i === flightPlan.waypoints.length - 1) {
-                        // Last item
-                        const polyline = L.polyline(latlngArray, { color: colors[(index % colors.length)] });
-                        this.flightPlanLayerGroup.addLayer(polyline);
+                        });
+                        this.flightPlanLayerGroup.addLayer(marker);
                     }
-                }
-                index++;
-                for (let waypoint of flightPlan.waypoints) {
-                    const marker = L.marker([waypoint.latitude, waypoint.longitude], {
-                        title: waypoint.id,
-                        icon: L.divIcon({
-                            className: 'divicon-waypoint',
-                            html: !!waypoint.id ? `<div style="width: 8px; height: 8px; background-color: black; border-radius: 4px"></div><div>${waypoint.id}</div>` : '',
-                            iconSize: [8, 8],
-                            iconAnchor: [4, 4],
-                        })
-
-                    });
-                    this.flightPlanLayerGroup.addLayer(marker);
                 }
             }
 

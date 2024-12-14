@@ -518,40 +518,43 @@ export default class MaptalksMap implements IMap {
             const colors = ['red', 'blue'];
 
             for (let flightPlan of flightPlans) {
-                const latlngs = flightPlan.waypoints.reduce((prev: Coordinate[], curr) =>
-                    prev.concat(new maptalks.Coordinate([curr.longitude, curr.latitude])),
-                    [])
+                const waypoints = flightPlan.waypoints;
+                if (waypoints) {
+                    const latlngs = waypoints.reduce((prev: Coordinate[], curr) =>
+                        prev.concat(new maptalks.Coordinate([curr.longitude, curr.latitude])),
+                        [])
 
-                const altitudes = flightPlan.waypoints.reduce((prev: number[], curr, index) =>
-                    prev.concat(MaptalksMap.FEET_TO_METER *
-                        (curr.altitude ||
-                            (index === 0 || index === flightPlan.waypoints.length - 1 ? 0 : flightPlan.cruisingAltitude))),
-                    [])
+                    const altitudes = waypoints.reduce((prev: number[], curr, index) =>
+                        prev.concat(MaptalksMap.FEET_TO_METER *
+                            (curr.altitude ||
+                                (index === 0 || index === waypoints.length - 1 ? 0 : flightPlan.cruisingAltitude))),
+                        [])
 
-                new maptalks.LineString(latlngs, {
-                    symbol: {
-                        lineColor: colors[(index++ % colors.length)],
-                        lineWidth: 3
-                    },
-                    properties: {
-                        altitude: altitudes
-                    }
-                }).addTo(this.flightPlanLayer);
-
-                for (let i = 0; i < flightPlan.waypoints.length; i++) {
-                    const waypoint = flightPlan.waypoints[i];
-                    new maptalks.Marker(new maptalks.Coordinate([waypoint.longitude, waypoint.latitude]), {
-                        properties: {
-                            name: waypoint.id,
-                            altitude: altitudes[i],
-                        },
+                    new maptalks.LineString(latlngs, {
                         symbol: {
-                            textFaceName: 'Lucida Console',
-                            textName: '{name}',
-                            textWeight: 'bold',
-                            textDy: -15,
+                            lineColor: colors[(index++ % colors.length)],
+                            lineWidth: 3
+                        },
+                        properties: {
+                            altitude: altitudes
                         }
                     }).addTo(this.flightPlanLayer);
+
+                    for (let i = 0; i < waypoints.length; i++) {
+                        const waypoint = waypoints[i];
+                        new maptalks.Marker(new maptalks.Coordinate([waypoint.longitude, waypoint.latitude]), {
+                            properties: {
+                                name: waypoint.id,
+                                altitude: altitudes[i],
+                            },
+                            symbol: {
+                                textFaceName: 'Lucida Console',
+                                textName: '{name}',
+                                textWeight: 'bold',
+                                textDy: -15,
+                            }
+                        }).addTo(this.flightPlanLayer);
+                    }
                 }
             }
         }

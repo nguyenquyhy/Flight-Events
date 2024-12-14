@@ -99,15 +99,15 @@ export interface FlightPlanData {
     description: string
     cruisingAltitude: number
     type: "IFR" | "VFR"
-    routeType: string
+    routeType: string | null
     departure: FlightPlanPosition
     destination: FlightPlanPosition
-    waypoints: FlightPlanWaypoint[]
+    waypoints: FlightPlanWaypoint[] | null
 }
 
 export interface FlightPlanPosition {
     id: string
-    name: string
+    name: string | null
     latitude: number
     longitude: number
     altitude?: number
