@@ -35,7 +35,7 @@ jobs:
       - name: Publish with dotnet
         run: dotnet publish --configuration Release --output publish-web FlightEvents.Web
       - name: Collect artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Website package
           path: publish-web
@@ -55,12 +55,12 @@ jobs:
           copy FlightEvents.Client/README.txt publish-client/README.txt
           dir publish-client
       - name: Collect build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: FlightEvents.Client
           path: publish-client
       - name: Collect version artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: versions.json
           path: FlightEvents.Client/versions.json
@@ -72,12 +72,12 @@ jobs:
     if: "contains(github.event.head_commit.message, '/publish')"
     steps:
       - name: Download build artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: FlightEvents.Client
           path: publish-client/
       - name: Download version artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: versions.json
           path: .
